@@ -7,9 +7,14 @@
   Purpose: AASd main project starting file.
 """
 
+import sys
+
+from server.daemon import AASd
 
 if __name__ == "__main__":
-    pass
+    server = AASd()
+    server.run()
+    sys.exit(0)
 
 
 # #[EOF]#######################################################################
