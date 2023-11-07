@@ -9,60 +9,26 @@
 from inspect import currentframe
 from typing import Dict, Optional
 
-from jsktoolbox.attribtool import NoDynamicAttributes
+from jsktoolbox.attribtool import NoDynamicAttributes, ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from .base.classes import BLogs
 
 
-class _Keys(NoDynamicAttributes):
+class _Keys(object, metaclass=ReadOnlyClass):
     """Private Keys definition class.
 
     For internal purpose only.
     """
 
-    @classmethod
-    @property
-    def DEBUG(cls) -> str:
-        """Return DEBUG Key."""
-        return "__DEBUG__"
-
-    @classmethod
-    @property
-    def FCONF(cls) -> str:
-        """Return FCONF Key."""
-        return "__FCONF__"
-
-    @classmethod
-    @property
-    def MAIN(cls) -> str:
-        """Return MAIN Key."""
-        return "__MAIN__"
-
-    @classmethod
-    @property
-    def NAME(cls) -> str:
-        """Return NAME Key."""
-        return "__NAME__"
-
-    @classmethod
-    @property
-    def MODULES(cls) -> str:
-        """Return MODULES Key."""
-        return "__MODULES__"
-
-    @classmethod
-    @property
-    def VERSION(cls) -> str:
-        """Return VERSION Key."""
-        return "__VERSION__"
-
-    @classmethod
-    @property
-    def VERBOSE(cls) -> str:
-        """Return VERBOSE Key."""
-        return "__VERBOSE__"
+    DEBUG = "__DEBUG__"
+    FCONF = "__FCONF__"
+    MAIN = "__MAIN__"
+    NAME = "__NAME__"
+    MODULES = "__MODULES__"
+    VERSION = "__VERSION__"
+    VERBOSE = "__VERBOSE__"
 
 
 class Config(BLogs):
