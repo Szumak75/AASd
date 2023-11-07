@@ -28,11 +28,12 @@ from jsktoolbox.logstool.logs import ThLoggerProcessor
 from jsktoolbox.logstool.formatters import LogFormatterDateTime
 from jsktoolbox.libs.system import CommandLineParser
 
-from libs.base.classes import BClasses
+from libs.base.classes import BProjectClass
 from libs.keys import Keys
+from libs.conf import Config
 
 
-class AASd(BClasses):
+class AASd(BProjectClass):
     """AASd - Autonomous Administrative System daemon."""
 
     def __init__(self) -> None:
@@ -45,33 +46,9 @@ class AASd(BClasses):
 
         # logger engines configuration
         lengine = LoggerEngine()
-        lengine.add_engine(
-            LogsLevelKeys.INFO,
-            LoggerEngineStdout(
-                name=self.c_name, formatter=LogFormatterDateTime()
-            ),
-        )
-        lengine.add_engine(
-            LogsLevelKeys.NOTICE,
-            LoggerEngineStdout(
-                name=f"{self.c_name}->NOTICE",
-                formatter=LogFormatterDateTime(),
-            ),
-        )
-        lengine.add_engine(
-            LogsLevelKeys.WARNING,
-            LoggerEngineStdout(
-                name=f"{self.c_name}->WARNING",
-                formatter=LogFormatterDateTime(),
-            ),
-        )
-        lengine.add_engine(
-            LogsLevelKeys.DEBUG,
-            LoggerEngineStdout(
-                name=f"{self.c_name}->DEBUG",
-                formatter=LogFormatterDateTime(),
-            ),
-        )
+
+        # logger levels
+        self.__init_log_levels(lengine)
 
         # logger client
         self.logs = LoggerClient()
@@ -82,6 +59,21 @@ class AASd(BClasses):
         thl.logger_engine = lengine
         thl.logger_client = self.logs
         self.logs_processor = thl
+
+        # add config handler
+        self.conf = Config(queue=lengine.logs_queue, app_name=self.c_name)
+        self.conf.version = "1.0.0"
+        self.conf.debug = False
+        self.conf.config_file = (
+            "/tmp/aasd.conf"
+            if self.conf.version == "1.0.0"
+            else "/etc/aasd.conf"
+        )
+
+        # command line parser
+        self.__init_command_line()
+
+        # config file
 
         # signal handling
         signal.signal(signal.SIGTERM, self.__sig_exit)
@@ -109,9 +101,106 @@ class AASd(BClasses):
             time.sleep(0.1)
         sys.exit(0)
 
+    def __help(self):
+        """Show help information and shutdown."""
+        print("help")
+        sys.exit(2)
+
+    def __init_command_line(self) -> None:
+        """Configure ConnamdLineParser and update config."""
+        parser = CommandLineParser()
+
+        # arguments configuration
+        parser.configure_argument("h", "help", "this information")
+        parser.configure_argument("v", "verbose", "verbose logging level")
+        parser.configure_argument("d", "debug", "debug logging level")
+        parser.configure_argument(
+            "f", "file", "path to configuration file", has_value=True
+        )
+
+        # command line parsing
+        parser.parse_arguments()
+
+        # checking
+        if parser.get_option("help") is not None:
+            self.__help()
+        if parser.get_option("debug") is not None:
+            self.conf.debug = True
+        if parser.get_option("verbose") is not None:
+            self.conf.verbose = True
+        if parser.get_option("file=") is not None:
+            self.conf.config_file = parser.get_option("file=")
+
+    def __init_log_levels(self, engine: LoggerEngine) -> None:
+        """Set logging levels configuration for LoggerEngine."""
+        # ALERT
+        engine.add_engine(
+            LogsLevelKeys.ALERT,
+            LoggerEngineStdout(
+                name=f"{self.c_name}->ALERT",
+                formatter=LogFormatterDateTime(),
+            ),
+        )
+        # DEBUG
+        engine.add_engine(
+            LogsLevelKeys.DEBUG,
+            LoggerEngineStdout(
+                name=f"{self.c_name}->DEBUG",
+                formatter=LogFormatterDateTime(),
+            ),
+        )
+        # ERROR
+        engine.add_engine(
+            LogsLevelKeys.ERROR,
+            LoggerEngineStdout(
+                name=f"{self.c_name}->ERROR",
+                formatter=LogFormatterDateTime(),
+            ),
+        )
+        # NOTICE
+        engine.add_engine(
+            LogsLevelKeys.NOTICE,
+            LoggerEngineStdout(
+                name=f"{self.c_name}->NOTICE",
+                formatter=LogFormatterDateTime(),
+            ),
+        )
+        # CRITICAL
+        engine.add_engine(
+            LogsLevelKeys.CRITICAL,
+            LoggerEngineStdout(
+                name=f"{self.c_name}->CRITICAL",
+                formatter=LogFormatterDateTime(),
+            ),
+        )
+        # EMERGENCY
+        engine.add_engine(
+            LogsLevelKeys.EMERGENCY,
+            LoggerEngineStdout(
+                name=f"{self.c_name}->EMERGENCY",
+                formatter=LogFormatterDateTime(),
+            ),
+        )
+        # INFO
+        engine.add_engine(
+            LogsLevelKeys.INFO,
+            LoggerEngineStdout(
+                name=self.c_name, formatter=LogFormatterDateTime()
+            ),
+        )
+        # WARNING
+        engine.add_engine(
+            LogsLevelKeys.WARNING,
+            LoggerEngineStdout(
+                name=f"{self.c_name}->WARNING",
+                formatter=LogFormatterDateTime(),
+            ),
+        )
+
     def __sig_exit(self, signum: int, frame):
         """Received TERM|INT signal."""
-        self.logs.message_debug = self._data
+        if self.conf.debug:
+            self.logs.message_debug = self._data
         self.loop = False
 
     def __sig_hup(self, signum: int, frame):

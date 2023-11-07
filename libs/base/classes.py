@@ -32,6 +32,10 @@ class BClasses(BData, NoDynamicAttributes):
         method_name = frame.f_code.co_name
         return method_name
 
+
+class BLogs(BClasses):
+    """Base class for LoggerClient property."""
+
     @property
     def logs(self) -> Optional[LoggerClient]:
         """Return LoggerClient object or None."""
@@ -50,6 +54,44 @@ class BClasses(BData, NoDynamicAttributes):
                 currentframe(),
             )
         self._data[Keys.CLOG] = logs
+
+
+class BConfig(BClasses):
+    """Base class for Config property."""
+
+    from libs.conf import Config
+
+    @property
+    def conf(self) -> Optional[Config]:
+        """Return Config class object."""
+        if Keys.CONF not in self._data:
+            self._data[Keys.CONF] = None
+        return self._data[Keys.CONF]
+
+    @conf.setter
+    def conf(self, conf_obj: Config) -> None:
+        """Set Config class object."""
+        from libs.conf import Config
+
+        if not isinstance(conf_obj, Config):
+            raise Raise.error(
+                f"Config class object expected, '{type(conf_obj)}' received.",
+                TypeError,
+                self.c_name,
+                currentframe(),
+            )
+        self._data[Keys.CONF] = conf_obj
+
+
+class BProjectClass(BLogs, BConfig):
+    """Base Project class.
+
+    Propertys:
+    - c_name: str
+    - f_name: str
+    - conf: Optional[Config]
+    - logs: Optional[LoggerClient]
+    """
 
 
 # #[EOF]#######################################################################

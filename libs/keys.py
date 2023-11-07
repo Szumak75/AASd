@@ -23,9 +23,15 @@ class Keys(NoDynamicAttributes):
 
     @classmethod
     @property
+    def CONF(cls) -> str:
+        """Return CONF Key."""
+        return "__configuration_object__"
+
+    @classmethod
+    @property
     def HUP(cls) -> str:
         """Return HUP Key."""
-        return "__HUP__"
+        return "__hup_variable__"
 
     @classmethod
     @property

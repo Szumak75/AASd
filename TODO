@@ -1,0 +1,8 @@
+[ThLoggerProcessor]
+add debug flag to constructor for logging level
+
+[CommandLineParser]
+add method to dumping configuration for generating help
+
+[JskToolBox]
+private _Keys classes where appropriate
