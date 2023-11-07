@@ -11,7 +11,7 @@ import sys
 import time
 
 from inspect import currentframe
-
+from typing import Dict
 
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.logstool.logs import (
@@ -104,9 +104,54 @@ class AASd(BProjectClass):
             time.sleep(0.1)
         sys.exit(0)
 
-    def __help(self):
+    def __help(self, command_conf: Dict) -> None:
         """Show help information and shutdown."""
-        print("help")
+        print(f"[{self.c_name}.{self.f_name}] {command_conf}")
+        command_opts = ""
+        desc_opts = []
+        max_len = 0
+        opt_value = []
+        opt_novalue = []
+        # stage 1
+        for item in command_conf.keys():
+            if max_len < len(item):
+                max_len = len(item)
+            if command_conf[item]["has_value"]:
+                opt_value.append(item)
+            else:
+                opt_novalue.append(item)
+        max_len += 7
+        # stage 2
+        for item in sorted(opt_novalue):
+            tmp = ""
+            if command_conf[item]["short"]:
+                tmp = f"-{command_conf[item]['short']}|--{item} "
+            else:
+                tmp = f"--{item}    "
+            desc_opts.append(
+                f" {tmp:<{max_len}}- {command_conf[item]['description']}"
+            )
+            command_opts += tmp
+        # stage 3
+        for item in sorted(opt_value):
+            tmp = ""
+            if command_conf[item]["short"]:
+                tmp = f"-{command_conf[item]['short']}|--{item}"
+            else:
+                tmp = f"--{item}   "
+            desc_opts.append(
+                f" {tmp:<{max_len}}- {command_conf[item]['description']}"
+            )
+            command_opts += tmp
+            if command_conf[item]["example"]:
+                command_opts += f"{command_conf[item]['example']}"
+            command_opts += " "
+        print("###[HELP]###")
+        print(f"{sys.argv[0]} {command_opts}")
+        print(f"")
+        print("# Arguments:")
+        for item in desc_opts:
+            print(item)
         sys.exit(2)
 
     def __init_command_line(self) -> None:
@@ -118,7 +163,11 @@ class AASd(BProjectClass):
         parser.configure_argument("v", "verbose", "verbose logging level")
         parser.configure_argument("d", "debug", "debug logging level")
         parser.configure_argument(
-            "f", "file", "path to configuration file", has_value=True
+            "f",
+            "file",
+            "path to configuration file",
+            has_value=True,
+            example_value=self.conf.config_file,
         )
 
         # command line parsing
@@ -126,7 +175,7 @@ class AASd(BProjectClass):
 
         # checking
         if parser.get_option("help") is not None:
-            self.__help()
+            self.__help(parser.dump())
         if parser.get_option("debug") is not None:
             self.conf.debug = True
         if parser.get_option("verbose") is not None:
