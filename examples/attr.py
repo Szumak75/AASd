@@ -1,7 +1,9 @@
-from jsktoolbox.attribtool import NoDynamicAttributes
+class ReadOnlyClass(type):
+    def __setattr__(self, name, value):
+        raise ValueError(name)
 
 
-class Keys(NoDynamicAttributes):
+class Keys(object, metaclass=ReadOnlyClass):
     """Keys definition class.
 
     For internal purpose only.
@@ -17,9 +19,9 @@ print(example)
 
 # Nie można zmienić wartości właściwości
 
-try:
-    Keys.BUFFERED = 1
-except AttributeError as e:
-    print(e)
-
+Keys.BUFFERED = 1
 print(Keys.BUFFERED)
+
+a = Keys()
+print(a.BUFFERED)
+a.BUFFERED = 7
