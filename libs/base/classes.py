@@ -13,6 +13,7 @@ from jsktoolbox.attribtool import NoDynamicAttributes
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.libs.base_data import BData
 from jsktoolbox.logstool.logs import LoggerClient
+from jsktoolbox.configtool.main import Config as ConfigTool
 
 from libs.keys import Keys
 
@@ -31,6 +32,46 @@ class BClasses(BData, NoDynamicAttributes):
         frame = currentframe().f_back
         method_name = frame.f_code.co_name
         return method_name
+
+
+class BModuleConfig(BClasses):
+    """Base class for module config classes."""
+
+    def __init__(self, cfh: ConfigTool, section: str) -> None:
+        """Constructor."""
+        self._cfh = cfh
+        self._section = section
+
+    @property
+    def _cfh(self) -> Optional[ConfigTool]:
+        """Return config handler object."""
+        if Keys.CFH not in self._data:
+            self._data[Keys.CFH] = None
+        return self._data[Keys.CFH]
+
+    @_cfh.setter
+    def _cfh(self, config_handler: ConfigTool) -> None:
+        """Set config handler."""
+        if not isinstance(config_handler, ConfigTool):
+            raise Raise.error(
+                f"ConfigTool type expected, '{type(config_handler)}' received.",
+                TypeError,
+                self.c_name,
+                currentframe(),
+            )
+        self._data[Keys.CFH] = config_handler
+
+    @property
+    def _section(self) -> Optional[str]:
+        """Return section name."""
+        if Keys.SECTION not in self._data:
+            self._data[Keys.SECTION] = None
+        return self._data[Keys.SECTION]
+
+    @_section.setter
+    def _section(self, section_name: str) -> None:
+        """Set section name."""
+        self._data[Keys.SECTION] = section_name
 
 
 class BLogs(BClasses):

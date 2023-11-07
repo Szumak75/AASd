@@ -15,11 +15,13 @@ class Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
+    CFH = "__config_handler__"
     CLOG = "__clog__"
     CONF = "__configuration_object__"
     HUP = "__hup_variable__"
     LOOP = "__loop__"
     PROC_LOGS = "__proc_logs__"
+    SECTION = "__section_name__"
 
 
 # #[EOF]#######################################################################

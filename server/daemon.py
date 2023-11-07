@@ -74,6 +74,11 @@ class AASd(BProjectClass):
         self.__init_command_line()
 
         # config file
+        if not self.conf.load():
+            self.loop = False
+
+        # test działa!
+        print(self.conf.module_conf.c_name)
 
         # update debug
         thl._debug = self.conf.debug
