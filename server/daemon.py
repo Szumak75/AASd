@@ -75,6 +75,9 @@ class AASd(BProjectClass):
 
         # config file
 
+        # update debug
+        thl._debug = self.conf.debug
+
         # signal handling
         signal.signal(signal.SIGTERM, self.__sig_exit)
         signal.signal(signal.SIGHUP, self.__sig_hup)
@@ -200,11 +203,14 @@ class AASd(BProjectClass):
     def __sig_exit(self, signum: int, frame):
         """Received TERM|INT signal."""
         if self.conf.debug:
+            self.logs.message_debug = "TERM or INT signal received."
             self.logs.message_debug = self._data
         self.loop = False
 
     def __sig_hup(self, signum: int, frame):
         """Received HUP signal."""
+        if self.conf.debug:
+            self.logs.message_debug = "HUP signal received."
         self.hup = True
 
     @property
