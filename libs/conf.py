@@ -64,10 +64,10 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
 class Config(BLogs):
     """Configuration containet class."""
 
-    def __init__(self, queue: LoggerQueue, app_name: str) -> None:
+    def __init__(self, qlogs: LoggerQueue, app_name: str) -> None:
         """Constructor."""
         # class logger client
-        self.logs = LoggerClient(queue=queue, name=self.c_name)
+        self.logs = LoggerClient(queue=qlogs, name=self.c_name)
 
         self.logs.message_info = "Config initialization..."
         # initialization data structure

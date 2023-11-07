@@ -8,6 +8,7 @@
 
 from inspect import currentframe
 from typing import Optional
+from queue import Queue, SimpleQueue
 
 from jsktoolbox.attribtool import NoDynamicAttributes
 from jsktoolbox.raisetool import Raise
@@ -34,13 +35,8 @@ class BClasses(BData, NoDynamicAttributes):
         return method_name
 
 
-class BModuleConfig(BClasses):
-    """Base class for module config classes."""
-
-    def __init__(self, cfh: ConfigTool, section: str) -> None:
-        """Constructor."""
-        self._cfh = cfh
-        self._section = section
+class BConfigHandler(BClasses):
+    """Base class for Config handler."""
 
     @property
     def _cfh(self) -> Optional[ConfigTool]:
@@ -61,6 +57,10 @@ class BModuleConfig(BClasses):
             )
         self._data[Keys.CFH] = config_handler
 
+
+class BConfigSection(BClasses):
+    """Base class for Config handler."""
+
     @property
     def _section(self) -> Optional[str]:
         """Return section name."""
@@ -72,6 +72,15 @@ class BModuleConfig(BClasses):
     def _section(self, section_name: str) -> None:
         """Set section name."""
         self._data[Keys.SECTION] = section_name
+
+
+class BModuleConfig(BConfigHandler, BConfigSection):
+    """Base class for module config classes."""
+
+    def __init__(self, cfh: ConfigTool, section: str) -> None:
+        """Constructor."""
+        self._cfh = cfh
+        self._section = section
 
 
 class BLogs(BClasses):
@@ -95,6 +104,29 @@ class BLogs(BClasses):
                 currentframe(),
             )
         self._data[Keys.CLOG] = logs
+
+
+class BCom(BClasses):
+    """Base class for communication queue."""
+
+    @property
+    def qcom(self) -> Optional[Queue]:
+        """Return Queue object or None."""
+        if Keys.QCOM not in self._data:
+            self._data[Keys.QCOM] = None
+        return self._data[Keys.QCOM]
+
+    @qcom.setter
+    def qcom(self, queue: Queue) -> None:
+        """Set communication queue."""
+        if not isinstance(queue, Queue):
+            raise Raise.error(
+                f"Queue type expected, '{type(logs)}' received.",
+                TypeError,
+                self.c_name,
+                currentframe(),
+            )
+        self._data[Keys.QCOM] = queue
 
 
 class BConfig(BClasses):
@@ -132,6 +164,19 @@ class BProjectClass(BLogs, BConfig):
     - f_name: str
     - conf: Optional[Config]
     - logs: Optional[LoggerClient]
+    """
+
+
+class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
+    """Base class for module classes.
+
+    Propertys:
+    - c_name: str
+    - f_name: str
+    - _cfh: ConfigTool
+    - _section: str
+    - logs: LoggerClient
+    - qcom: Queue
     """
 
 

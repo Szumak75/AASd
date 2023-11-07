@@ -21,6 +21,7 @@ class Keys(object, metaclass=ReadOnlyClass):
     HUP = "__hup_variable__"
     LOOP = "__loop__"
     PROC_LOGS = "__proc_logs__"
+    QCOM = "__coms_queue__"
     SECTION = "__section_name__"
 
 

@@ -61,7 +61,7 @@ class AASd(BProjectClass):
         self.logs_processor = thl
 
         # add config handler
-        self.conf = Config(queue=lengine.logs_queue, app_name=self.c_name)
+        self.conf = Config(qlogs=lengine.logs_queue, app_name=self.c_name)
         self.conf.version = "1.0.0"
         self.conf.debug = False
         self.conf.config_file = (
