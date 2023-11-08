@@ -71,7 +71,7 @@ class BConfigSection(BClasses):
     @_section.setter
     def _section(self, section_name: str) -> None:
         """Set section name."""
-        self._data[Keys.SECTION] = section_name
+        self._data[Keys.SECTION] = str(section_name).lower()
 
 
 class BModuleConfig(BConfigHandler, BConfigSection):
@@ -178,6 +178,40 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
     - logs: LoggerClient
     - qcom: Queue
     """
+
+    @property
+    def _debug(self) -> bool:
+        """Return debug flag."""
+        if Keys.DEBUG not in self._data:
+            self._data[Keys.DEBUG] = False
+        if self._cfh and self._cfh.get(self._section, "debug") is not None:
+            return (
+                self._cfh.get(self._section, "debug")
+                or self._data[Keys.DEBUG]
+            )
+        return self._data[Keys.DEBUG]
+
+    @_debug.setter
+    def _debug(self, debug: bool) -> None:
+        """Set debug flag."""
+        self._data[Keys.DEBUG] = debug
+
+    @property
+    def _verbose(self) -> bool:
+        """Return verbose flag."""
+        if Keys.VERBOSE not in self._data:
+            self._data[Keys.VERBOSE] = False
+        if self._cfh and self._cfh.get(self._section, "verbose") is not None:
+            return (
+                self._cfh.get(self._section, "verbose")
+                or self._data[Keys.VERBOSE]
+            )
+        return self._data[Keys.VERBOSE]
+
+    @_verbose.setter
+    def _verbose(self, verbose: bool) -> None:
+        """Set verbose flag."""
+        self._data[Keys.VERBOSE] = verbose
 
 
 # #[EOF]#######################################################################

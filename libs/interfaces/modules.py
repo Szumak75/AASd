@@ -13,9 +13,35 @@ from typing import Any
 class IRunModule(ABC):
     """Run Module Interface class."""
 
+    @abstractmethod
+    def run(self) -> None:
+        """Main loop."""
+
+    @abstractmethod
+    def stop(self) -> None:
+        """Set stop event."""
+
+    @property
+    @abstractmethod
+    def stopped(self) -> bool:
+        """Return stop flag."""
+
 
 class IComModule(ABC):
-    """Communikation Module Interface class."""
+    """Communication Module Interface class."""
+
+    @abstractmethod
+    def run(self) -> None:
+        """Main loop."""
+
+    @abstractmethod
+    def stop(self) -> None:
+        """Set stop event."""
+
+    @property
+    @abstractmethod
+    def stopped(self) -> bool:
+        """Return stop flag."""
 
 
 # #[EOF]#######################################################################

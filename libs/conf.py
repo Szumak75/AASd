@@ -14,7 +14,12 @@ from jsktoolbox.raisetool import Raise
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.stringtool.crypto import SimpleCrypto
-from .base.classes import BLogs, BModuleConfig
+from .base.classes import (
+    BLogs,
+    BConfigSection,
+    BConfigHandler,
+    BModuleConfig,
+)
 from .interfaces.conf import IModuleConfig
 
 
@@ -61,13 +66,13 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return self._get(_Keys.MC_SALT)
 
 
-class Config(BLogs):
+class Config(BLogs, BConfigHandler, BConfigSection):
     """Configuration containet class."""
 
-    def __init__(self, qlogs: LoggerQueue, app_name: str) -> None:
+    def __init__(self, qlog: LoggerQueue, app_name: str) -> None:
         """Constructor."""
         # class logger client
-        self.logs = LoggerClient(queue=qlogs, name=self.c_name)
+        self.logs = LoggerClient(queue=qlog, name=self.c_name)
 
         self.logs.message_info = "Config initialization..."
         # initialization data structure
@@ -75,7 +80,7 @@ class Config(BLogs):
         self._data[_Keys.MODULES] = {}
         self._data[_Keys.MODCONF] = None
         # configfile main section name
-        self.__name = app_name
+        self._section = app_name
         # config file handler
         self._data[_Keys.CF] = None
 
@@ -84,10 +89,10 @@ class Config(BLogs):
 
     def load(self) -> bool:
         """Try to load config file."""
-        if self.cf is None:
-            self.cf = ConfigTool(self.config_file, self.__name)
-            self._data[_Keys.MODCONF] = _ModuleConf(self.cf, self.__name)
-            if not self.cf.file_exists:
+        if self._cfh is None:
+            self._cfh = ConfigTool(self.config_file, self._section)
+            self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+            if not self._cfh.file_exists:
                 self.logs.message_warning = (
                     f"Config file '{self.config_file}' not exist."
                 )
@@ -99,7 +104,7 @@ class Config(BLogs):
                 self.logs.message_debug = (
                     f"Try to load config file: '{self.config_file}'..."
                 )
-            out = self.cf.load()
+            out = self._cfh.load()
             if out:
                 if self.debug:
                     self.logs.message_debug = (
@@ -118,24 +123,26 @@ class Config(BLogs):
 
     def reload(self) -> bool:
         """Try to reload config file."""
-        self.cf = None
+        self._cfh = None
         return self.load()
 
     def __create_config_file(self) -> bool:
         """Try to create config file."""
         # main section
-        self.cf.set(self.__name, desc=f"{self.__name} configuration file")
-        self.cf.set(self.__name, desc="[ communication modules ]:")
-        self.cf.set(self.__name, desc="[ running modules ]:")
-        self.cf.set(
-            self.__name,
+        self._cfh.set(
+            self._section, desc=f"{self._section} configuration file"
+        )
+        self._cfh.set(self._section, desc="[ communication modules ]:")
+        self._cfh.set(self._section, desc="[ running modules ]:")
+        self._cfh.set(
+            self._section,
             varname=_Keys.MC_MODULES,
             value=[],
             desc="list of modules to activate",
         )
-        self.cf.set(self.__name, varname=_Keys.MC_DEBUG, value=False)
-        self.cf.set(
-            self.__name,
+        self._cfh.set(self._section, varname=_Keys.MC_DEBUG, value=False)
+        self._cfh.set(
+            self._section,
             varname=_Keys.MC_SALT,
             value=SimpleCrypto.salt_generator(6),
             desc="salt for passwords encode/decode",
@@ -143,9 +150,11 @@ class Config(BLogs):
 
         # modules section
         # TODO: write modules and config generator
+        # comunication modules
+        # running modules
 
         try:
-            return self.cf.save()
+            return self._cfh.save()
         except Exception as ex:
             self.logs.message_critical = (
                 f"Cannot create config file: '{self.config_file}'."
@@ -157,21 +166,7 @@ class Config(BLogs):
     @property
     def cf(self) -> Optional[ConfigTool]:
         """Return config file handler."""
-        if _Keys.CF not in self._data:
-            self._data[_Keys.CF] = None
-        return self._data[_Keys.CF]
-
-    @cf.setter
-    def cf(self, cf: ConfigTool) -> None:
-        """Set config file handler."""
-        if not isinstance(cf, ConfigTool):
-            raise Raise.error(
-                f"ConfigTool type expected, '{type(cf)}' received.",
-                TypeError,
-                self.c_name,
-                currentframe(),
-            )
-        self._data[_Keys.CF] = cf
+        return self._cfh
 
     @property
     def __main(self) -> Dict:
@@ -182,25 +177,6 @@ class Config(BLogs):
     def __modules(self) -> Dict:
         """Return MODULES dict."""
         return self._data[_Keys.MODULES]
-
-    @property
-    def __name(self) -> str:
-        """Return app_name string."""
-        if _Keys.NAME not in self.__main:
-            self.__main[_Keys.NAME] = None
-        return self.__main[_Keys.NAME]
-
-    @__name.setter
-    def __name(self, value: str) -> None:
-        """Set app_name string."""
-        if not isinstance(value, str):
-            raise Raise.error(
-                f"String type expected, '{type(value)}' received.",
-                TypeError,
-                self.c_name,
-                currentframe(),
-            )
-        self.__main[_Keys.NAME] = value
 
     @property
     def config_file(self) -> Optional[str]:
@@ -226,8 +202,8 @@ class Config(BLogs):
         """Return debug flag."""
         if _Keys.DEBUG not in self.__main:
             self.__main[_Keys.DEBUG] = False
-        if self.cf:
-            if self.cf.get(self.__name, "debug"):
+        if self._cfh:
+            if self._cfh.get(self._section, "debug"):
                 return True
         return self.__main[_Keys.DEBUG]
 

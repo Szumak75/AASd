@@ -61,7 +61,7 @@ class AASd(BProjectClass):
         self.logs_processor = thl
 
         # add config handler
-        self.conf = Config(qlogs=lengine.logs_queue, app_name=self.c_name)
+        self.conf = Config(qlog=lengine.logs_queue, app_name=self.c_name)
         self.conf.version = "1.0.0"
         self.conf.debug = False
         self.conf.config_file = (
@@ -78,6 +78,7 @@ class AASd(BProjectClass):
             self.loop = False
 
         # test działa!
+        # odczytuje c_name prywatnej klasy pomocniczej konfiguratora
         print(self.conf.module_conf.c_name)
 
         # update debug
@@ -92,14 +93,21 @@ class AASd(BProjectClass):
     def run(self) -> None:
         """Start project."""
         self.logs.message_info = "Start main loop."
+
         # logger processor
         self.logs_processor.start()
+
+        # start communication modules
+
+        # start running modules
 
         # main loop
         while self.loop:
             time.sleep(0.5)
 
         self.logs.message_info = "Exit from main loop."
+
+        # stopping & joining running modules
 
         # logger processor
         self.logs_processor.stop()
