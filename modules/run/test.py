@@ -19,6 +19,7 @@ from libs.base.classes import BModule
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
+from libs.templates.modules import TemplateConfigItem
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -74,6 +75,38 @@ class MRTest(Thread, ThBaseObject, BModule, IRunModule):
     def stopped(self) -> bool:
         """Return stop flag."""
         return self._stop_event.is_set()
+
+    @classmethod
+    def template_module_name(cls) -> str:
+        """Return module name for configuration builder."""
+        return cls.__name__.lower()
+
+    @classmethod
+    def template_module_variables(cls) -> List:
+        """Return configuration variables template."""
+        out = []
+        # item format:
+        # TemplateConfigItem()
+        out.append(TemplateConfigItem(desc="Example configuration for test module."))
+        out.append(TemplateConfigItem(desc="This module is for testing purposes only."))
+        out.append(
+            TemplateConfigItem(
+                desc="It works by periodically sending messages to the logger."
+            )
+        )
+        out.append(TemplateConfigItem(desc="the module defines only one configuration"))
+        out.append(
+            TemplateConfigItem(
+                desc="variable: 'sleep_period' [float], which determines the length of "
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="the break between subsequent executions of the program's main loop"
+            )
+        )
+        out.append(TemplateConfigItem(varname="sleep_period", value=3.25))
+        return out
 
 
 # #[EOF]#######################################################################
