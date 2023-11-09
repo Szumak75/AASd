@@ -11,7 +11,7 @@ import sys
 import time
 
 from inspect import currentframe
-from typing import Dict
+from typing import Dict, List
 
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.logstool.logs import (
@@ -28,12 +28,13 @@ from jsktoolbox.logstool.logs import ThLoggerProcessor
 from jsktoolbox.logstool.formatters import LogFormatterDateTime
 from jsktoolbox.libs.system import CommandLineParser
 
-from libs.base.classes import BProjectClass
+from libs.base.classes import BProjectClass, BImporter
+from libs.interfaces.modules import IRunModule
 from libs.keys import Keys
 from libs.conf import Config
 
 
-class AASd(BProjectClass):
+class AASd(BProjectClass, BImporter):
     """AASd - Autonomous Administrative System daemon."""
 
     def __init__(self) -> None:
@@ -65,9 +66,7 @@ class AASd(BProjectClass):
         self.conf.version = "1.0.0"
         self.conf.debug = False
         self.conf.config_file = (
-            "/tmp/aasd.conf"
-            if self.conf.version == "1.0.0"
-            else "/etc/aasd.conf"
+            "/tmp/aasd.conf" if self.conf.version == "1.0.0" else "/etc/aasd.conf"
         )
 
         # command line parser
@@ -93,6 +92,15 @@ class AASd(BProjectClass):
     def run(self) -> None:
         """Start project."""
         self.logs.message_info = "Start main loop."
+
+        # test
+        for module_str in self.import_name_list("modules.run"):
+            self.logs.message_notice = module_str
+            try:
+                mod: IRunModule = self.import_module("modules.run", module_str)
+                self.logs.message_notice = str(mod.template_module_variables())
+            except Exception as ex:
+                self.logs.message_error = f"{ex}"
 
         # logger processor
         self.logs_processor.start()
@@ -141,9 +149,7 @@ class AASd(BProjectClass):
                 tmp = f"-{command_conf[item]['short']}|--{item} "
             else:
                 tmp = f"--{item}    "
-            desc_opts.append(
-                f" {tmp:<{max_len}}- {command_conf[item]['description']}"
-            )
+            desc_opts.append(f" {tmp:<{max_len}}- {command_conf[item]['description']}")
             command_opts += tmp
         # stage 3
         for item in sorted(opt_value):
@@ -152,9 +158,7 @@ class AASd(BProjectClass):
                 tmp = f"-{command_conf[item]['short']}|--{item}"
             else:
                 tmp = f"--{item}   "
-            desc_opts.append(
-                f" {tmp:<{max_len}}- {command_conf[item]['description']}"
-            )
+            desc_opts.append(f" {tmp:<{max_len}}- {command_conf[item]['description']}")
             command_opts += tmp
             if command_conf[item]["example"]:
                 command_opts += f"{command_conf[item]['example']}"
@@ -249,9 +253,7 @@ class AASd(BProjectClass):
         # INFO
         engine.add_engine(
             LogsLevelKeys.INFO,
-            LoggerEngineStdout(
-                name=self.c_name, formatter=LogFormatterDateTime()
-            ),
+            LoggerEngineStdout(name=self.c_name, formatter=LogFormatterDateTime()),
         )
         # WARNING
         engine.add_engine(

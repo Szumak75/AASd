@@ -35,6 +35,10 @@ class TemplateConfigItem(BClasses):
         if desc:
             self.desc = desc
 
+    def __repr__(self) -> str:
+        """Returns object as string representation."""
+        return f"{self.c_name}( varname='{self.varname if self.varname else ''}', value={self.value if self.value is  not None else ''}, desc='{self.desc if self.desc else ''}' )"
+
     @property
     def desc(self) -> Optional[str]:
         """Return description."""

@@ -6,8 +6,10 @@
   Purpose:
 """
 
+import os
+
 from inspect import currentframe
-from typing import Optional
+from typing import Optional, List
 from queue import Queue, SimpleQueue
 
 from jsktoolbox.attribtool import NoDynamicAttributes
@@ -81,6 +83,44 @@ class BModuleConfig(BConfigHandler, BConfigSection):
         """Constructor."""
         self._cfh = cfh
         self._section = section
+
+
+class BImporter(BClasses):
+    """Base class for modules importer."""
+
+    def import_name_list(self, package: str) -> List:
+        """Get modules list."""
+        out = []
+        if not isinstance(package, str):
+            raise Raise.error(
+                f"package name as string expected, '{type(package)}' received.",
+                TypeError,
+                self.c_name,
+                currentframe(),
+            )
+        dirname = os.path.join("./", *package.split("."))
+        with os.scandir(dirname) as itr:
+            for entry in itr:
+                if (
+                    entry.name.startswith("m")
+                    and entry.name.endswith("y")
+                    and entry.name.find(".py") > 0
+                ):
+                    out.append(entry.name[:-3])
+        return out
+
+    def import_module(self, package: str, name: str) -> Optional[object]:
+        """Try to import module.
+
+        Returns: imported module or None.
+        """
+        modulename = f"{package}.{name}"
+        name = f"{name[:2].upper()}{name[2:]}"
+        try:
+            module = __import__(modulename, globals(), locals(), [name])
+        except ImportError:
+            return None
+        return getattr(module, name)
 
 
 class BLogs(BClasses):
@@ -185,10 +225,7 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         if Keys.DEBUG not in self._data:
             self._data[Keys.DEBUG] = False
         if self._cfh and self._cfh.get(self._section, "debug") is not None:
-            return (
-                self._cfh.get(self._section, "debug")
-                or self._data[Keys.DEBUG]
-            )
+            return self._cfh.get(self._section, "debug") or self._data[Keys.DEBUG]
         return self._data[Keys.DEBUG]
 
     @_debug.setter
@@ -202,10 +239,7 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         if Keys.VERBOSE not in self._data:
             self._data[Keys.VERBOSE] = False
         if self._cfh and self._cfh.get(self._section, "verbose") is not None:
-            return (
-                self._cfh.get(self._section, "verbose")
-                or self._data[Keys.VERBOSE]
-            )
+            return self._cfh.get(self._section, "verbose") or self._data[Keys.VERBOSE]
         return self._data[Keys.VERBOSE]
 
     @_verbose.setter
