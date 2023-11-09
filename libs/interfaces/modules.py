@@ -26,6 +26,16 @@ class IRunModule(ABC):
     def stopped(self) -> bool:
         """Return stop flag."""
 
+    @classmethod
+    @abstractmethod
+    def template_module_name(cls) -> str:
+        """Return module name for configuration builder."""
+
+    @classmethod
+    @abstractmethod
+    def template_module_variables(cls) -> List:
+        """Return configuration variables template."""
+
 
 class IComModule(ABC):
     """Communication Module Interface class."""
@@ -42,6 +52,16 @@ class IComModule(ABC):
     @abstractmethod
     def stopped(self) -> bool:
         """Return stop flag."""
+
+    @classmethod
+    @abstractmethod
+    def template_module_name(cls) -> str:
+        """Return module name for configuration builder."""
+
+    @classmethod
+    @abstractmethod
+    def template_module_variables(cls) -> List:
+        """Return configuration variables template."""
 
 
 # #[EOF]#######################################################################

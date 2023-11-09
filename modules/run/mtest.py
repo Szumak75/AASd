@@ -14,12 +14,22 @@ from queue import Queue
 from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
+from jsktoolbox.attribtool import ReadOnlyClass
 
 from libs.base.classes import BModule
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
+
+
+class _Keys(object, metaclass=ReadOnlyClass):
+    """Private Keys definition class.
+
+    For internal purpose only.
+    """
+
+    SLEEP_PERIOD = "sleep_period"
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -29,8 +39,13 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         """Get variable from config."""
         return self._cfh.get(self._section, varname)
 
+    @property
+    def sleep_period(self) -> float:
+        """Return sleep_period var."""
+        return self._get(varname=_Keys.SLEEP_PERIOD)
 
-class MRTest(Thread, ThBaseObject, BModule, IRunModule):
+
+class MTest(Thread, ThBaseObject, BModule, IRunModule):
     """Test module."""
 
     def __init__(
@@ -87,14 +102,24 @@ class MRTest(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Example configuration for test module."))
-        out.append(TemplateConfigItem(desc="This module is for testing purposes only."))
+        out.append(
+            TemplateConfigItem(desc="Example configuration for test module.")
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="This module is for testing purposes only."
+            )
+        )
         out.append(
             TemplateConfigItem(
                 desc="It works by periodically sending messages to the logger."
             )
         )
-        out.append(TemplateConfigItem(desc="the module defines only one configuration"))
+        out.append(
+            TemplateConfigItem(
+                desc="the module defines only one configuration"
+            )
+        )
         out.append(
             TemplateConfigItem(
                 desc="variable: 'sleep_period' [float], which determines the length of "
@@ -105,7 +130,9 @@ class MRTest(Thread, ThBaseObject, BModule, IRunModule):
                 desc="the break between subsequent executions of the program's main loop"
             )
         )
-        out.append(TemplateConfigItem(varname="sleep_period", value=3.25))
+        out.append(
+            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=3.25)
+        )
         return out
 
 
