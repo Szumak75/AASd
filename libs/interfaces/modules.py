@@ -7,11 +7,16 @@
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, List
+from typing import Optional, Any, List
 
 
 class IRunModule(ABC):
     """Run Module Interface class."""
+
+    @property
+    @abstractmethod
+    def module_conf(self) -> Optional[Any]:
+        """Return module conf object."""
 
     @abstractmethod
     def run(self) -> None:
@@ -39,6 +44,11 @@ class IRunModule(ABC):
 
 class IComModule(ABC):
     """Communication Module Interface class."""
+
+    @property
+    @abstractmethod
+    def module_conf(self) -> Optional[Any]:
+        """Return module conf object."""
 
     @abstractmethod
     def run(self) -> None:

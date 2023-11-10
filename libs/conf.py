@@ -19,8 +19,11 @@ from .base.classes import (
     BConfigSection,
     BConfigHandler,
     BModuleConfig,
+    BImporter,
 )
 from .interfaces.conf import IModuleConfig
+from .interfaces.modules import IComModule, IRunModule
+from .templates.modules import TemplateConfigItem
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -66,7 +69,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return self._get(_Keys.MC_SALT)
 
 
-class Config(BLogs, BConfigHandler, BConfigSection):
+class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     """Configuration containet class."""
 
     def __init__(self, qlog: LoggerQueue, app_name: str) -> None:
@@ -76,8 +79,9 @@ class Config(BLogs, BConfigHandler, BConfigSection):
 
         self.logs.message_info = "Config initialization..."
         # initialization data structure
-        self._data[_Keys.MAIN] = {}
-        self._data[_Keys.MODULES] = {}
+        self._data[_Keys.MAIN] = dict()
+        self._data[_Keys.MODULES] = dict()
+        # self.module_conf
         self._data[_Keys.MODCONF] = None
         # configfile main section name
         self._section = app_name
@@ -105,6 +109,7 @@ class Config(BLogs, BConfigHandler, BConfigSection):
                     f"Try to load config file: '{self.config_file}'..."
                 )
             out = self._cfh.load()
+            # TODO: process config file
             if out:
                 if self.debug:
                     self.logs.message_debug = (
@@ -120,6 +125,16 @@ class Config(BLogs, BConfigHandler, BConfigSection):
 
     def save(self) -> bool:
         """Try to save config file."""
+        if self._cfh:
+            if self._cfh.save():
+                if self.debug:
+                    self.logs.message_debug = "Config file saved successful."
+                return True
+            else:
+                self.logs.message_critical = (
+                    f"Cannot save config file: '{self.config_file}'."
+                )
+        return False
 
     def reload(self) -> bool:
         """Try to reload config file."""
@@ -129,18 +144,34 @@ class Config(BLogs, BConfigHandler, BConfigSection):
     def __create_config_file(self) -> bool:
         """Try to create config file."""
         # main section
+        com_mods = list()
+        run_mods = list()
+        # set header file
         self._cfh.set(
             self._section, desc=f"{self._section} configuration file"
         )
+        # generate description for communication modules
         self._cfh.set(self._section, desc="[ communication modules ]:")
+        com_mods = self.import_name_list("modules.com")
+        for item in com_mods:
+            self._cfh.set(self._section, desc=f"{item}")
+        self._cfh.set(self._section, desc="##")
+        # generate description for running modules
         self._cfh.set(self._section, desc="[ running modules ]:")
+        run_mods = self.import_name_list("modules.run")
+        for item in run_mods:
+            self._cfh.set(self._section, desc=f"{item}")
+        self._cfh.set(self._section, desc="##")
+        # add configuration variable for list of modules
         self._cfh.set(
             self._section,
             varname=_Keys.MC_MODULES,
             value=[],
             desc="list of modules to activate",
         )
+        # add debug variable
         self._cfh.set(self._section, varname=_Keys.MC_DEBUG, value=False)
+        # add salt variable
         self._cfh.set(
             self._section,
             varname=_Keys.MC_SALT,
@@ -149,12 +180,51 @@ class Config(BLogs, BConfigHandler, BConfigSection):
         )
 
         # modules section
-        # TODO: write modules and config generator
         # comunication modules
+        if self.debug:
+            self.logs.message_debug = (
+                f"Found communication modules list: {com_mods}"
+            )
+        if com_mods:
+            for name in com_mods:
+                mod: IComModule = self.import_module("modules.com", name)
+                if mod:
+                    for item in mod.template_module_variables():
+                        tci: TemplateConfigItem = item
+                        self._cfh.set(
+                            name,
+                            varname=tci.varname,
+                            value=tci.value,
+                            desc=tci.desc,
+                        )
+                else:
+                    self.logs.message_error = (
+                        f"Cannot load module: modules.com.'{name}'"
+                    )
         # running modules
+        if self.debug:
+            self.logs.message_debug = (
+                f"Found running modules list: {run_mods}"
+            )
+            if run_mods:
+                for name in run_mods:
+                    mod: IComModule = self.import_module("modules.run", name)
+                    if mod:
+                        for item in mod.template_module_variables():
+                            tci: TemplateConfigItem = item
+                            self._cfh.set(
+                                name,
+                                varname=tci.varname,
+                                value=tci.value,
+                                desc=tci.desc,
+                            )
+                    else:
+                        self.logs.message_error = (
+                            f"Cannot load module: modules.run.'{name}'"
+                        )
 
         try:
-            return self._cfh.save()
+            return self.save()
         except Exception as ex:
             self.logs.message_critical = (
                 f"Cannot create config file: '{self.config_file}'."

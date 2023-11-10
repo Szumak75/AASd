@@ -29,6 +29,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
+    MODCONF = "__MODULE_CONF__"
     SLEEP_PERIOD = "sleep_period"
 
 
@@ -66,6 +67,7 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         # configuration section name
         self._section = self.c_name
         self._cfh = conf
+        self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
 
         # logging level
         self._debug = debug
@@ -79,7 +81,7 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
 
         while not self.stopped:
             # someting
-            self.logs.message_info = "pik"
+            self.logs.message_info = "ping"
             time.sleep(self.sleep_period)
 
     def stop(self) -> None:
@@ -90,6 +92,11 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
     def stopped(self) -> bool:
         """Return stop flag."""
         return self._stop_event.is_set()
+
+    @property
+    def module_conf(self) -> Optional[_ModuleConf]:
+        """Return module conf object."""
+        return self._data[_Keys.MODCONF]
 
     @classmethod
     def template_module_name(cls) -> str:
@@ -102,26 +109,36 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Example configuration for test module."))
-        out.append(TemplateConfigItem(desc="This module is for testing purposes only."))
+        out.append(
+            TemplateConfigItem(desc="Example configuration for test module.")
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="This module is for testing purposes only."
+            )
+        )
         out.append(
             TemplateConfigItem(
                 desc="It works by periodically sending messages to the logger."
             )
         )
-        out.append(TemplateConfigItem(desc="the module defines only one variable:"))
+        out.append(
+            TemplateConfigItem(desc="the module defines only one variable:")
+        )
         out.append(
             TemplateConfigItem(
-                desc="variable: 'sleep_period' [float], which determines the length of"
+                desc="'sleep_period' [float], which determines the length of the break"
             )
         )
         out.append(
             TemplateConfigItem(
-                desc="the break between subsequent executions of the program's main loop"
+                desc="between subsequent executions of the program's main loop"
             )
         )
         out.append(
-            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]")
+            TemplateConfigItem(
+                varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]"
+            )
         )
         return out
 

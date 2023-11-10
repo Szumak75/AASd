@@ -86,7 +86,17 @@ class BModuleConfig(BConfigHandler, BConfigSection):
 
 
 class BImporter(BClasses):
-    """Base class for modules importer."""
+    """Base class for modules importer.
+
+    Requirements:
+
+    The module filename is the name of the class to be imported and must begin
+    with the letter 'm'.
+    The class name begins with the letter 'M', the second letter must be capitalized,
+    all other characters must be lowercase.
+    This is an important condition for the method that determines the name of
+    the class to be imported.
+    """
 
     def import_name_list(self, package: str) -> List:
         """Get modules list."""
@@ -225,7 +235,10 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         if Keys.DEBUG not in self._data:
             self._data[Keys.DEBUG] = False
         if self._cfh and self._cfh.get(self._section, "debug") is not None:
-            return self._cfh.get(self._section, "debug") or self._data[Keys.DEBUG]
+            return (
+                self._cfh.get(self._section, "debug")
+                or self._data[Keys.DEBUG]
+            )
         return self._data[Keys.DEBUG]
 
     @_debug.setter
@@ -239,7 +252,10 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         if Keys.VERBOSE not in self._data:
             self._data[Keys.VERBOSE] = False
         if self._cfh and self._cfh.get(self._section, "verbose") is not None:
-            return self._cfh.get(self._section, "verbose") or self._data[Keys.VERBOSE]
+            return (
+                self._cfh.get(self._section, "verbose")
+                or self._data[Keys.VERBOSE]
+            )
         return self._data[Keys.VERBOSE]
 
     @_verbose.setter
