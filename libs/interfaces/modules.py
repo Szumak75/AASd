@@ -15,8 +15,17 @@ class IRunModule(ABC):
 
     @property
     @abstractmethod
+    def debug(self) -> bool:
+        """Return debug flag."""
+
+    @property
+    @abstractmethod
     def module_conf(self) -> Optional[Any]:
         """Return module conf object."""
+
+    @abstractmethod
+    def _apply_config(self) -> None:
+        """Apply config from module_conf."""
 
     @abstractmethod
     def run(self) -> None:
@@ -40,6 +49,11 @@ class IRunModule(ABC):
     @abstractmethod
     def template_module_variables(cls) -> List:
         """Return configuration variables template."""
+
+    @property
+    @abstractmethod
+    def verbose(self) -> bool:
+        """Return verbose flag."""
 
 
 class IComModule(ABC):
@@ -47,8 +61,17 @@ class IComModule(ABC):
 
     @property
     @abstractmethod
+    def debug(self) -> bool:
+        """Return debug flag."""
+
+    @property
+    @abstractmethod
     def module_conf(self) -> Optional[Any]:
         """Return module conf object."""
+
+    @abstractmethod
+    def _apply_config(self) -> None:
+        """Apply config from module_conf."""
 
     @abstractmethod
     def run(self) -> None:
@@ -72,6 +95,11 @@ class IComModule(ABC):
     @abstractmethod
     def template_module_variables(cls) -> List:
         """Return configuration variables template."""
+
+    @property
+    @abstractmethod
+    def verbose(self) -> bool:
+        """Return verbose flag."""
 
 
 # #[EOF]#######################################################################

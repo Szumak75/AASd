@@ -76,17 +76,42 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         # logger client initialization
         self.logs = LoggerClient(queue=qlog, name=self.c_name)
 
+    def _apply_config(self) -> None:
+        """Apply config from module_conf"""
+        if self.module_conf.sleep_period:
+            self.sleep_period = self.module_conf.sleep_period
+
     def run(self) -> None:
         """Main loop."""
-
+        # initialization local variables
+        count = 0
+        # initialization variables from config file
+        self._apply_config()
+        # starting module loop
         while not self.stopped:
             # someting
-            self.logs.message_info = "ping"
+            count += 1
+            self.logs.message_info = f"ping {count:>04d}"
             time.sleep(self.sleep_period)
+        # exiting from loop
+        if self._debug:
+            self.logs.message_debug = "exiting from loop."
 
     def stop(self) -> None:
         """Set stop event."""
+        if self._debug:
+            self.logs.message_debug = "stop signal received."
         self._stop_event.set()
+
+    @property
+    def debug(self) -> bool:
+        """Return debug flag."""
+        return self._debug
+
+    @property
+    def verbose(self) -> bool:
+        """Return verbose flag."""
+        return self._verbose
 
     @property
     def stopped(self) -> bool:

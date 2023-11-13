@@ -142,7 +142,7 @@ class AASd(BProjectClass, BImporter):
         while self.loop:
             time.sleep(0.5)
 
-        self.logs.message_info = "Exit from main loop."
+        self.logs.message_info = "Exiting..."
 
         # stopping & joining running modules
         for mod in run_mods:
