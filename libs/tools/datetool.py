@@ -82,7 +82,7 @@ class Timestamp(NoNewAttributes):
         return int(time.time())
 
 
-class Intervals(BClasses, NoNewAttributes):
+class Intervals(BClasses):
     """Intervals converter class."""
 
     __name = None
