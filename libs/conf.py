@@ -7,7 +7,7 @@
 """
 
 from inspect import currentframe
-from typing import Dict, Optional, List, Any
+from typing import Dict, Optional, List, Any, Union
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
@@ -61,7 +61,24 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     @property
     def modules(self) -> List[str]:
         """Return modules list."""
-        return self._get(_Keys.MC_MODULES)
+        tmp = self._get(_Keys.MC_MODULES)
+        if not isinstance(tmp, List):
+            raise Raise.error(
+                "Expected type 'List' in variable 'modules'.",
+                TypeError,
+                self.c_name,
+                currentframe(),
+            )
+        if tmp:
+            for item in tmp:
+                if not isinstance(item, str):
+                    raise Raise.error(
+                        "Names were expected as strings in the module list.",
+                        TypeError,
+                        self.c_name,
+                        currentframe(),
+                    )
+        return tmp
 
     @property
     def salt(self) -> int:
@@ -288,6 +305,43 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 currentframe(),
             )
         self.__main[_Keys.DEBUG] = value
+
+    def __get_modules_list(
+        self, package: str
+    ) -> List[Union[IComModule, IRunModule]]:
+        """Get configured modules list."""
+        out = []
+        if self.module_conf.modules:
+            # try search importtable modules and compare it to config variable list
+            name_list = self.import_name_list(package)
+            # make dictionary
+            tmp = dict(
+                zip(self.module_conf.modules, self.module_conf.modules)
+            )
+            # find name in tmp dict
+            for name in name_list:
+                if name in tmp:
+                    imod = self.import_module(package, name)
+                    if imod:
+                        out.append(imod)
+                    else:
+                        self.logs.message_error = (
+                            f"Cannot import module: '{package}.{name}'"
+                        )
+
+        return out
+
+    @property
+    def get_com_modules(self) -> List:
+        """Get configured communication modules list."""
+        import_from = "modules.com"
+        return self.__get_modules_list(import_from)
+
+    @property
+    def get_run_modules(self) -> List:
+        """Get configured running modules list."""
+        import_from = "modules.run"
+        return self.__get_modules_list(import_from)
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:

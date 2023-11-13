@@ -12,6 +12,7 @@ import time
 
 from inspect import currentframe
 from typing import Dict, List
+from queue import Queue
 
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.logstool.logs import (
@@ -29,7 +30,7 @@ from jsktoolbox.logstool.formatters import LogFormatterDateTime
 from jsktoolbox.libs.system import CommandLineParser
 
 from libs.base.classes import BProjectClass, BImporter
-from libs.interfaces.modules import IRunModule
+from libs.interfaces.modules import IRunModule, IComModule
 from libs.keys import Keys
 from libs.conf import Config
 
@@ -98,9 +99,44 @@ class AASd(BProjectClass, BImporter):
         # logger processor
         self.logs_processor.start()
 
+        # communication queue
+        qcom = Queue()
+
         # start communication modules
+        com_mods = []
+        for item in self.conf.get_com_modules:
+            c_mod: IComModule = item
+            try:
+                o_mod = c_mod(
+                    self.conf.cf,
+                    self.logs.logs_queue,
+                    qcom,
+                    self.conf.verbose,
+                    self.conf.debug,
+                )
+                o_mod.start()
+                com_mods.append(o_mod)
+            except Exception as ex:
+                if self.conf.debug:
+                    self.logs.message_debug = f"{ex}"
 
         # start running modules
+        run_mods = []
+        for item in self.conf.get_run_modules:
+            c_mod: IRunModule = item
+            try:
+                o_mod = c_mod(
+                    self.conf.cf,
+                    self.logs.logs_queue,
+                    qcom,
+                    self.conf.verbose,
+                    self.conf.debug,
+                )
+                o_mod.start()
+                run_mods.append(o_mod)
+            except Exception as ex:
+                if self.conf.debug:
+                    self.logs.message_debug = f"{ex}"
 
         # main loop
         while self.loop:
@@ -109,6 +145,17 @@ class AASd(BProjectClass, BImporter):
         self.logs.message_info = "Exit from main loop."
 
         # stopping & joining running modules
+        for mod in run_mods:
+            mod.stop()
+            while mod.is_stopped != True:
+                mod.join()
+                time.sleep(0.1)
+
+        for mod in com_mods:
+            mod.stop()
+            while mod.is_stopped != True:
+                mod.join()
+                time.sleep(0.1)
 
         # logger processor
         self.logs_processor.stop()
