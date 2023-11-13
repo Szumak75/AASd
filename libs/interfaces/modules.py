@@ -24,7 +24,7 @@ class IRunModule(ABC):
         """Return module conf object."""
 
     @abstractmethod
-    def _apply_config(self) -> None:
+    def _apply_config(self) -> bool:
         """Apply config from module_conf."""
 
     @abstractmethod
@@ -70,7 +70,7 @@ class IComModule(ABC):
         """Return module conf object."""
 
     @abstractmethod
-    def _apply_config(self) -> None:
+    def _apply_config(self) -> bool:
         """Apply config from module_conf."""
 
     @abstractmethod

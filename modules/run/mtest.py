@@ -7,6 +7,7 @@
 """
 
 import time
+from inspect import currentframe
 from typing import Dict, List, Optional, Any
 from threading import Thread, Event
 from queue import Queue
@@ -15,6 +16,7 @@ from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
+from jsktoolbox.raisetool import Raise
 
 from libs.base.classes import BModule
 from libs.interfaces.modules import IRunModule
@@ -43,7 +45,15 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     @property
     def sleep_period(self) -> float:
         """Return sleep_period var."""
-        return self._get(varname=_Keys.SLEEP_PERIOD)
+        var = self._get(varname=_Keys.SLEEP_PERIOD)
+        if not isinstance(var, (int, float)):
+            raise Raise.error(
+                "Expected float type.",
+                TypeError,
+                self.c_name,
+                currentframe(),
+            )
+        return float(var)
 
 
 class MTest(Thread, ThBaseObject, BModule, IRunModule):
@@ -76,23 +86,33 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         # logger client initialization
         self.logs = LoggerClient(queue=qlog, name=self.c_name)
 
-    def _apply_config(self) -> None:
+    def _apply_config(self) -> bool:
         """Apply config from module_conf"""
-        if self.module_conf.sleep_period:
-            self.sleep_period = self.module_conf.sleep_period
+        try:
+            if self.module_conf.sleep_period:
+                self.sleep_period = self.module_conf.sleep_period
+        except Exception as ex:
+            self.logs.message_critical = f"{ex}"
+            return False
+        return True
 
     def run(self) -> None:
         """Main loop."""
         # initialization local variables
         count = 0
+
         # initialization variables from config file
-        self._apply_config()
+        if not self._apply_config():
+            self.logs.message_error = "configuration error."
+            return
+
         # starting module loop
         while not self.stopped:
             # someting
             count += 1
             self.logs.message_info = f"ping {count:>04d}"
             time.sleep(self.sleep_period)
+
         # exiting from loop
         if self._debug:
             self.logs.message_debug = "exiting from loop."
