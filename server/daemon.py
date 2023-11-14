@@ -33,6 +33,7 @@ from libs.base.classes import BProjectClass, BImporter
 from libs.interfaces.modules import IRunModule, IComModule
 from libs.keys import Keys
 from libs.conf import Config
+from libs.com.message import Dispatcher
 
 
 class AASd(BProjectClass, BImporter):
@@ -67,9 +68,7 @@ class AASd(BProjectClass, BImporter):
         self.conf.version = "1.0.0"
         self.conf.debug = False
         self.conf.config_file = (
-            "/tmp/aasd.conf"
-            if self.conf.version == "1.0.0"
-            else "/etc/aasd.conf"
+            "/tmp/aasd.conf" if self.conf.version == "1.0.0" else "/etc/aasd.conf"
         )
 
         # command line parser
@@ -102,6 +101,17 @@ class AASd(BProjectClass, BImporter):
         # communication queue
         qcom = Queue()
 
+        # dispatcher processor
+        dispatch = Dispatcher(
+            qlog=self.logs.logs_queue,
+            qcom=qcom,
+            verbose=self.conf.verbose,
+            debug=self.conf.debug,
+        )
+
+        # start dispatcher
+        dispatch.start()
+
         # start communication modules
         com_mods = []
         for item in self.conf.get_com_modules:
@@ -110,10 +120,10 @@ class AASd(BProjectClass, BImporter):
                 o_mod = c_mod(
                     self.conf.cf,
                     self.logs.logs_queue,
-                    qcom,
                     self.conf.verbose,
                     self.conf.debug,
                 )
+                o_mod.qcom = dispatch.register_queue(o_mod.module_conf.level)
                 o_mod.start()
                 com_mods.append(o_mod)
             except Exception as ex:
@@ -157,6 +167,12 @@ class AASd(BProjectClass, BImporter):
                 mod.join()
                 time.sleep(0.1)
 
+        # dispatcher processor
+        dispatch.stop()
+        while dispatch.is_stopped != True:
+            dispatch.join()
+            time.sleep(0.1)
+
         # logger processor
         self.logs_processor.stop()
         time.sleep(2.0)
@@ -189,9 +205,7 @@ class AASd(BProjectClass, BImporter):
                 tmp = f"-{command_conf[item]['short']}|--{item} "
             else:
                 tmp = f"--{item}    "
-            desc_opts.append(
-                f" {tmp:<{max_len}}- {command_conf[item]['description']}"
-            )
+            desc_opts.append(f" {tmp:<{max_len}}- {command_conf[item]['description']}")
             command_opts += tmp
         # stage 3
         for item in sorted(opt_value):
@@ -200,9 +214,7 @@ class AASd(BProjectClass, BImporter):
                 tmp = f"-{command_conf[item]['short']}|--{item}"
             else:
                 tmp = f"--{item}   "
-            desc_opts.append(
-                f" {tmp:<{max_len}}- {command_conf[item]['description']}"
-            )
+            desc_opts.append(f" {tmp:<{max_len}}- {command_conf[item]['description']}")
             command_opts += tmp
             if command_conf[item]["example"]:
                 command_opts += f"{command_conf[item]['example']}"
@@ -297,9 +309,7 @@ class AASd(BProjectClass, BImporter):
         # INFO
         engine.add_engine(
             LogsLevelKeys.INFO,
-            LoggerEngineStdout(
-                name=self.c_name, formatter=LogFormatterDateTime()
-            ),
+            LoggerEngineStdout(name=self.c_name, formatter=LogFormatterDateTime()),
         )
         # WARNING
         engine.add_engine(

@@ -154,22 +154,14 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="Example configuration for test module.")
-        )
-        out.append(
-            TemplateConfigItem(
-                desc="This module is for testing purposes only."
-            )
-        )
+        out.append(TemplateConfigItem(desc="Example configuration for test module."))
+        out.append(TemplateConfigItem(desc="This module is for testing purposes only."))
         out.append(
             TemplateConfigItem(
                 desc="It works by periodically sending messages to the logger."
             )
         )
-        out.append(
-            TemplateConfigItem(desc="the module defines only one variable:")
-        )
+        out.append(TemplateConfigItem(desc="the module defines only one variable:"))
         out.append(
             TemplateConfigItem(
                 desc="'sleep_period' [float], which determines the length of the break"
@@ -181,9 +173,7 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(
-                varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]"
-            )
+            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]")
         )
         return out
 

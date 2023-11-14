@@ -235,10 +235,7 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         if Keys.DEBUG not in self._data:
             self._data[Keys.DEBUG] = False
         if self._cfh and self._cfh.get(self._section, "debug") is not None:
-            return (
-                self._cfh.get(self._section, "debug")
-                or self._data[Keys.DEBUG]
-            )
+            return self._cfh.get(self._section, "debug") or self._data[Keys.DEBUG]
         return self._data[Keys.DEBUG]
 
     @_debug.setter
@@ -252,10 +249,35 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         if Keys.VERBOSE not in self._data:
             self._data[Keys.VERBOSE] = False
         if self._cfh and self._cfh.get(self._section, "verbose") is not None:
-            return (
-                self._cfh.get(self._section, "verbose")
-                or self._data[Keys.VERBOSE]
-            )
+            return self._cfh.get(self._section, "verbose") or self._data[Keys.VERBOSE]
+        return self._data[Keys.VERBOSE]
+
+    @_verbose.setter
+    def _verbose(self, verbose: bool) -> None:
+        """Set verbose flag."""
+        self._data[Keys.VERBOSE] = verbose
+
+
+class BThProcessor(BCom, BLogs):
+    """Base class for ThProcessor."""
+
+    @property
+    def _debug(self) -> bool:
+        """Return debug flag."""
+        if Keys.DEBUG not in self._data:
+            self._data[Keys.DEBUG] = False
+        return self._data[Keys.DEBUG]
+
+    @_debug.setter
+    def _debug(self, debug: bool) -> None:
+        """Set debug flag."""
+        self._data[Keys.DEBUG] = debug
+
+    @property
+    def _verbose(self) -> bool:
+        """Return verbose flag."""
+        if Keys.VERBOSE not in self._data:
+            self._data[Keys.VERBOSE] = False
         return self._data[Keys.VERBOSE]
 
     @_verbose.setter
