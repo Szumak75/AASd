@@ -26,7 +26,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     """
 
     CMESS = "__message__"
-    CLEVEL = "__level__"
+    CPRIORITY = "__priority__"
     CTO = "__to__"
     CTITLE = "__title__"
     COMQUEUES = "__comq__"
@@ -39,21 +39,21 @@ class Message(BClasses):
     def __init__(self):
         """Constructor."""
         self._data[_Keys.CMESS] = []
-        self._data[_Keys.CLEVEL] = None
+        self._data[_Keys.CPRIORITY] = None
         self._data[_Keys.CTO] = None
         self._data[_Keys.CTITLE] = None
         self._data[_Keys.CSENDER] = None
 
     @property
-    def level(self) -> Optional[int]:
-        """Return level int."""
-        return self._data[_Keys.CLEVEL]
+    def priority(self) -> Optional[int]:
+        """Return priority int."""
+        return self._data[_Keys.CPRIORITY]
 
-    @level.setter
-    def level(self, value: int) -> None:
-        """Set message communication level."""
+    @priority.setter
+    def priority(self, value: int) -> None:
+        """Set message communication priority."""
         if isinstance(value, int):
-            self._data[_Keys.CLEVEL] = value
+            self._data[_Keys.CPRIORITY] = value
         else:
             raise Raise.error(
                 f"Expected integer type, received '{type(value)}'.",
@@ -162,27 +162,29 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
         # }
         self._data[_Keys.COMQUEUES] = dict()
 
-    def register_queue(self, level: int) -> Queue:
+    def register_queue(self, priority: int) -> Queue:
         """Register queue for communication module."""
-        if not isinstance(level, (str, int)):
+        if not isinstance(priority, (str, int)):
             raise Raise.error(
-                f"Expected string or integer type, received '{type(level)}'.",
+                f"Expected string or integer type, received '{type(priority)}'.",
                 TypeError,
                 self.c_name,
                 currentframe(),
             )
-        if str(level) not in self._data[_Keys.COMQUEUES]:
-            self._data[_Keys.COMQUEUES][str(level)] = []
+        if str(priority) not in self._data[_Keys.COMQUEUES]:
+            self._data[_Keys.COMQUEUES][str(priority)] = []
         queue = Queue(maxsize=1000)
         if self._debug:
-            self.logs.message_debug = f"add queue for communication level: {level}"
-        self._data[_Keys.COMQUEUES][str(level)].append(queue)
+            self.logs.message_debug = (
+                f"add queue for communication priority: {priority}"
+            )
+        self._data[_Keys.COMQUEUES][str(priority)].append(queue)
         return queue
 
     def run(self) -> None:
         """Main loop."""
         # 1. read qcom
-        # 2. dispatch received message object to queues with appropriate communication level
+        # 2. dispatch received message object to queues with appropriate communication priority
         # 3. loop to 1.
         if self._debug:
             self.logs.message_debug = "Starting loop."
@@ -201,7 +203,9 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
             except Empty:
                 pass
             except Exception as ex:
-                self.logs.message_critical = f'error while processing message: "{ex}"'
+                self.logs.message_critical = (
+                    f'error while processing message: "{ex}"'
+                )
 
         if self._debug:
             self.logs.message_debug = "Exit from loop."
@@ -215,8 +219,8 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
                 self.c_name,
                 currentframe(),
             )
-        if str(message.level) in self._data[_Keys.COMQUEUES]:
-            for item in self._data[_Keys.COMQUEUES][str(message.level)]:
+        if str(message.priority) in self._data[_Keys.COMQUEUES]:
+            for item in self._data[_Keys.COMQUEUES][str(message.priority)]:
                 try:
                     queue: Queue = item
                     queue.put(message, block=True, timeout=5.0)
@@ -228,7 +232,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
                     queue.task_done()
         else:
             raise Raise.error(
-                f"Received message with unknown level: {message.level}",
+                f"Received message with unknown priority: {message.priority}",
                 ValueError,
                 self.c_name,
                 currentframe(),

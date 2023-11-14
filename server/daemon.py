@@ -68,7 +68,9 @@ class AASd(BProjectClass, BImporter):
         self.conf.version = "1.0.0"
         self.conf.debug = False
         self.conf.config_file = (
-            "/tmp/aasd.conf" if self.conf.version == "1.0.0" else "/etc/aasd.conf"
+            "/tmp/aasd.conf"
+            if self.conf.version == "1.0.0"
+            else "/etc/aasd.conf"
         )
 
         # command line parser
@@ -123,7 +125,9 @@ class AASd(BProjectClass, BImporter):
                     self.conf.verbose,
                     self.conf.debug,
                 )
-                o_mod.qcom = dispatch.register_queue(o_mod.module_conf.level)
+                o_mod.qcom = dispatch.register_queue(
+                    o_mod.module_conf.priority
+                )
                 o_mod.start()
                 com_mods.append(o_mod)
             except Exception as ex:
@@ -205,7 +209,9 @@ class AASd(BProjectClass, BImporter):
                 tmp = f"-{command_conf[item]['short']}|--{item} "
             else:
                 tmp = f"--{item}    "
-            desc_opts.append(f" {tmp:<{max_len}}- {command_conf[item]['description']}")
+            desc_opts.append(
+                f" {tmp:<{max_len}}- {command_conf[item]['description']}"
+            )
             command_opts += tmp
         # stage 3
         for item in sorted(opt_value):
@@ -214,7 +220,9 @@ class AASd(BProjectClass, BImporter):
                 tmp = f"-{command_conf[item]['short']}|--{item}"
             else:
                 tmp = f"--{item}   "
-            desc_opts.append(f" {tmp:<{max_len}}- {command_conf[item]['description']}")
+            desc_opts.append(
+                f" {tmp:<{max_len}}- {command_conf[item]['description']}"
+            )
             command_opts += tmp
             if command_conf[item]["example"]:
                 command_opts += f"{command_conf[item]['example']}"
@@ -309,7 +317,9 @@ class AASd(BProjectClass, BImporter):
         # INFO
         engine.add_engine(
             LogsLevelKeys.INFO,
-            LoggerEngineStdout(name=self.c_name, formatter=LogFormatterDateTime()),
+            LoggerEngineStdout(
+                name=self.c_name, formatter=LogFormatterDateTime()
+            ),
         )
         # WARNING
         engine.add_engine(
