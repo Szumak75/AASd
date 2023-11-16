@@ -80,9 +80,11 @@ class AASd(BProjectClass, BImporter):
         if not self.conf.load():
             self.loop = False
 
-        # test działa!
-        # odczytuje c_name prywatnej klasy pomocniczej konfiguratora
-        # print(self.conf.module_conf.c_name)
+        # check single run options
+        # password
+        if self.conf.password:
+            print("Receive password encoder options.")
+            sys.exit(0)
 
         # update debug
         thl._debug = self.conf.debug
@@ -250,9 +252,27 @@ class AASd(BProjectClass, BImporter):
             has_value=True,
             example_value=self.conf.config_file,
         )
+        parser.configure_argument(
+            "p",
+            "password",
+            "password encrypter, valid only with [--section] and [--varname] option",
+        )
+        parser.configure_argument(
+            "S",
+            "section",
+            "section name for encrypt password",
+            has_value=True,
+        )
+        parser.configure_argument(
+            "V",
+            "varname",
+            "varname in section to encrypt password",
+            has_value=True,
+        )
 
         # command line parsing
         parser.parse_arguments()
+        print(parser.args)
 
         # checking
         if parser.get_option("help") is not None:
@@ -263,6 +283,20 @@ class AASd(BProjectClass, BImporter):
             self.conf.verbose = True
         if parser.get_option("file=") is not None:
             self.conf.config_file = parser.get_option("file=")
+        if parser.get_option("password") is not None:
+            if (
+                parser.get_option("section=") is None
+                or parser.get_option("varname=") is None
+            ):
+                print("Error:")
+                print(
+                    "The '-p|--password' option should be used with the '--section=' and '--varname=' options"
+                )
+                print("")
+                self.__help(parser.dump())
+            self.conf.password = True
+            self.conf._password_section = parser.get_option("section=")
+            self.conf._password_varname = parser.get_option("varname=")
 
     def __init_log_levels(self, engine: LoggerEngine) -> None:
         """Set logging levels configuration for LoggerEngine."""

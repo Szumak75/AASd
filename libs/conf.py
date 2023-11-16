@@ -44,6 +44,9 @@ class _Keys(object, metaclass=ReadOnlyClass):
     MC_DEBUG = "debug"
     MC_MODULES = "modules"
     MC_SALT = "salt"
+    PASSWORD = "__password__"
+    PSECTION = "__psection__"
+    PVAR = "__pvar__"
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -347,6 +350,63 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
         return self._data[_Keys.MODCONF]
+
+    @property
+    def password(self) -> bool:
+        """Return password flag."""
+        if _Keys.PASSWORD not in self._data:
+            self._data[_Keys.PASSWORD] = False
+        return self._data[_Keys.PASSWORD]
+
+    @password.setter
+    def password(self, value: bool) -> None:
+        """Set password flag."""
+        if not isinstance(value, bool):
+            raise Raise.error(
+                f"Expected boolean type, received '{type(value)}'.",
+                TypeError,
+                self.c_name,
+                currentframe(),
+            )
+        self._data[_Keys.PASSWORD] = value
+
+    @property
+    def _password_section(self) -> Optional[str]:
+        """Return password section string."""
+        if _Keys.PSECTION not in self._data:
+            return None
+        return self._data[_Keys.PSECTION]
+
+    @_password_section.setter
+    def _password_section(self, value: str) -> None:
+        """Set password section string."""
+        if not isinstance(value, str):
+            raise Raise.error(
+                f"Expected string type, received '{type(value)}'.",
+                TypeError,
+                self.c_name,
+                currentframe(),
+            )
+        self._data[_Keys.PSECTION] = value
+
+    @property
+    def _password_varname(self) -> Optional[str]:
+        """Return password varname string."""
+        if _Keys.PVAR not in self._data:
+            return None
+        return self._data[_Keys.PVAR]
+
+    @_password_varname.setter
+    def _password_varname(self, value: str) -> None:
+        """Set password varname string."""
+        if not isinstance(value, str):
+            raise Raise.error(
+                f"Expected string type, received '{type(value)}'.",
+                TypeError,
+                self.c_name,
+                currentframe(),
+            )
+        self._data[_Keys.PVAR] = value
 
     @property
     def verbose(self) -> bool:
