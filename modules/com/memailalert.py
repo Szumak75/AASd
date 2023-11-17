@@ -57,7 +57,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
             raise Raise.error(
                 "Expected int type.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         return var
@@ -70,7 +70,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
             raise Raise.error(
                 "Expected float type.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         return float(var)
@@ -83,7 +83,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         return var
@@ -96,7 +96,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         return var
@@ -109,7 +109,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         return var
@@ -122,7 +122,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         return var
@@ -135,7 +135,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         return var
@@ -153,13 +153,13 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
     ) -> None:
         """Constructor."""
         # Thread initialization
-        Thread.__init__(self, name=self.c_name)
+        Thread.__init__(self, name=self._c_name)
         self._stop_event = Event()
         self.daemon = True
         self.sleep_period = 5.0
 
         # configuration section name
-        self._section = self.c_name
+        self._section = self._c_name
         self._cfh = conf
         self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
 
@@ -168,7 +168,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         self._verbose = verbose
 
         # logger client initialization
-        self.logs = LoggerClient(queue=qlog, name=self.c_name)
+        self.logs = LoggerClient(queue=qlog, name=self._c_name)
 
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""

@@ -24,18 +24,6 @@ from libs.keys import Keys
 class BClasses(BData, NoDynamicAttributes):
     """Base class for project."""
 
-    @property
-    def c_name(self) -> str:
-        """Return class name."""
-        return self.__class__.__name__
-
-    @property
-    def f_name(self) -> str:
-        """Return current method name."""
-        frame = currentframe().f_back
-        method_name = frame.f_code.co_name
-        return method_name
-
 
 class BConfigHandler(BClasses):
     """Base class for Config handler."""
@@ -54,7 +42,7 @@ class BConfigHandler(BClasses):
             raise Raise.error(
                 f"ConfigTool type expected, '{type(config_handler)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[Keys.CFH] = config_handler
@@ -105,7 +93,7 @@ class BImporter(BClasses):
             raise Raise.error(
                 f"package name as string expected, '{type(package)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         dirname = os.path.join("./", *package.split("."))
@@ -150,7 +138,7 @@ class BLogs(BClasses):
             raise Raise.error(
                 f"LoggerClient type expected, '{type(logs)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[Keys.CLOG] = logs
@@ -173,7 +161,7 @@ class BCom(BClasses):
             raise Raise.error(
                 f"Queue type expected, '{type(logs)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[Keys.QCOM] = queue
@@ -200,7 +188,7 @@ class BConfig(BClasses):
             raise Raise.error(
                 f"Config class object expected, '{type(conf_obj)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[Keys.CONF] = conf_obj
@@ -235,7 +223,10 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         if Keys.DEBUG not in self._data:
             self._data[Keys.DEBUG] = False
         if self._cfh and self._cfh.get(self._section, "debug") is not None:
-            return self._cfh.get(self._section, "debug") or self._data[Keys.DEBUG]
+            return (
+                self._cfh.get(self._section, "debug")
+                or self._data[Keys.DEBUG]
+            )
         return self._data[Keys.DEBUG]
 
     @_debug.setter
@@ -249,7 +240,10 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         if Keys.VERBOSE not in self._data:
             self._data[Keys.VERBOSE] = False
         if self._cfh and self._cfh.get(self._section, "verbose") is not None:
-            return self._cfh.get(self._section, "verbose") or self._data[Keys.VERBOSE]
+            return (
+                self._cfh.get(self._section, "verbose")
+                or self._data[Keys.VERBOSE]
+            )
         return self._data[Keys.VERBOSE]
 
     @_verbose.setter

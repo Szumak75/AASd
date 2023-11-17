@@ -69,7 +69,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
             raise Raise.error(
                 "Expected type 'List' in variable 'modules'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         if tmp:
@@ -78,7 +78,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
                     raise Raise.error(
                         "Names were expected as strings in the module list.",
                         TypeError,
-                        self.c_name,
+                        self._c_name,
                         currentframe(),
                     )
         return tmp
@@ -95,7 +95,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     def __init__(self, qlog: LoggerQueue, app_name: str) -> None:
         """Constructor."""
         # class logger client
-        self.logs = LoggerClient(queue=qlog, name=self.c_name)
+        self.logs = LoggerClient(queue=qlog, name=self._c_name)
 
         self.logs.message_info = "Config initialization..."
         # initialization data structure
@@ -280,9 +280,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         """Set config_file path string."""
         if not isinstance(value, str):
             raise Raise.error(
-                f"String type expected, '{type(value)}' received.",
+                f"Expected String type, received: '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self.__main[_Keys.FCONF] = value
@@ -302,9 +302,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         """Set debug flag."""
         if not isinstance(value, bool):
             raise Raise.error(
-                f"Boolean type expected, '{type(value)}' received.",
+                f"Expected Boolean type, received: '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self.__main[_Keys.DEBUG] = value
@@ -365,7 +365,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             raise Raise.error(
                 f"Expected boolean type, received '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[_Keys.PASSWORD] = value
@@ -384,7 +384,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[_Keys.PSECTION] = value
@@ -403,7 +403,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[_Keys.PVAR] = value
@@ -420,9 +420,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         """Set verbose flag."""
         if not isinstance(value, bool):
             raise Raise.error(
-                f"Boolean type expected, '{type(value)}' received.",
+                f"Expected Boolean type, received: '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self.__main[_Keys.VERBOSE] = value
@@ -439,9 +439,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         """Set version string."""
         if not isinstance(value, str):
             raise Raise.error(
-                f"String type expected, '{type(value)}' received.",
+                f"Expected String type, received: '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self.__main[_Keys.VERSION] = value

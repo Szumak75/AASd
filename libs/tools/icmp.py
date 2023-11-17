@@ -42,7 +42,7 @@ class Pinger(BClasses):
             raise Raise.error(
                 f"Integer type expected, '{type(timeout)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[_Keys.TIMEOUT] = timeout
@@ -67,7 +67,7 @@ class Pinger(BClasses):
             raise Raise.error(
                 "Command for testing ICMP echo not found.",
                 ChildProcessError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         if (
@@ -154,7 +154,7 @@ class Tracert(BClasses):
             raise Raise.error(
                 "Command for testing ICMP echo not found.",
                 ChildProcessError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         out = []

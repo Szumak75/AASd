@@ -58,7 +58,7 @@ class Message(BClasses):
             raise Raise.error(
                 f"Expected integer type, received '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
 
@@ -84,7 +84,7 @@ class Message(BClasses):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[_Keys.CSENDER] = value
@@ -101,7 +101,7 @@ class Message(BClasses):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[_Keys.CTITLE] = value
@@ -121,7 +121,7 @@ class Message(BClasses):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[_Keys.CTO] = value
@@ -139,7 +139,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
     ) -> None:
         """Constructor."""
         # Thread initialization
-        Thread.__init__(self, name=self.c_name)
+        Thread.__init__(self, name=self._c_name)
         self._stop_event = Event()
         self.daemon = True
         self.sleep_period = 5.0
@@ -149,7 +149,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
         self._verbose = verbose
 
         # logger client initialization
-        self.logs = LoggerClient(queue=qlog, name=self.c_name)
+        self.logs = LoggerClient(queue=qlog, name=self._c_name)
 
         # communication queue for reading
         self.qcom = qcom
@@ -168,7 +168,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
             raise Raise.error(
                 f"Expected string or integer type, received '{type(priority)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         if str(priority) not in self._data[_Keys.COMQUEUES]:
@@ -216,7 +216,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
             raise Raise.error(
                 f"Expected Message type, received '{type(message)}'.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         if str(message.priority) in self._data[_Keys.COMQUEUES]:
@@ -234,7 +234,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
             raise Raise.error(
                 f"Received message with unknown priority: {message.priority}",
                 ValueError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
 

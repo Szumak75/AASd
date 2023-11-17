@@ -50,7 +50,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
             raise Raise.error(
                 "Expected float type.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         return float(var)
@@ -69,13 +69,13 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
     ) -> None:
         """Constructor."""
         # Thread initialization
-        Thread.__init__(self, name=self.c_name)
+        Thread.__init__(self, name=self._c_name)
         self._stop_event = Event()
         self.daemon = True
         self.sleep_period = 5.0
 
         # configuration section name
-        self._section = self.c_name
+        self._section = self._c_name
         self._cfh = conf
         self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
 
@@ -84,7 +84,7 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         self._verbose = verbose
 
         # logger client initialization
-        self.logs = LoggerClient(queue=qlog, name=self.c_name)
+        self.logs = LoggerClient(queue=qlog, name=self._c_name)
 
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
@@ -154,14 +154,22 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Example configuration for test module."))
-        out.append(TemplateConfigItem(desc="This module is for testing purposes only."))
+        out.append(
+            TemplateConfigItem(desc="Example configuration for test module.")
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="This module is for testing purposes only."
+            )
+        )
         out.append(
             TemplateConfigItem(
                 desc="It works by periodically sending messages to the logger."
             )
         )
-        out.append(TemplateConfigItem(desc="the module defines only one variable:"))
+        out.append(
+            TemplateConfigItem(desc="the module defines only one variable:")
+        )
         out.append(
             TemplateConfigItem(
                 desc="'sleep_period' [float], which determines the length of the break"
@@ -173,7 +181,9 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]")
+            TemplateConfigItem(
+                varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]"
+            )
         )
         return out
 

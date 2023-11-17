@@ -1,7 +1,2 @@
 [ThLoggerProcessor]
 add class name to internal logging
-
-[CommandLineParser]
-- dump(): remove print()
-- long option with values not working
-

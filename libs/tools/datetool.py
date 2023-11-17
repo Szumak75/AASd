@@ -105,7 +105,7 @@ class Intervals(BClasses):
             raise Raise.error(
                 f"Converting error, given value: '{value}' is in an unknown format.",
                 ValueError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         var1 = int(match.group(1))

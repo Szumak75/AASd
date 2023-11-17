@@ -64,7 +64,7 @@ class AASd(BProjectClass, BImporter):
         self.logs_processor = thl
 
         # add config handler
-        self.conf = Config(qlog=lengine.logs_queue, app_name=self.c_name)
+        self.conf = Config(qlog=lengine.logs_queue, app_name=self._c_name)
         self.conf.version = "1.0.0"
         self.conf.debug = False
         self.conf.config_file = (
@@ -189,7 +189,7 @@ class AASd(BProjectClass, BImporter):
 
     def __help(self, command_conf: Dict) -> None:
         """Show help information and shutdown."""
-        print(f"[{self.c_name}.{self.f_name}] {command_conf}")
+        print(f"[{self._c_name}.{self._f_name}] {command_conf}")
         command_opts = ""
         desc_opts = []
         max_len = 0
@@ -255,16 +255,16 @@ class AASd(BProjectClass, BImporter):
         parser.configure_argument(
             "p",
             "password",
-            "password encrypter, valid only with [--section] and [--varname] option",
+            "password encrypter, valid only with [--section=] and [--varname=] option",
         )
         parser.configure_argument(
-            "S",
+            None,
             "section",
             "section name for encrypt password",
             has_value=True,
         )
         parser.configure_argument(
-            "V",
+            None,
             "varname",
             "varname in section to encrypt password",
             has_value=True,
@@ -282,11 +282,11 @@ class AASd(BProjectClass, BImporter):
         if parser.get_option("verbose") is not None:
             self.conf.verbose = True
         if parser.get_option("file=") is not None:
-            self.conf.config_file = parser.get_option("file=")
+            self.conf.config_file = parser.get_option("file")
         if parser.get_option("password") is not None:
             if (
-                parser.get_option("section=") is None
-                or parser.get_option("varname=") is None
+                parser.get_option("section") is None
+                or parser.get_option("varname") is None
             ):
                 print("Error:")
                 print(
@@ -295,8 +295,8 @@ class AASd(BProjectClass, BImporter):
                 print("")
                 self.__help(parser.dump())
             self.conf.password = True
-            self.conf._password_section = parser.get_option("section=")
-            self.conf._password_varname = parser.get_option("varname=")
+            self.conf._password_section = parser.get_option("section")
+            self.conf._password_varname = parser.get_option("varname")
 
     def __init_log_levels(self, engine: LoggerEngine) -> None:
         """Set logging levels configuration for LoggerEngine."""
@@ -304,7 +304,7 @@ class AASd(BProjectClass, BImporter):
         engine.add_engine(
             LogsLevelKeys.ALERT,
             LoggerEngineStdout(
-                name=f"{self.c_name}->ALERT",
+                name=f"{self._c_name}->ALERT",
                 formatter=LogFormatterDateTime(),
             ),
         )
@@ -312,7 +312,7 @@ class AASd(BProjectClass, BImporter):
         engine.add_engine(
             LogsLevelKeys.DEBUG,
             LoggerEngineStdout(
-                name=f"{self.c_name}->DEBUG",
+                name=f"{self._c_name}->DEBUG",
                 formatter=LogFormatterDateTime(),
             ),
         )
@@ -320,7 +320,7 @@ class AASd(BProjectClass, BImporter):
         engine.add_engine(
             LogsLevelKeys.ERROR,
             LoggerEngineStdout(
-                name=f"{self.c_name}->ERROR",
+                name=f"{self._c_name}->ERROR",
                 formatter=LogFormatterDateTime(),
             ),
         )
@@ -328,7 +328,7 @@ class AASd(BProjectClass, BImporter):
         engine.add_engine(
             LogsLevelKeys.NOTICE,
             LoggerEngineStdout(
-                name=f"{self.c_name}->NOTICE",
+                name=f"{self._c_name}->NOTICE",
                 formatter=LogFormatterDateTime(),
             ),
         )
@@ -336,7 +336,7 @@ class AASd(BProjectClass, BImporter):
         engine.add_engine(
             LogsLevelKeys.CRITICAL,
             LoggerEngineStdout(
-                name=f"{self.c_name}->CRITICAL",
+                name=f"{self._c_name}->CRITICAL",
                 formatter=LogFormatterDateTime(),
             ),
         )
@@ -344,7 +344,7 @@ class AASd(BProjectClass, BImporter):
         engine.add_engine(
             LogsLevelKeys.EMERGENCY,
             LoggerEngineStdout(
-                name=f"{self.c_name}->EMERGENCY",
+                name=f"{self._c_name}->EMERGENCY",
                 formatter=LogFormatterDateTime(),
             ),
         )
@@ -352,14 +352,14 @@ class AASd(BProjectClass, BImporter):
         engine.add_engine(
             LogsLevelKeys.INFO,
             LoggerEngineStdout(
-                name=self.c_name, formatter=LogFormatterDateTime()
+                name=self._c_name, formatter=LogFormatterDateTime()
             ),
         )
         # WARNING
         engine.add_engine(
             LogsLevelKeys.WARNING,
             LoggerEngineStdout(
-                name=f"{self.c_name}->WARNING",
+                name=f"{self._c_name}->WARNING",
                 formatter=LogFormatterDateTime(),
             ),
         )
@@ -391,7 +391,7 @@ class AASd(BProjectClass, BImporter):
             raise Raise.error(
                 f"Boolean expected, '{type(value)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[Keys.HUP] = value
@@ -410,7 +410,7 @@ class AASd(BProjectClass, BImporter):
             raise Raise.error(
                 f"ThLoggerProcessor object expected, '{type(value)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[Keys.PROC_LOGS] = value
@@ -429,7 +429,7 @@ class AASd(BProjectClass, BImporter):
             raise Raise.error(
                 f"Boolean expected, '{type(value)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe(),
             )
         self._data[Keys.LOOP] = value

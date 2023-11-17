@@ -37,7 +37,7 @@ class TemplateConfigItem(BClasses):
 
     def __repr__(self) -> str:
         """Returns object as string representation."""
-        return f"{self.c_name}( varname='{self.varname if self.varname else ''}', value={self.value if self.value is  not None else ''}, desc='{self.desc if self.desc else ''}' )"
+        return f"{self._c_name}( varname='{self.varname if self.varname else ''}', value={self.value if self.value is  not None else ''}, desc='{self.desc if self.desc else ''}' )"
 
     @property
     def desc(self) -> Optional[str]:
@@ -51,7 +51,7 @@ class TemplateConfigItem(BClasses):
             raise Raise.error(
                 f"String type expected, '{type(string)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe,
             )
         self.__desc = string
@@ -68,7 +68,7 @@ class TemplateConfigItem(BClasses):
             raise Raise.error(
                 f"Union[str, int, float, bool, List] typs expected, '{type(name)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe,
             )
         self.__val = value
@@ -85,7 +85,7 @@ class TemplateConfigItem(BClasses):
             raise Raise.error(
                 f"String type expected, '{type(name)}' received.",
                 TypeError,
-                self.c_name,
+                self._c_name,
                 currentframe,
             )
         self.__var = name
