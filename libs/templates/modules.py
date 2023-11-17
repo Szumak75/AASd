@@ -49,7 +49,7 @@ class TemplateConfigItem(BClasses):
         """Set description."""
         if not isinstance(string, str):
             raise Raise.error(
-                f"String type expected, '{type(string)}' received.",
+                f"Expected String type, received: '{type(string)}'.",
                 TypeError,
                 self._c_name,
                 currentframe,
@@ -66,7 +66,7 @@ class TemplateConfigItem(BClasses):
         """Set value."""
         if not isinstance(value, (str, int, float, bool, List)):
             raise Raise.error(
-                f"Union[str, int, float, bool, List] typs expected, '{type(name)}' received.",
+                f"Expected Union[str, int, float, bool, List] typs, received: '{type(name)}'.",
                 TypeError,
                 self._c_name,
                 currentframe,
@@ -83,7 +83,7 @@ class TemplateConfigItem(BClasses):
         """Set varname."""
         if not isinstance(name, str):
             raise Raise.error(
-                f"String type expected, '{type(name)}' received.",
+                f"Expected String type, received: '{type(name)}'.",
                 TypeError,
                 self._c_name,
                 currentframe,

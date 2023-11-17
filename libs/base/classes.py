@@ -10,7 +10,7 @@ import os
 
 from inspect import currentframe
 from typing import Optional, List
-from queue import Queue, SimpleQueue
+from queue import Queue
 
 from jsktoolbox.attribtool import NoDynamicAttributes
 from jsktoolbox.raisetool import Raise
@@ -40,7 +40,7 @@ class BConfigHandler(BClasses):
         """Set config handler."""
         if not isinstance(config_handler, ConfigTool):
             raise Raise.error(
-                f"ConfigTool type expected, '{type(config_handler)}' received.",
+                f"Expected ConfigTool type, received'{type(config_handler)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),
@@ -91,7 +91,7 @@ class BImporter(BClasses):
         out = []
         if not isinstance(package, str):
             raise Raise.error(
-                f"package name as string expected, '{type(package)}' received.",
+                f"Expected package name as string type, received: '{type(package)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),
@@ -136,7 +136,7 @@ class BLogs(BClasses):
         """Set LoggerClient."""
         if not isinstance(logs, LoggerClient):
             raise Raise.error(
-                f"LoggerClient type expected, '{type(logs)}' received.",
+                f"Expected LoggerClient type, received: '{type(logs)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),
@@ -159,7 +159,7 @@ class BCom(BClasses):
         """Set communication queue."""
         if not isinstance(queue, Queue):
             raise Raise.error(
-                f"Queue type expected, '{type(logs)}' received.",
+                f"Expected Queue type, received: '{type(logs)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),
@@ -186,7 +186,7 @@ class BConfig(BClasses):
 
         if not isinstance(conf_obj, Config):
             raise Raise.error(
-                f"Config class object expected, '{type(conf_obj)}' received.",
+                f"Expected Config class type, received: '{type(conf_obj)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),

@@ -40,7 +40,7 @@ class Pinger(BClasses):
         """Constructor."""
         if not isinstance(timeout, int):
             raise Raise.error(
-                f"Integer type expected, '{type(timeout)}' received.",
+                f"Expected Integer type, received: '{type(timeout)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),

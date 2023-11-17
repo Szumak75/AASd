@@ -431,7 +431,7 @@ class AASd(BProjectClass, BImporter):
         """Set loop flag."""
         if not isinstance(value, bool):
             raise Raise.error(
-                f"Boolean expected, '{type(value)}' received.",
+                f"Expected Boolean type, received: '{type(value)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),
@@ -450,7 +450,7 @@ class AASd(BProjectClass, BImporter):
         """Set logs_processor."""
         if not isinstance(value, ThLoggerProcessor):
             raise Raise.error(
-                f"ThLoggerProcessor object expected, '{type(value)}' received.",
+                f"Expected ThLoggerProcessor type, received: '{type(value)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),
@@ -469,7 +469,7 @@ class AASd(BProjectClass, BImporter):
         """Set loop flag."""
         if not isinstance(value, bool):
             raise Raise.error(
-                f"Boolean expected, '{type(value)}' received.",
+                f"Expected Boolean type, received: '{type(value)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),
