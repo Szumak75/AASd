@@ -1,2 +1,2 @@
-[ThLoggerProcessor]
-add class name to internal logging
+[configtool.Config]
+add method: has_variable(section, varname)->bool

@@ -28,6 +28,7 @@ from jsktoolbox.logstool.logs import (
 from jsktoolbox.logstool.logs import ThLoggerProcessor
 from jsktoolbox.logstool.formatters import LogFormatterDateTime
 from jsktoolbox.libs.system import CommandLineParser
+from jsktoolbox.stringtool.crypto import SimpleCrypto
 
 from libs.base.classes import BProjectClass, BImporter
 from libs.interfaces.modules import IRunModule, IComModule
@@ -84,6 +85,7 @@ class AASd(BProjectClass, BImporter):
         # password
         if self.conf.password:
             print("Receive password encoder options.")
+            self.__password_encoding()
             sys.exit(0)
 
         # update debug
@@ -363,6 +365,46 @@ class AASd(BProjectClass, BImporter):
                 formatter=LogFormatterDateTime(),
             ),
         )
+
+    def __password_encoding(self) -> None:
+        """Encode given password."""
+        # check salt, given section name and varname
+        salt = self.conf.cf.get(self.conf._section, "salt")
+        if salt is None:
+            print(
+                "The 'salt' variable is missing from the main section of the configuration file."
+            )
+            sys.exit(2)
+        if not self.conf.cf.has_section(self.conf._password_section):
+            print(
+                f"The specified section name '{self.conf._password_section}' was not found in the configuration file."
+            )
+            sys.exit(2)
+
+        if not self.conf.cf.has_varname(
+            self.conf._password_section, self.conf._password_varname
+        ):
+            print(
+                f"The specified variable name '{self.conf._password_varname}' was not found in the configuration section: '{self.conf._password_section}'."
+            )
+            sys.exit(2)
+        # get password string from console
+        while True:
+            password = input("Enter password: ")
+            if password == "":
+                print('Type: "EXIT" to break.')
+            elif password == "EXIT":
+                return
+            else:
+                break
+        encrypt = SimpleCrypto.multiple_encrypt(salt, password)
+        self.conf.cf.set(
+            self.conf._password_section, self.conf._password_varname, encrypt
+        )
+        if self.conf.save():
+            print(f'Config file "{self.conf.config_file}" updated.')
+        else:
+            print(f"Error updating config file.")
 
     def __sig_exit(self, signum: int, frame):
         """Received TERM|INT signal."""
