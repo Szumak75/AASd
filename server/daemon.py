@@ -69,7 +69,7 @@ class AASd(BProjectClass, BImporter):
         self.conf.version = "1.0.0"
         self.conf.debug = False
         self.conf.config_file = (
-            "/tmp/aasd.conf"
+            "/var/tmp/aasd.conf"
             if self.conf.version == "1.0.0"
             else "/etc/aasd.conf"
         )
@@ -79,6 +79,7 @@ class AASd(BProjectClass, BImporter):
 
         # config file
         if not self.conf.load():
+            self.logs.message_critical = "cannot load config file."
             self.loop = False
 
         # check single run options
@@ -90,6 +91,12 @@ class AASd(BProjectClass, BImporter):
 
         # update debug
         thl._debug = self.conf.debug
+
+        # update config file
+        if self.loop and self.conf.update:
+            self.logs.message_notice = "trying to update config file."
+            if not self.conf.save():
+                self.logs.message_critical = "cannot update config file."
 
         # signal handling
         signal.signal(signal.SIGTERM, self.__sig_exit)
@@ -248,6 +255,9 @@ class AASd(BProjectClass, BImporter):
         parser.configure_argument("v", "verbose", "verbose logging level")
         parser.configure_argument("d", "debug", "debug logging level")
         parser.configure_argument(
+            "U", "updateconf", "update configuration file"
+        )
+        parser.configure_argument(
             "f",
             "file",
             "path to configuration file",
@@ -257,7 +267,7 @@ class AASd(BProjectClass, BImporter):
         parser.configure_argument(
             "p",
             "password",
-            "password encrypter, valid only with [--section=] and [--varname=] option",
+            "password encryptor, valid only with [--section=] and [--varname=] option",
         )
         parser.configure_argument(
             None,
@@ -283,6 +293,8 @@ class AASd(BProjectClass, BImporter):
             self.conf.debug = True
         if parser.get_option("verbose") is not None:
             self.conf.verbose = True
+        if parser.get_option("updateconf") is not None:
+            self.conf.update = True
         if parser.get_option("file") is not None:
             self.conf.config_file = parser.get_option("file")
         if parser.get_option("password") is not None:

@@ -33,6 +33,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     """
 
     CF = "__cf__"
+    CUPDATE = "__config_update__"
     DEBUG = "__DEBUG__"
     FCONF = "__FCONF__"
     MAIN = "__MAIN__"
@@ -354,9 +355,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     @property
     def password(self) -> bool:
         """Return password flag."""
-        if _Keys.PASSWORD not in self._data:
-            self._data[_Keys.PASSWORD] = False
-        return self._data[_Keys.PASSWORD]
+        if _Keys.PASSWORD not in self.__main:
+            self.__main[_Keys.PASSWORD] = False
+        return self.__main[_Keys.PASSWORD]
 
     @password.setter
     def password(self, value: bool) -> None:
@@ -368,14 +369,14 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.PASSWORD] = value
+        self.__main[_Keys.PASSWORD] = value
 
     @property
     def _password_section(self) -> Optional[str]:
         """Return password section string."""
-        if _Keys.PSECTION not in self._data:
+        if _Keys.PSECTION not in self.__main:
             return None
-        return self._data[_Keys.PSECTION]
+        return self.__main[_Keys.PSECTION]
 
     @_password_section.setter
     def _password_section(self, value: str) -> None:
@@ -387,14 +388,14 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.PSECTION] = value
+        self.__main[_Keys.PSECTION] = value
 
     @property
     def _password_varname(self) -> Optional[str]:
         """Return password varname string."""
-        if _Keys.PVAR not in self._data:
+        if _Keys.PVAR not in self.__main:
             return None
-        return self._data[_Keys.PVAR]
+        return self.__main[_Keys.PVAR]
 
     @_password_varname.setter
     def _password_varname(self, value: str) -> None:
@@ -406,7 +407,26 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.PVAR] = value
+        self.__main[_Keys.PVAR] = value
+
+    @property
+    def update(self) -> bool:
+        """Return update flag."""
+        if _Keys.CUPDATE not in self.__main:
+            self.__main[_Keys.CUPDATE] = False
+        return self.__main[_Keys.CUPDATE]
+
+    @update.setter
+    def update(self, value: bool) -> None:
+        """Set update flag."""
+        if not isinstance(value, bool):
+            raise Raise.error(
+                f"Expected Boolean type, received: '{type(value)}'.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        self.__main[_Keys.CUPDATE] = value
 
     @property
     def verbose(self) -> bool:
