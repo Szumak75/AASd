@@ -10,7 +10,7 @@ import time
 from inspect import currentframe
 from typing import Dict, List, Optional, Any
 from threading import Thread, Event
-from queue import Queue
+from queue import Queue, Empty, Full
 
 from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
@@ -53,7 +53,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     def priority(self) -> int:
         """Return priority var."""
         var = self._get(varname=_Keys.PRIORITY)
-        if not isinstance(var, int):
+        if var is not None and not isinstance(var, int):
             raise Raise.error(
                 "Expected int type.",
                 TypeError,
@@ -66,6 +66,8 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     def sleep_period(self) -> float:
         """Return sleep_period var."""
         var = self._get(varname=_Keys.SLEEP_PERIOD)
+        if var is None:
+            return None
         if not isinstance(var, (int, float)):
             raise Raise.error(
                 "Expected float type.",
@@ -79,7 +81,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     def smtp_server(self) -> str:
         """Return smtp_server var."""
         var = self._get(varname=_Keys.SMTP_SERVER)
-        if not isinstance(var, str):
+        if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
@@ -92,7 +94,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     def smtp_user(self) -> str:
         """Return smtp_user var."""
         var = self._get(varname=_Keys.SMTP_USER)
-        if not isinstance(var, str):
+        if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
@@ -105,7 +107,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     def smtp_pass(self) -> str:
         """Return smtp_pass var."""
         var = self._get(varname=_Keys.SMTP_PASS)
-        if not isinstance(var, str):
+        if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
@@ -118,7 +120,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     def address_from(self) -> str:
         """Return address_from var."""
         var = self._get(varname=_Keys.ADDRESS_FROM)
-        if not isinstance(var, str):
+        if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
@@ -131,7 +133,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     def address_to(self) -> str:
         """Return address_to var."""
         var = self._get(varname=_Keys.ADDRESS_TO)
-        if not isinstance(var, str):
+        if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
@@ -173,23 +175,67 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
         try:
-            if self.module_conf.sleep_period:
+            if self.module_conf.sleep_period is not None:
                 self.sleep_period = self.module_conf.sleep_period
             # priority
+            if not self.module_conf.priority:
+                self.logs.message_critical = "priority not set, exiting..."
+                self.stop()
             # smtp_server
+            if not self.module_conf.smtp_server:
+                self.logs.message_critical = (
+                    "smtp_server not set, exiting..."
+                )
+                self.stop()
             # smtp_user
             # smtp_pass
             # address_from
             # address_to
 
         except Exception as ex:
-            self.logs.message_critical = f"{ex}"
+            self.logs.message_critical = f"[{self._f_name}] {ex}"
             return False
         return True
 
     def run(self) -> None:
         """Main loop."""
-        # initialization local variables
+        # initialize local vars
+        deffered_queue = Queue()
+
+        # initialization variables from config file
+        if not self._apply_config():
+            self.logs.message_error = "configuration error."
+            return
+
+        # starting module loop
+        while not self.stopped:
+            # read from queue, process message if received
+            try:
+                message: Message = self.qcom.get(block=True, timeout=0.1)
+                if message is None:
+                    continue
+                # try to process message
+                try:
+                    pass
+                except Exception as ex:
+                    self.logs.message_warning = "error processing message."
+                    if self.debug:
+                        self.logs.message_debug = f"[{self._f_name}] {ex}"
+                finally:
+                    self.qcom.task_done()
+
+            except Empty:
+                pass
+            except Exception as ex:
+                self.logs.message_critical = (
+                    f'error while processing message: "{ex}"'
+                )
+
+            time.sleep(self.sleep_period)
+
+        # exiting from loop
+        if self._debug:
+            self.logs.message_debug = "exiting from loop."
 
     def stop(self) -> None:
         """Set stop event."""

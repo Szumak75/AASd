@@ -191,7 +191,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
 
         while not self.stopped:
             try:
-                message = self.qcom.get(block=True, timeout=0.1)
+                message: Message = self.qcom.get(block=True, timeout=0.1)
                 if message is None:
                     continue
 

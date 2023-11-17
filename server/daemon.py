@@ -283,7 +283,7 @@ class AASd(BProjectClass, BImporter):
             self.conf.debug = True
         if parser.get_option("verbose") is not None:
             self.conf.verbose = True
-        if parser.get_option("file=") is not None:
+        if parser.get_option("file") is not None:
             self.conf.config_file = parser.get_option("file")
         if parser.get_option("password") is not None:
             if (
