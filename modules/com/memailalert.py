@@ -213,7 +213,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         """Main loop."""
         # initialize local vars
         deffered_shift = 15 * 60  # 15 minutes
-        deffered = Timestamp.now + deffered_shift
+        deffered = deffered_shift + Timestamp.now
         deffered_count = 7 * 24 * 4  # 7 days every 15 minutes
         deffered_queue = Queue()
 
@@ -258,7 +258,8 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                     continue
                 # try to process message
                 try:
-                    pass
+                    if not self.__send_message(message):
+                        deffered_queue.put(message)
                 except Exception as ex:
                     self.logs.message_warning = "error processing message"
                     if self.debug:

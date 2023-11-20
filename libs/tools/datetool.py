@@ -41,22 +41,22 @@ class DateTime(NoNewAttributes):
         """
         return datetime.datetime.now(tz=tz)
 
-    @property
     @classmethod
+    @property
     def datetimenow(cls) -> str:
         """Return datetime string in isoformat."""
         return f"{datetime.date.today().isoformat()} {cls.now().strftime('%H:%M:%S')}"
 
-    @property
     @classmethod
+    @property
     def email_date(cls) -> str:
         """Return email date formatted string."""
         return cls.now(datetime.timezone.utc).strftime(
             "%a, %d %b %Y %H:%M:%S %z"
         )
 
-    @property
     @classmethod
+    @property
     def mfi_date(cls) -> Dict:
         """Return MFI date formatted dict."""
         now = cls.now()
@@ -65,8 +65,8 @@ class DateTime(NoNewAttributes):
             "year": now.strftime("%Y"),
         }
 
-    @property
     @classmethod
+    @property
     def zfs_snapshot_date(cls) -> str:
         """Return datetime string for zfs snapshot name."""
         return cls.now().strftime("%Y%m%d-%H%M%S")
@@ -75,8 +75,8 @@ class DateTime(NoNewAttributes):
 class Timestamp(NoNewAttributes):
     """Timestamp class for geting current timestamp."""
 
-    @property
     @classmethod
+    @property
     def now(cls) -> int:
         """Return timestamp int."""
         return int(time.time())
