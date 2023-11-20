@@ -284,7 +284,6 @@ class AASd(BProjectClass, BImporter):
 
         # command line parsing
         parser.parse_arguments()
-        print(parser.args)
 
         # checking
         if parser.get_option("help") is not None:
@@ -422,7 +421,6 @@ class AASd(BProjectClass, BImporter):
         """Received TERM|INT signal."""
         if self.conf.debug:
             self.logs.message_debug = "TERM or INT signal received."
-            self.logs.message_debug = self._data
         self.loop = False
 
     def __sig_hup(self, signum: int, frame):
