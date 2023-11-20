@@ -347,7 +347,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         )
         out.append(
             TemplateConfigItem(
-                desc="may be overrited by Message class properites if set."
+                desc="may be overrited by Message class properties if set."
             )
         )
         out.append(
@@ -357,7 +357,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         )
         out.append(
             TemplateConfigItem(
-                desc="may be overrited by Message class properites if set."
+                desc="may be overrited by Message class properties if set."
             )
         )
         out.append(TemplateConfigItem(varname=_Keys.PRIORITY, value=1))
