@@ -7,10 +7,15 @@
 """
 
 import time
+import smtplib
+import ssl
+import email
+
 from inspect import currentframe
 from typing import Dict, List, Optional, Any
 from threading import Thread, Event
 from queue import Queue, Empty, Full
+from email.message import EmailMessage
 
 from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
@@ -24,6 +29,7 @@ from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message
+from libs.tools.datetool import Timestamp
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -195,20 +201,56 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         except Exception as ex:
             self.logs.message_critical = f"[{self._f_name}] {ex}"
             return False
+        if self._debug:
+            self.logs.message_debug = "configuration processing complete"
         return True
+
+    def __send_message(self, message: Message) -> bool:
+        """Try to send message."""
+        return False
 
     def run(self) -> None:
         """Main loop."""
         # initialize local vars
+        deffered_shift = 15 * 60  # 15 minutes
+        deffered = Timestamp.now + deffered_shift
+        deffered_count = 7 * 24 * 4  # 7 days every 15 minutes
         deffered_queue = Queue()
+
+        self.logs.message_notice = "starting..."
 
         # initialization variables from config file
         if not self._apply_config():
-            self.logs.message_error = "configuration error."
+            self.logs.message_error = "configuration error"
             return
 
         # starting module loop
+        if self._debug:
+            self.logs.message_debug = "entering to the main loop"
         while not self.stopped:
+            # read from deffered queue
+            if deffered < Timestamp.now:
+                tmp = []
+                while not self.stopped:
+                    try:
+                        message: Message = deffered_queue(timeout=0.1)
+                        # try to send for deffered_count times
+                        if (
+                            not self.__send_message(message)
+                            and message.counter < deffered_count
+                        ):
+                            tmp.append(message)
+
+                    except Empty:
+                        break
+                    except Exception as ex:
+                        self.logs.message_critical = (
+                            f"error while processing deffered queue: {ex}"
+                        )
+                deffered = Timestamp.now + deffered_shift
+                for item in tmp:
+                    deffered_queue.put(item)
+
             # read from queue, process message if received
             try:
                 message: Message = self.qcom.get(block=True, timeout=0.1)
@@ -218,7 +260,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 try:
                     pass
                 except Exception as ex:
-                    self.logs.message_warning = "error processing message."
+                    self.logs.message_warning = "error processing message"
                     if self.debug:
                         self.logs.message_debug = f"[{self._f_name}] {ex}"
                 finally:
@@ -234,13 +276,12 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             time.sleep(self.sleep_period)
 
         # exiting from loop
-        if self._debug:
-            self.logs.message_debug = "exiting from loop."
+        self.logs.message_notice = "exit"
 
     def stop(self) -> None:
         """Set stop event."""
         if self._debug:
-            self.logs.message_debug = "stop signal received."
+            self.logs.message_debug = "stop signal received"
         self._stop_event.set()
 
     @property

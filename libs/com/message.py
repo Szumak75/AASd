@@ -26,10 +26,12 @@ class _Keys(object, metaclass=ReadOnlyClass):
     """
 
     CMESS = "__message__"
+    CMMESS = "__mmessage__"
     CPRIORITY = "__priority__"
     CTO = "__to__"
     CTITLE = "__title__"
     COMQUEUES = "__comq__"
+    COUNTER = "__counter__"
     CSENDER = "__sender__"
 
 
@@ -39,10 +41,18 @@ class Message(BClasses):
     def __init__(self):
         """Constructor."""
         self._data[_Keys.CMESS] = []
+        self._data[_Keys.CMMESS] = None
         self._data[_Keys.CPRIORITY] = None
         self._data[_Keys.CTO] = None
         self._data[_Keys.CTITLE] = None
         self._data[_Keys.CSENDER] = None
+        self._data[_Keys.COUNTER] = 0
+
+    @property
+    def counter(self) -> int:
+        """Return counter."""
+        self._data[_Keys.COUNTER] += 1
+        return self._data[_Keys.COUNTER]
 
     @property
     def priority(self) -> Optional[int]:
@@ -71,6 +81,25 @@ class Message(BClasses):
     def messages(self, message: str) -> None:
         """Append message to list."""
         self._data[_Keys.CMESS].append(str(message))
+
+    @property
+    def mmessages(self) -> Optional[List]:
+        """Return optional multipart messages list."""
+        return self._data[_Keys.CMMESS]
+
+    @messages.setter
+    def mmessages(self, mlist: List[str]) -> None:
+        """Append multipart message to list."""
+        if not isinstance(mlist, List):
+            raise Raise.error(
+                f"Expected List type, received: '{type(mlist)}'",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        if self._data[_Keys.CMMESS] is None:
+            self._data[_Keys.CMMESS] = []
+        self._data[_Keys.CMMESS].append(mlist)
 
     @property
     def sender(self) -> Optional[str]:
@@ -187,7 +216,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
         # 2. dispatch received message object to queues with appropriate communication priority
         # 3. loop to 1.
         if self._debug:
-            self.logs.message_debug = "Starting loop."
+            self.logs.message_debug = "starting loop..."
 
         while not self.stopped:
             try:
@@ -208,7 +237,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
                 )
 
         if self._debug:
-            self.logs.message_debug = "Exit from loop."
+            self.logs.message_debug = "exit from loop"
 
     def __dispatch_message(self, message: Message) -> None:
         """Put message to queues."""
@@ -241,7 +270,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
     def stop(self) -> None:
         """Set stop event."""
         if self._debug:
-            self.logs.message_debug = "stop signal received."
+            self.logs.message_debug = "stop signal received"
         self._stop_event.set()
 
     @property

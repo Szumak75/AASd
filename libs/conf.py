@@ -119,27 +119,25 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
             if not self._cfh.file_exists:
                 self.logs.message_warning = (
-                    f"Config file '{self.config_file}' not exist."
+                    f"config file '{self.config_file}' not exist"
                 )
-                self.logs.message_warning = "Try to create default one."
+                self.logs.message_warning = "try to create default one"
                 if not self.__create_config_file():
                     return False
         try:
             if self.debug:
                 self.logs.message_debug = (
-                    f"Try to load config file: '{self.config_file}'..."
+                    f"try to load config file: '{self.config_file}'..."
                 )
             out = self._cfh.load()
             # TODO: process config file
             if out:
                 if self.debug:
-                    self.logs.message_debug = (
-                        "Config file loaded successful."
-                    )
+                    self.logs.message_debug = "config file loaded successful"
             return out
         except Exception as ex:
             self.logs.message_critical = (
-                f"Cannot load config file: '{self.config_file}'."
+                f"cannot load config file: '{self.config_file}'"
             )
             if self.debug:
                 self.logs.message_debug = f"{ex}"
@@ -149,11 +147,11 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if self._cfh:
             if self._cfh.save():
                 if self.debug:
-                    self.logs.message_debug = "Config file saved successful."
+                    self.logs.message_debug = "config file saved successful"
                 return True
             else:
                 self.logs.message_critical = (
-                    f"Cannot save config file: '{self.config_file}'."
+                    f"cannot save config file: '{self.config_file}'"
                 )
         return False
 
@@ -241,14 +239,14 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                             )
                     else:
                         self.logs.message_error = (
-                            f"Cannot load module: modules.run.'{name}'"
+                            f"cannot load module: modules.run.'{name}'"
                         )
 
         try:
             return self.save()
         except Exception as ex:
             self.logs.message_critical = (
-                f"Cannot create config file: '{self.config_file}'."
+                f"cannot create config file: '{self.config_file}'"
             )
             if self.debug:
                 self.logs.message_debug = f"{ex}"

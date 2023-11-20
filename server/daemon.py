@@ -79,7 +79,7 @@ class AASd(BProjectClass, BImporter):
 
         # config file
         if not self.conf.load():
-            self.logs.message_critical = "cannot load config file."
+            self.logs.message_critical = "cannot load config file"
             self.loop = False
 
         # check single run options
@@ -94,9 +94,9 @@ class AASd(BProjectClass, BImporter):
 
         # update config file
         if self.loop and self.conf.update:
-            self.logs.message_notice = "trying to update config file."
+            self.logs.message_notice = "trying to update config file"
             if not self.conf.save():
-                self.logs.message_critical = "cannot update config file."
+                self.logs.message_critical = "cannot update config file"
 
         # signal handling
         signal.signal(signal.SIGTERM, self.__sig_exit)
@@ -106,7 +106,7 @@ class AASd(BProjectClass, BImporter):
 
     def run(self) -> None:
         """Start project."""
-        self.logs.message_info = "Start main loop."
+        self.logs.message_info = "start main loop"
 
         # logger processor
         self.logs_processor.start()
@@ -167,7 +167,7 @@ class AASd(BProjectClass, BImporter):
         while self.loop:
             time.sleep(0.5)
 
-        self.logs.message_info = "Exiting..."
+        self.logs.message_info = "exiting..."
 
         # stopping & joining running modules
         for mod in run_mods:
