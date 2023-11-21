@@ -185,18 +185,32 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 self.sleep_period = self.module_conf.sleep_period
             # priority
             if not self.module_conf.priority:
-                self.logs.message_critical = "priority not set, exiting..."
+                self.logs.message_critical = "'priority' not set, exiting..."
                 self.stop()
             # smtp_server
             if not self.module_conf.smtp_server:
                 self.logs.message_critical = (
-                    "smtp_server not set, exiting..."
+                    "'smtp_server' not set, exiting..."
                 )
                 self.stop()
             # smtp_user
+            if not self.module_conf.smtp_user:
+                self.logs.message_warning = "'smtp_user' not set, it doesn't have to be a mistake, but check..."
             # smtp_pass
+            if not self.module_conf.smtp_pass:
+                self.logs.message_warning = "'smtp_pass' not set, it doesn't have to be a mistake, but check..."
             # address_from
+            if not self.module_conf.address_from:
+                self.logs.message_critical = (
+                    "'address_from' not set, exiting..."
+                )
+                self.stop()
             # address_to
+            if not self.module_conf.address_to:
+                self.logs.message_critical = (
+                    "'address_to' not set, exiting..."
+                )
+                self.stop()
 
         except Exception as ex:
             self.logs.message_critical = f"[{self._f_name}] {ex}"
