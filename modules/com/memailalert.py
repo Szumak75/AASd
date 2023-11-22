@@ -31,6 +31,10 @@ from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message
 from libs.tools.datetool import Timestamp
 
+# https://realpython.com/python-send-email/
+# https://docs.python.org/3/library/email.examples.html#email-examples
+# https://www.tutorialspoint.com/python_network_programming/python_email_messages.htm
+
 
 class _Keys(object, metaclass=ReadOnlyClass):
     """Private Keys definition class.
