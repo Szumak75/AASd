@@ -35,6 +35,16 @@ class _Keys(object, metaclass=ReadOnlyClass):
     CSENDER = "__sender__"
 
 
+class Multipart(object, metaclass=ReadOnlyClass):
+    """Keys definition class.
+
+    For define multipart message public keys.
+    """
+
+    PLAIN = "plain"
+    HTML = "html"
+
+
 class Message(BClasses):
     """Communication message container class."""
 
@@ -83,23 +93,30 @@ class Message(BClasses):
         self._data[_Keys.CMESS].append(str(message))
 
     @property
-    def mmessages(self) -> Optional[List]:
+    def mmessages(self) -> Optional[Dict]:
         """Return optional multipart messages list."""
         return self._data[_Keys.CMMESS]
 
     @messages.setter
-    def mmessages(self, mlist: List[str]) -> None:
-        """Append multipart message to list."""
-        if not isinstance(mlist, List):
+    def mmessages(self, mdict: Dict) -> None:
+        """Append multipart dict messages.
+
+        Example:
+        mdict = {
+        Multipart.PLAIN: []
+        Multipart.HTML: []
+        }
+        """
+        if not isinstance(mdict, Dict):
             raise Raise.error(
-                f"Expected List type, received: '{type(mlist)}'",
+                f"Expected Dict type, received: '{type(mdict)}'",
                 TypeError,
                 self._c_name,
                 currentframe(),
             )
         if self._data[_Keys.CMMESS] is None:
-            self._data[_Keys.CMMESS] = []
-        self._data[_Keys.CMMESS].append(mlist)
+            self._data[_Keys.CMMESS] = {}
+        self._data[_Keys.CMMESS].update(mdict)
 
     @property
     def sender(self) -> Optional[str]:
@@ -232,9 +249,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
             except Empty:
                 pass
             except Exception as ex:
-                self.logs.message_critical = (
-                    f'error while processing message: "{ex}"'
-                )
+                self.logs.message_critical = f'error while processing message: "{ex}"'
 
         if self._debug:
             self.logs.message_debug = "exit from loop"

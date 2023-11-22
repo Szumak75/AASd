@@ -16,6 +16,7 @@ from typing import Dict, List, Optional, Any
 from threading import Thread, Event
 from queue import Queue, Empty, Full
 from email.message import EmailMessage
+from email.utils import make_msgid
 
 from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
@@ -28,8 +29,8 @@ from libs.interfaces.modules import IComModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
-from libs.com.message import Message
-from libs.tools.datetool import Timestamp
+from libs.com.message import Message, Multipart
+from libs.tools.datetool import Timestamp, DateTime
 
 # https://realpython.com/python-send-email/
 # https://docs.python.org/3/library/email.examples.html#email-examples
@@ -46,6 +47,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SLEEP_PERIOD = "sleep_period"
     PRIORITY = "priority"
     SMTP_SERVER = "smtp_server"
+    SMTP_PORT = "smtp_port"
     SMTP_USER = "smtp_user"
     SMTP_PASS = "smtp_pass"
     ADDRESS_FROM = "address_from"
@@ -174,6 +176,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         self._section = self._c_name
         self._cfh = conf
         self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+        self._data[_Keys.SMTP_PORT] = None
 
         # logging level
         self._debug = debug
@@ -193,27 +196,25 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 self.stop()
             # smtp_server
             if not self.module_conf.smtp_server:
-                self.logs.message_critical = (
-                    "'smtp_server' not set, exiting..."
-                )
+                self.logs.message_critical = "'smtp_server' not set, exiting..."
                 self.stop()
             # smtp_user
             if not self.module_conf.smtp_user:
-                self.logs.message_warning = "'smtp_user' not set, it doesn't have to be a mistake, but check..."
+                self.logs.message_warning = (
+                    "'smtp_user' not set, it doesn't have to be a mistake, but check..."
+                )
             # smtp_pass
             if not self.module_conf.smtp_pass:
-                self.logs.message_warning = "'smtp_pass' not set, it doesn't have to be a mistake, but check..."
+                self.logs.message_warning = (
+                    "'smtp_pass' not set, it doesn't have to be a mistake, but check..."
+                )
             # address_from
             if not self.module_conf.address_from:
-                self.logs.message_critical = (
-                    "'address_from' not set, exiting..."
-                )
+                self.logs.message_critical = "'address_from' not set, exiting..."
                 self.stop()
             # address_to
             if not self.module_conf.address_to:
-                self.logs.message_critical = (
-                    "'address_to' not set, exiting..."
-                )
+                self.logs.message_critical = "'address_to' not set, exiting..."
                 self.stop()
 
         except Exception as ex:
@@ -225,6 +226,81 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
 
     def __send_message(self, message: Message) -> bool:
         """Try to send message."""
+        # build email message
+        msg = EmailMessage()
+        if message.title:
+            msg.add_header("title", message.title)
+        if message.sender:
+            msg.add_header("from", message.sender)
+        else:
+            msg.add_header("from", self.module_conf.address_from)
+        if message.to:
+            msg.add_header("to", message.to)
+        else:
+            if isinstance(self.module_conf.address_to, str):
+                msg.add_header("to", self.module_conf.address_to)
+            elif isinstance(self.module_conf.address_to, (tuple, list)):
+                msg.add_header("to", ", ".join(self.module_conf.address_to))
+            else:
+                self.logs.message_critical = (
+                    f'cannot build address to: "{self.module_conf.address_to}"'
+                )
+                return False
+        msg.add_header("message-id", make_msgid())
+        msg.add_header("date", DateTime.email_date)
+
+        # add email content
+        if message.mmessages:
+            if Multipart.PLAIN in message.mmessages:
+                tmp = ""
+                if isinstance(message.mmessages[Multipart.PLAIN], list):
+                    for line in message.mmessages[Multipart.PLAIN]:
+                        tmp += f"{line}\n"
+                elif isinstance(message.mmessages[Multipart.PLAIN], str):
+                    tmp = message.mmessages[Multipart.PLAIN]
+                else:
+                    self.logs.message_critical = (
+                        f"the message format cannot be recognize"
+                    )
+                    return False
+                msg.set_content(msg)
+            if Multipart.HTML in message.mmessages:
+                tmp = ""
+                if isinstance(message.mmessages[Multipart.HTML], list):
+                    for line in message.mmessages[Multipart.HTML]:
+                        tmp += f"{line}\n"
+                elif isinstance(message.mmessages[Multipart.HTML], str):
+                    tmp = message.mmessages[Multipart.HTML]
+                else:
+                    self.logs.message_critical = (
+                        f"the message format cannot be recognize"
+                    )
+                    return False
+                msg.add_alternative(msg, subtype="html")
+        else:
+            tmp = ""
+            if isinstance(message.messages, list):
+                for line in message.messages:
+                    tmp += f"{line}\n"
+            elif isinstance(message.messages, str):
+                tmp = message.messages
+            else:
+                self.logs.message_critical = f"the message format cannot be recognize"
+                return False
+            msg.set_content(msg)
+
+        # try to find port
+        port = [587, 465, 25]
+
+        # try to send message
+        with smtplib.SMTP(
+            host=self.module_conf.smtp_server, port=self._data[_Keys.SMTP_PORT]
+        ) as smtp:
+            if self._data[_Keys.SMTP_PORT] and self._data[_Keys.SMTP_PORT] == 587:
+                smtp.starttls()
+                smtp.login(self.module_conf.smtp_user, self.module_conf.smtp_pass)
+                smtp.send_message(msg)
+
         return False
 
     def run(self) -> None:
@@ -288,9 +364,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             except Empty:
                 pass
             except Exception as ex:
-                self.logs.message_critical = (
-                    f'error while processing message: "{ex}"'
-                )
+                self.logs.message_critical = f'error while processing message: "{ex}"'
 
             time.sleep(self.sleep_period)
 
@@ -334,9 +408,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="Email alert configuration module.")
-        )
+        out.append(TemplateConfigItem(desc="Email alert configuration module."))
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
