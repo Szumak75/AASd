@@ -23,6 +23,7 @@ from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
+from jsktoolbox.stringtool.crypto import SimpleCrypto
 
 from libs.base.classes import BModule
 from libs.interfaces.modules import IComModule
@@ -196,25 +197,27 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 self.stop()
             # smtp_server
             if not self.module_conf.smtp_server:
-                self.logs.message_critical = "'smtp_server' not set, exiting..."
+                self.logs.message_critical = (
+                    "'smtp_server' not set, exiting..."
+                )
                 self.stop()
             # smtp_user
             if not self.module_conf.smtp_user:
-                self.logs.message_warning = (
-                    "'smtp_user' not set, it doesn't have to be a mistake, but check..."
-                )
+                self.logs.message_warning = "'smtp_user' not set, it doesn't have to be a mistake, but check..."
             # smtp_pass
             if not self.module_conf.smtp_pass:
-                self.logs.message_warning = (
-                    "'smtp_pass' not set, it doesn't have to be a mistake, but check..."
-                )
+                self.logs.message_warning = "'smtp_pass' not set, it doesn't have to be a mistake, but check..."
             # address_from
             if not self.module_conf.address_from:
-                self.logs.message_critical = "'address_from' not set, exiting..."
+                self.logs.message_critical = (
+                    "'address_from' not set, exiting..."
+                )
                 self.stop()
             # address_to
             if not self.module_conf.address_to:
-                self.logs.message_critical = "'address_to' not set, exiting..."
+                self.logs.message_critical = (
+                    "'address_to' not set, exiting..."
+                )
                 self.stop()
 
         except Exception as ex:
@@ -224,8 +227,50 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             self.logs.message_debug = "configuration processing complete"
         return True
 
+    def __init_smtp(self) -> Optional[Union[smtplib.SMTP, smtplib.SMTP_SSL]]:
+        """Try to connect."""
+        smtp = None
+        if self._data[_Keys.SMTP_PORT] is None:
+            ports = [587, 465, 25]
+        else:
+            ports = [self._data[_Keys.SMTP_PORT]]
+
+        for port in ports:
+            if port == 465:
+                try:
+                    smtp = smtplib.SMTP_SSL(
+                        host=self.module_conf.smtp_server,
+                        port=port,
+                        context=ssl.create_default_context(),
+                    )
+                    self._data[_Keys.SMTP_PORT] = port
+                    break
+                except ConnectionRefusedError:
+                    continue
+                except smtplib.SMTPConnectError:
+                    continue
+                except Exception as ex:
+                    self.logs.message_debug = (
+                        f"smtp ssl connection error: {ex}"
+                    )
+            else:
+                try:
+                    smtp = smtplib.SMTP(
+                        host=self.module_conf.smtp_server, port=port
+                    )
+                    self._data[_Keys.SMTP_PORT] = port
+                    break
+                except ConnectionRefusedError:
+                    continue
+                except smtplib.SMTPConnectError:
+                    continue
+                except Exception as ex:
+                    self.logs.message_debug = f"smtp connection error: {ex}"
+        return smtp
+
     def __send_message(self, message: Message) -> bool:
         """Try to send message."""
+        out = False
         # build email message
         msg = EmailMessage()
         if message.title:
@@ -242,10 +287,8 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             elif isinstance(self.module_conf.address_to, (tuple, list)):
                 msg.add_header("to", ", ".join(self.module_conf.address_to))
             else:
-                self.logs.message_critical = (
-                    f'cannot build address to: "{self.module_conf.address_to}"'
-                )
-                return False
+                self.logs.message_critical = f'cannot build address to: "{self.module_conf.address_to}"'
+                return out
         msg.add_header("message-id", make_msgid())
         msg.add_header("date", DateTime.email_date)
 
@@ -262,7 +305,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                     self.logs.message_critical = (
                         f"the message format cannot be recognize"
                     )
-                    return False
+                    return out
                 msg.set_content(msg)
             if Multipart.HTML in message.mmessages:
                 tmp = ""
@@ -275,7 +318,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                     self.logs.message_critical = (
                         f"the message format cannot be recognize"
                     )
-                    return False
+                    return out
                 msg.add_alternative(msg, subtype="html")
         else:
             tmp = ""
@@ -285,23 +328,56 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             elif isinstance(message.messages, str):
                 tmp = message.messages
             else:
-                self.logs.message_critical = f"the message format cannot be recognize"
-                return False
+                self.logs.message_critical = (
+                    f"the message format cannot be recognize"
+                )
+                return out
             msg.set_content(msg)
 
-        # try to find port
-        port = [587, 465, 25]
+        # try to init connection
+        smtp = self.__init_smtp()
+
+        if smtp is None:
+            self.logs.message_critical = (
+                "connection not initialized properly, cannot continue"
+            )
+            return out
 
         # try to send message
-        with smtplib.SMTP(
-            host=self.module_conf.smtp_server, port=self._data[_Keys.SMTP_PORT]
-        ) as smtp:
-            if self._data[_Keys.SMTP_PORT] and self._data[_Keys.SMTP_PORT] == 587:
+        try:
+            if self._data[_Keys.SMTP_PORT] == 587:
                 smtp.starttls()
-                smtp.login(self.module_conf.smtp_user, self.module_conf.smtp_pass)
-                smtp.send_message(msg)
+            if self._data[_Keys.SMTP_PORT] != 25:
+                salt = self._cfh.get(self._cfh.main_section_name, "salt")
+                if salt is not None:
+                    password = SimpleCrypto.multiple_decrypt(
+                        salt, self.module_conf.smtp_pass
+                    )
+                else:
+                    password = self.module_conf.smtp_pass
+                smtp.login(
+                    self.module_conf.smtp_user,
+                    password,
+                )
+            smtp.send_message(msg)
+            out = True
+        except smtplib.SMTPAuthenticationError as ex:
+            self.logs.message_critical = f"authentication error: {ex}"
+        except ssl.SSLError as ex:
+            self.logs.message_critical = f"ssl error: {ex}"
+        except smtplib.SMTPSenderRefused as ex:
+            self.logs.message_critical = f"sender refused error: {ex}"
+        except smtplib.SMTPServerDisconnected as ex:
+            self.logs.message_critical = f"server disconnected: {ex}"
+        except Exception as ex:
+            self.logs.message_critical = f"exception was thrown: {ex}"
+        finally:
+            try:
+                smtp.quit()
+            except:
+                pass
 
-        return False
+        return out
 
     def run(self) -> None:
         """Main loop."""
@@ -309,7 +385,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         deffered_shift = 15 * 60  # 15 minutes
         deffered = deffered_shift + Timestamp.now
         deffered_count = 7 * 24 * 4  # 7 days every 15 minutes
-        deffered_queue = Queue()
+        deffered_queue = Queue(maxsize=500)
 
         self.logs.message_notice = "starting..."
 
@@ -364,7 +440,9 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             except Empty:
                 pass
             except Exception as ex:
-                self.logs.message_critical = f'error while processing message: "{ex}"'
+                self.logs.message_critical = (
+                    f'error while processing message: "{ex}"'
+                )
 
             time.sleep(self.sleep_period)
 
@@ -408,7 +486,9 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Email alert configuration module."))
+        out.append(
+            TemplateConfigItem(desc="Email alert configuration module.")
+        )
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
