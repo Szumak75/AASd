@@ -12,7 +12,7 @@ import ssl
 import email
 
 from inspect import currentframe
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Union, Any
 from threading import Thread, Event
 from queue import Queue, Empty, Full
 from email.message import EmailMessage

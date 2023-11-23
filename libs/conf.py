@@ -225,22 +225,22 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             self.logs.message_debug = (
                 f"Found running modules list: {run_mods}"
             )
-            if run_mods:
-                for name in run_mods:
-                    mod: IComModule = self.import_module("modules.run", name)
-                    if mod:
-                        for item in mod.template_module_variables():
-                            tci: TemplateConfigItem = item
-                            self._cfh.set(
-                                name,
-                                varname=tci.varname,
-                                value=tci.value,
-                                desc=tci.desc,
-                            )
-                    else:
-                        self.logs.message_error = (
-                            f"cannot load module: modules.run.'{name}'"
+        if run_mods:
+            for name in run_mods:
+                mod: IRunModule = self.import_module("modules.run", name)
+                if mod:
+                    for item in mod.template_module_variables():
+                        tci: TemplateConfigItem = item
+                        self._cfh.set(
+                            name,
+                            varname=tci.varname,
+                            value=tci.value,
+                            desc=tci.desc,
                         )
+                else:
+                    self.logs.message_error = (
+                        f"cannot load module: modules.run.'{name}'"
+                    )
 
         try:
             return self.save()
@@ -316,6 +316,8 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if self.module_conf.modules:
             # try search importtable modules and compare it to config variable list
             name_list = self.import_name_list(package)
+            if self.debug:
+                self.logs.message_debug = f"found module list: {name_list}"
             # make dictionary
             tmp = dict(
                 zip(self.module_conf.modules, self.module_conf.modules)
@@ -328,7 +330,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                         out.append(imod)
                     else:
                         self.logs.message_error = (
-                            f"Cannot import module: '{package}.{name}'"
+                            f"cannot import module: '{package}.{name}'"
                         )
 
         return out

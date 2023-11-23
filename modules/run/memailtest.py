@@ -7,13 +7,10 @@
 """
 
 import time
-
 from inspect import currentframe
-from typing import Dict, List, Optional, Union, Any
+from typing import Dict, List, Optional, Any
 from threading import Thread, Event
-from queue import Queue, Empty, Full
-from email.message import EmailMessage
-from email.utils import make_msgid
+from queue import Queue
 
 from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
@@ -22,12 +19,12 @@ from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 
 from libs.base.classes import BModule
-from libs.interfaces.modules import IComModule
+from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart
-from libs.tools.datetool import Timestamp, DateTime
+from libs.tools.datetool import DateTime, Timestamp, Intervals
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -38,7 +35,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
     MODCONF = "__MODULE_CONF__"
     SLEEP_PERIOD = "sleep_period"
-    PRIORITY = "priority"
+    MESSAGE_PRIORITY = "message_priority"
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -49,12 +46,12 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return self._cfh.get(self._section, varname)
 
     @property
-    def priority(self) -> int:
-        """Return priority var."""
-        var = self._get(varname=_Keys.PRIORITY)
-        if var is not None and not isinstance(var, int):
+    def message_priority(self) -> Optional[List[str]]:
+        """Return message priority list."""
+        var = self._get(varname=_Keys.MESSAGE_PRIORITY)
+        if var is not None and not isinstance(var, List):
             raise Raise.error(
-                "Expected int type.",
+                "Expected list type.",
                 TypeError,
                 self._c_name,
                 currentframe(),
@@ -62,11 +59,9 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def sleep_period(self) -> Optional[float]:
+    def sleep_period(self) -> float:
         """Return sleep_period var."""
         var = self._get(varname=_Keys.SLEEP_PERIOD)
-        if var is None:
-            return None
         if not isinstance(var, (int, float)):
             raise Raise.error(
                 "Expected float type.",
@@ -77,13 +72,14 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return float(var)
 
 
-class MExample(Thread, ThBaseObject, BModule, IComModule):
-    """Example alert module."""
+class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
+    """Email test module."""
 
     def __init__(
         self,
         conf: ConfigTool,
         qlog: LoggerQueue,
+        qcom: Queue,
         verbose: bool = False,
         debug: bool = False,
     ) -> None:
@@ -106,80 +102,43 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         # logger client initialization
         self.logs = LoggerClient(queue=qlog, name=self._c_name)
 
+        # communication queue
+        self.qcom = qcom
+
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
         try:
-            if self.module_conf.sleep_period is not None:
+            if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
-            # priority
-            if not self.module_conf.priority:
-                self.logs.message_critical = (
-                    "required variable 'priority' not set, exiting..."
-                )
-                self.stop()
-
         except Exception as ex:
-            self.logs.message_critical = f"[{self._f_name}] {ex}"
+            self.logs.message_critical = f"{ex}"
             return False
-        if self._debug:
-            self.logs.message_debug = "configuration processing complete"
         return True
-
-    def __send_message(self, message: Message) -> bool:
-        """Try to send message."""
-        out = False
-
-        return out
 
     def run(self) -> None:
         """Main loop."""
-        # initialize local vars
-
-        self.logs.message_notice = "starting..."
+        # initialization local variables
 
         # initialization variables from config file
         if not self._apply_config():
-            self.logs.message_error = "configuration error"
+            self.logs.message_error = "configuration error."
             return
 
         # starting module loop
-        if self._debug:
-            self.logs.message_debug = "entering to the main loop"
-
         while not self.stopped:
-            # read from queue, process message if received
-            try:
-                message: Message = self.qcom.get(block=True, timeout=0.1)
-                if message is None:
-                    continue
-                # try to process message
-                try:
-                    if not self.__send_message(message):
-                        # TODO: not implemented
-                        pass
-                except Exception as ex:
-                    self.logs.message_warning = "error processing message"
-                    if self.debug:
-                        self.logs.message_debug = f"[{self._f_name}] {ex}"
-                finally:
-                    self.qcom.task_done()
-
-            except Empty:
-                pass
-            except Exception as ex:
-                self.logs.message_critical = (
-                    f'error while processing message: "{ex}"'
-                )
-
+            message = Message()
+            message.title = "This is example email."
+            message.messages.append()
             time.sleep(self.sleep_period)
 
         # exiting from loop
-        self.logs.message_notice = "exit"
+        if self._debug:
+            self.logs.message_debug = "exiting from loop."
 
     def stop(self) -> None:
         """Set stop event."""
         if self._debug:
-            self.logs.message_debug = "stop signal received"
+            self.logs.message_debug = "stop signal received."
         self._stop_event.set()
 
     @property
@@ -214,16 +173,56 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         # item format:
         # TemplateConfigItem()
         out.append(
-            TemplateConfigItem(desc="Example alert configuration module.")
+            TemplateConfigItem(desc="Emailtest configuration module.")
         )
-        out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
-                desc=f"{_Keys.PRIORITY} [int] - unique priority for communication method (for example: 100)"
+                desc="'sleep_period' [float], which determines the length of the break"
             )
         )
-        out.append(TemplateConfigItem(varname=_Keys.PRIORITY, value=100))
-
+        out.append(
+            TemplateConfigItem(
+                desc="between subsequent executions of the program's main loop"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="'message_priority' [List[str]], comma separated communication priority list,"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="where 'delay' means the time between generating"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="subsequent notifications for a given priority and can be given in"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="seconds or a numerical value with the suffix 's|m|h|d|w'"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.SLEEP_PERIOD,
+                value=5.0,
+                desc="[second]",
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.MESSAGE_PRIORITY,
+                value=["1"],
+            )
+        )
         return out
 
 

@@ -194,6 +194,7 @@ class AASd(BProjectClass, BImporter):
         while self.logs_processor.is_stopped != True:
             self.logs_processor.join()
             time.sleep(0.1)
+
         sys.exit(0)
 
     def __help(self, command_conf: Dict) -> None:

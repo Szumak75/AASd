@@ -1,2 +1,2 @@
-[configtool.Config]
-add method: has_variable(section, varname)->bool
+[AASd-Config]
+* add a procedure for updating the config file with templates from new modules
