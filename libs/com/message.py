@@ -224,7 +224,7 @@ class Message(BClasses):
         self._data[_Keys.MSUBJECT] = value
 
     @property
-    def to(self) -> Optional[str]:
+    def to(self) -> Optional[List[str]]:
         """Return optional to string.
 
         For example: custom email address.
@@ -232,11 +232,19 @@ class Message(BClasses):
         return self._data[_Keys.MTO]
 
     @to.setter
-    def to(self, value: str) -> None:
+    def to(self, value: Union[List[str], str]) -> None:
         """Set optional to string."""
-        if not isinstance(value, str):
+        if not self.to:
+            self._data[_Keys.MTO] = []
+        if isinstance(value, str):
+            self._data[_Keys.MTO].append(value)
+        elif isinstance(value, List[str]):
+            for item in value:
+                if item:
+                    self._data[_Keys.MTO].append(item)
+        else:
             raise Raise.error(
-                f"Expected string type, received '{type(value)}'.",
+                f"Expected string or list type, received '{type(value)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),

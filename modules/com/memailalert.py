@@ -280,12 +280,30 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         else:
             msg.add_header("From", self.module_conf.address_from)
         if message.to:
-            msg.add_header("To", message.to)
+            test = False
+            cc = []
+            for item in message.to:
+                if test:
+                    cc.append(item)
+                else:
+                    msg.add_header("To", item)
+                    test = True
+            if cc:
+                msg.add_header("Cc", ", ".join(cc))
         else:
             if isinstance(self.module_conf.address_to, str):
                 msg.add_header("To", self.module_conf.address_to)
             elif isinstance(self.module_conf.address_to, (tuple, list)):
-                msg.add_header("To", ", ".join(self.module_conf.address_to))
+                test = False
+                cc = []
+                for item in self.module_conf.address_to:
+                    if test:
+                        cc.append(item)
+                    else:
+                        msg.add_header("To", item)
+                        test = True
+                if cc:
+                    msg.add_header("Cc", ", ".join(cc))
             else:
                 self.logs.message_critical = f'cannot build address to: "{self.module_conf.address_to}"'
                 return out
