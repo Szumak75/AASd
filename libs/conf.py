@@ -7,7 +7,7 @@
 """
 
 from inspect import currentframe
-from typing import Dict, Optional, List, Any, Union
+from typing import Dict, Optional, List, Any, Union, Tuple
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
@@ -160,24 +160,55 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         self._cfh = None
         return self.load()
 
+    def __get_modules_config(self) -> Tuple[List[str], List[str], Dict]:
+        """Get modules configuration template."""
+        # init local variables
+        com_mods = list()
+        run_mods = list()
+        config = dict()
+
+        # get modules name list
+        com_mods = self.import_name_list("modules.com")
+        run_mods = self.import_name_list("modules.run")
+
+        # get config template
+        for item in com_mods:
+            config[item] = []
+            mod: IComModule = self.import_module("modules.com", item)
+            if mod:
+                for mod_item in mod.template_module_variables():
+                    config[item].append(mod_item)
+            else:
+                self.logs.message_error = (
+                    f"Cannot load module: modules.com.'{item}'"
+                )
+        for item in run_mods:
+            config[item] = []
+            mod: IRunModule = self.import_module("modules.run", item)
+            if mod:
+                for mod_item in mod.template_module_variables():
+                    config[item].append(mod_item)
+            else:
+                self.logs.message_error = (
+                    f"Cannot load module: modules.run.'{item}'"
+                )
+        return com_mods, run_mods, config
+
     def __create_config_file(self) -> bool:
         """Try to create config file."""
         # main section
-        com_mods = list()
-        run_mods = list()
+        (com_mods, run_mods, config) = self.__get_modules_config()
         # set header file
         self._cfh.set(
             self._section, desc=f"{self._section} configuration file"
         )
         # generate description for communication modules
         self._cfh.set(self._section, desc="[ communication modules ]:")
-        com_mods = self.import_name_list("modules.com")
         for item in com_mods:
             self._cfh.set(self._section, desc=f"{item}")
         self._cfh.set(self._section, desc="##")
         # generate description for running modules
         self._cfh.set(self._section, desc="[ running modules ]:")
-        run_mods = self.import_name_list("modules.run")
         for item in run_mods:
             self._cfh.set(self._section, desc=f"{item}")
         self._cfh.set(self._section, desc="##")
@@ -206,20 +237,20 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             )
         if com_mods:
             for name in com_mods:
-                mod: IComModule = self.import_module("modules.com", name)
-                if mod:
-                    for item in mod.template_module_variables():
-                        tci: TemplateConfigItem = item
-                        self._cfh.set(
-                            name,
-                            varname=tci.varname,
-                            value=tci.value,
-                            desc=tci.desc,
-                        )
-                else:
-                    self.logs.message_error = (
-                        f"Cannot load module: modules.com.'{name}'"
+                if name not in config:
+                    self.logs.message_critical = (
+                        f"cannot found config template for module: '{name}'"
                     )
+                    continue
+                for item in config[name]:
+                    tci: TemplateConfigItem = item
+                    self._cfh.set(
+                        name,
+                        varname=tci.varname,
+                        value=tci.value,
+                        desc=tci.desc,
+                    )
+
         # running modules
         if self.debug:
             self.logs.message_debug = (
@@ -227,19 +258,18 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             )
         if run_mods:
             for name in run_mods:
-                mod: IRunModule = self.import_module("modules.run", name)
-                if mod:
-                    for item in mod.template_module_variables():
-                        tci: TemplateConfigItem = item
-                        self._cfh.set(
-                            name,
-                            varname=tci.varname,
-                            value=tci.value,
-                            desc=tci.desc,
-                        )
-                else:
-                    self.logs.message_error = (
-                        f"cannot load module: modules.run.'{name}'"
+                if name not in config:
+                    self.logs.message_critical = (
+                        f"cannot found config template for module: '{name}'"
+                    )
+                    continue
+                for item in config[name]:
+                    tci: TemplateConfigItem = item
+                    self._cfh.set(
+                        name,
+                        varname=tci.varname,
+                        value=tci.value,
+                        desc=tci.desc,
                     )
 
         try:
