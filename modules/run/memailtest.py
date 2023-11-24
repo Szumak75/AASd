@@ -141,7 +141,10 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
                     message = Message()
                     message.priority = int(prio)
                     message.subject = "This is example email."
-                    message.to = "szumak@virthost.pl"
+                    message.reply_to = "marauder@virthost.pl"
+                    message.to = "Szumak <szumak@virthost.pl>"
+                    message.to = "Test <test@net-s.pl>"
+                    message.to = "JK <jacek.kotlarski@air-net.gda.pl>"
                     # message.messages = (
                     # "To jest wiadomość testowa z polskimi znakami."
                     # )

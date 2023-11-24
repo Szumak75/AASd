@@ -279,6 +279,8 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             msg.add_header("From", message.sender)
         else:
             msg.add_header("From", self.module_conf.address_from)
+        if message.reply_to:
+            msg.add_header("Reply-To", message.reply_to)
         if message.to:
             test = False
             cc = []

@@ -34,6 +34,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     MCOMQUEUES = "__comq__"
     MCOUNTER = "__counter__"
     MSENDER = "__sender__"
+    MREPLY = "__reply__"
     PCONF = "__priorities__"
     PNEXT = "__next__"
     PINT = "__interval__"
@@ -127,6 +128,7 @@ class Message(BClasses):
         self._data[_Keys.MTO] = None
         self._data[_Keys.MSUBJECT] = None
         self._data[_Keys.MSENDER] = None
+        self._data[_Keys.MREPLY] = None
         self._data[_Keys.MCOUNTER] = 0
 
     @property
@@ -152,6 +154,23 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
+
+    @property
+    def reply_to(self) -> Optional[str]:
+        """Return optional reply-to string."""
+        return self._data[_Keys.MREPLY]
+
+    @reply_to.setter
+    def reply_to(self, value: str) -> None:
+        """Set reply-to string."""
+        if not isinstance(value, str):
+            raise Raise.error(
+                f"Expected string type, received '{type(value)}'.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        self._data[_Keys.MREPLY] = value
 
     @property
     def messages(self) -> List[str]:
@@ -249,7 +268,6 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.MTO] = value
 
 
 class Dispatcher(Thread, ThBaseObject, BThProcessor):
