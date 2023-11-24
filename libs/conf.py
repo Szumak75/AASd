@@ -134,6 +134,14 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             if out:
                 if self.debug:
                     self.logs.message_debug = "config file loaded successful"
+            # check module updates
+            if self.__check_module_config_updates():
+                if self.debug:
+                    self.logs.message_debug = (
+                        "found new module configuration"
+                    )
+                if not self._cfh.save():
+                    self.logs.message_critical = "cannot update config file."
             return out
         except Exception as ex:
             self.logs.message_critical = (
@@ -159,6 +167,29 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         """Try to reload config file."""
         self._cfh = None
         return self.load()
+
+    def __check_module_config_updates(self) -> bool:
+        """Check module configs."""
+        test = False
+        (com_mods, run_mods, config) = self.__get_modules_config()
+        # check modules
+        for name in com_mods + run_mods:
+            if not self._cfh.has_section(name):
+                test = True
+                for item in config[name]:
+                    tci: TemplateConfigItem = item
+                    self._cfh.set(
+                        name,
+                        varname=tci.varname,
+                        value=tci.value,
+                        desc=tci.desc,
+                    )
+                if self.debug:
+                    self.logs.message_debug = (
+                        f"add default configuration for section: [{name}]"
+                    )
+
+        return test
 
     def __get_modules_config(self) -> Tuple[List[str], List[str], Dict]:
         """Get modules configuration template."""

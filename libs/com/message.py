@@ -233,7 +233,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
         # 2. dispatch received message object to queues with appropriate communication priority
         # 3. loop to 1.
         if self._debug:
-            self.logs.message_debug = "starting loop..."
+            self.logs.message_debug = "entering to the main loop"
 
         while not self.stopped:
             try:
@@ -249,7 +249,9 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
             except Empty:
                 pass
             except Exception as ex:
-                self.logs.message_critical = f'error while processing message: "{ex}"'
+                self.logs.message_critical = (
+                    f'error while processing message: "{ex}"'
+                )
 
         if self._debug:
             self.logs.message_debug = "exit from loop"

@@ -106,7 +106,7 @@ class AASd(BProjectClass, BImporter):
 
     def run(self) -> None:
         """Start project."""
-        self.logs.message_info = "start main loop"
+        self.logs.message_info = "starting..."
 
         # logger processor
         self.logs_processor.start()
@@ -124,6 +124,9 @@ class AASd(BProjectClass, BImporter):
 
         # start dispatcher
         dispatch.start()
+
+        # break for coffe
+        time.sleep(1)
 
         # start communication modules
         com_mods = []
@@ -164,6 +167,7 @@ class AASd(BProjectClass, BImporter):
                     self.logs.message_debug = f"{ex}"
 
         # main loop
+        self.logs.message_info = "entering to the main loop"
         while self.loop:
             time.sleep(0.5)
 
