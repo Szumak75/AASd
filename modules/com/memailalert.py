@@ -273,66 +273,65 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         out = False
         # build email message
         msg = EmailMessage()
-        if message.title:
-            msg.add_header("title", message.title)
+        if message.subject:
+            msg.add_header("Subject", message.subject)
         if message.sender:
-            msg.add_header("from", message.sender)
+            msg.add_header("From", message.sender)
         else:
-            msg.add_header("from", self.module_conf.address_from)
+            msg.add_header("From", self.module_conf.address_from)
         if message.to:
-            msg.add_header("to", message.to)
+            msg.add_header("To", message.to)
         else:
             if isinstance(self.module_conf.address_to, str):
-                msg.add_header("to", self.module_conf.address_to)
+                msg.add_header("To", self.module_conf.address_to)
             elif isinstance(self.module_conf.address_to, (tuple, list)):
-                msg.add_header("to", ", ".join(self.module_conf.address_to))
+                msg.add_header("To", ", ".join(self.module_conf.address_to))
             else:
                 self.logs.message_critical = f'cannot build address to: "{self.module_conf.address_to}"'
                 return out
-        msg.add_header("message-id", make_msgid())
-        msg.add_header("date", DateTime.email_date)
+        msg.add_header("Message-Id", make_msgid())
+        msg.add_header("Date", DateTime.email_date)
 
         # add email content
-        if message.mmessages:
+        if message.mmessages is not None:
             if Multipart.PLAIN in message.mmessages:
                 tmp = ""
                 if isinstance(message.mmessages[Multipart.PLAIN], list):
                     for line in message.mmessages[Multipart.PLAIN]:
                         tmp += f"{line}\n"
                 elif isinstance(message.mmessages[Multipart.PLAIN], str):
-                    tmp = message.mmessages[Multipart.PLAIN]
+                    tmp += f"{message.mmessages[Multipart.PLAIN]}\n"
                 else:
                     self.logs.message_critical = (
                         f"the message format cannot be recognize"
                     )
                     return out
-                msg.set_content(msg)
+                msg.set_content(tmp, subtype="plain", charset="utf-8")
             if Multipart.HTML in message.mmessages:
                 tmp = ""
-                if isinstance(message.mmessages[Multipart.HTML], list):
+                if isinstance(message.mmessages[Multipart.HTML], List):
                     for line in message.mmessages[Multipart.HTML]:
                         tmp += f"{line}\n"
                 elif isinstance(message.mmessages[Multipart.HTML], str):
-                    tmp = message.mmessages[Multipart.HTML]
+                    tmp += f"{message.mmessages[Multipart.HTML]}\n"
                 else:
                     self.logs.message_critical = (
                         f"the message format cannot be recognize"
                     )
                     return out
-                msg.add_alternative(msg, subtype="html")
+                msg.add_alternative(tmp, subtype="html", charset="utf-8")
         else:
             tmp = ""
-            if isinstance(message.messages, list):
+            if isinstance(message.messages, List):
                 for line in message.messages:
                     tmp += f"{line}\n"
-            elif isinstance(message.messages, str):
-                tmp = message.messages
             else:
                 self.logs.message_critical = (
                     f"the message format cannot be recognize"
                 )
                 return out
-            msg.set_content(msg)
+            self.logs.message_debug = tmp
+            msg.set_content(tmp, subtype="plain", charset="utf-8")
 
         # try to init connection
         smtp = self.__init_smtp()
@@ -346,6 +345,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         # try to send message
         try:
             if self._data[_Keys.SMTP_PORT] == 587:
+                smtp.ehlo()
                 smtp.starttls()
             if self._data[_Keys.SMTP_PORT] != 25:
                 salt = self._cfh.get(self._cfh.main_section_name, "salt")
@@ -355,11 +355,14 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                     )
                 else:
                     password = self.module_conf.smtp_pass
+                smtp.ehlo()
                 smtp.login(
                     self.module_conf.smtp_user,
                     password,
                 )
             smtp.send_message(msg)
+            if self.debug:
+                self.logs.message_debug = "message was send"
             out = True
         except smtplib.SMTPAuthenticationError as ex:
             self.logs.message_critical = f"authentication error: {ex}"
@@ -427,6 +430,8 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 if message is None:
                     continue
                 # try to process message
+                if self.debug:
+                    self.logs.message_debug = "received message for sending"
                 try:
                     if not self.__send_message(message):
                         deffered_queue.put(message)
@@ -434,8 +439,8 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                     self.logs.message_warning = "error processing message"
                     if self.debug:
                         self.logs.message_debug = f"[{self._f_name}] {ex}"
-                finally:
-                    self.qcom.task_done()
+                # finally:
+                # self.qcom.task_done()
 
             except Empty:
                 pass

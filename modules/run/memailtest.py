@@ -23,7 +23,7 @@ from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
-from libs.com.message import Message, Multipart
+from libs.com.message import Message, Multipart, Priority
 from libs.tools.datetool import DateTime, Timestamp, Intervals
 
 
@@ -117,7 +117,9 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
 
     def run(self) -> None:
         """Main loop."""
+        self.logs.message_notice = "starting..."
         # initialization local variables
+        priority = Priority(self.module_conf.message_priority)
 
         # initialization variables from config file
         if not self._apply_config():
@@ -125,10 +127,44 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
             return
 
         # starting module loop
+        if self.debug:
+            self.logs.message_debug = "entering to the main loop"
         while not self.stopped:
-            message = Message()
-            message.title = "This is example email."
-            message.messages.append()
+            if priority.check:
+                if self.debug:
+                    self.logs.message_debug = "expired priority found"
+                for prio in priority.get:
+                    if self.debug:
+                        self.logs.message_debug = (
+                            f"create message for priority: '{prio}'"
+                        )
+                    message = Message()
+                    message.priority = int(prio)
+                    message.subject = "This is example email."
+                    message.to = "szumak@virthost.pl"
+                    # message.messages = (
+                    # "To jest wiadomość testowa z polskimi znakami."
+                    # )
+                    # message.messages = "Życzymy miłego dnia!"
+                    message.mmessages = {
+                        Multipart.PLAIN: ["Wiadomość testowa."],
+                        Multipart.HTML: [
+                            "<html>",
+                            "<head></head>",
+                            "<body>",
+                            "<p>To jest wiadomość testowa,<br>",
+                            "prezentująca możliwości tworzenia i wysyłania<br>",
+                            "wiadomości mailowych typu <i>multipart alternative</i>,<br>",
+                            "z wykorzystaniem znaków kodowanych w 'UTF-8'.</p>",
+                            "<p><b>Prosimy nie odpowiadać na tą wiadomość.</b></p>",
+                            "</body>",
+                            "</html>",
+                        ],
+                    }
+
+                    if self.debug:
+                        self.logs.message_debug = f"put message to queue"
+                    self.qcom.put(message)
             time.sleep(self.sleep_period)
 
         # exiting from loop

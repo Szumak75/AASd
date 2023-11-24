@@ -17,6 +17,7 @@ from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 
 from libs.base.classes import BThProcessor, BClasses
+from libs.tools.datetool import Intervals, Timestamp
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -26,13 +27,83 @@ class _Keys(object, metaclass=ReadOnlyClass):
     """
 
     CMESS = "__message__"
-    CMMESS = "__mmessage__"
+    CMULTIPART = "__mmessage__"
     CPRIORITY = "__priority__"
     CTO = "__to__"
-    CTITLE = "__title__"
+    CSUBJECT = "__subject__"
     COMQUEUES = "__comq__"
     COUNTER = "__counter__"
     CSENDER = "__sender__"
+    PCONF = "__priorities__"
+    PNEXT = "__next__"
+    PINT = "__interval__"
+
+
+class Priority(BClasses):
+    """Priority class."""
+
+    def __init__(self, config_priority: List[str]) -> None:
+        """Constructor."""
+        # config_priority example:
+        # ['1','2:300s','3:3h']
+        self._data[_Keys.PCONF] = dict()
+        self.__config_priorities(config_priority)
+
+    def __config_priorities(self, config_priority: List[str]) -> None:
+        """Create priorities dict."""
+        if not isinstance(config_priority, List):
+            raise Raise.error(
+                f"Expected List type, received: '{type(config_priority)}'",
+                self._c_name,
+                currentframe(),
+            )
+        for item in config_priority:
+            if str(item).find(":") > -1:
+                (priority, interval) = item.split(":")
+                conv = Intervals(self._c_name)
+                self.__add_priority(priority, conv.convert(interval))
+            else:
+                self.__add_priority(item, 0)
+
+    def __add_priority(self, priority: str, interval: int) -> None:
+        """Add priority config to dict."""
+        if priority in self._data[_Keys.PCONF]:
+            raise Raise.error(
+                f"Duplicate priority key found: '{priority}'",
+                KeyError,
+                self._c_name,
+                currentframe(),
+            )
+        self._data[_Keys.PCONF][priority] = {
+            _Keys.PINT: interval,
+            _Keys.PNEXT: Timestamp.now,
+        }
+
+    @property
+    def check(self) -> bool:
+        """Returns True, if the time has come :)"""
+        now = Timestamp.now
+        for item in self.priorities:
+            if self._data[_Keys.PCONF][item][_Keys.PNEXT] < now:
+                return True
+        return False
+
+    @property
+    def get(self) -> List[str]:
+        """Get a list of expired priorities."""
+        now = Timestamp.now
+        out = []
+        for item in self.priorities:
+            pdict: Dict = self._data[_Keys.PCONF][item]
+            if pdict[_Keys.PNEXT] < now:
+                out.append(item)
+                pdict[_Keys.PNEXT] = now + pdict[_Keys.PINT]
+        return out
+
+    @property
+    def priorities(self) -> List[str]:
+        """Get configured priorities list."""
+        return self._data[_Keys.PCONF].keys()
 
 
 class Multipart(object, metaclass=ReadOnlyClass):
@@ -51,10 +122,10 @@ class Message(BClasses):
     def __init__(self):
         """Constructor."""
         self._data[_Keys.CMESS] = []
-        self._data[_Keys.CMMESS] = None
+        self._data[_Keys.CMULTIPART] = None
         self._data[_Keys.CPRIORITY] = None
         self._data[_Keys.CTO] = None
-        self._data[_Keys.CTITLE] = None
+        self._data[_Keys.CSUBJECT] = None
         self._data[_Keys.CSENDER] = None
         self._data[_Keys.COUNTER] = 0
 
@@ -83,7 +154,7 @@ class Message(BClasses):
             )
 
     @property
-    def messages(self) -> List:
+    def messages(self) -> List[str]:
         """Return messages list."""
         return self._data[_Keys.CMESS]
 
@@ -95,9 +166,9 @@ class Message(BClasses):
     @property
     def mmessages(self) -> Optional[Dict]:
         """Return optional multipart messages list."""
-        return self._data[_Keys.CMMESS]
+        return self._data[_Keys.CMULTIPART]
 
-    @messages.setter
+    @mmessages.setter
     def mmessages(self, mdict: Dict) -> None:
         """Append multipart dict messages.
 
@@ -114,9 +185,9 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        if self._data[_Keys.CMMESS] is None:
-            self._data[_Keys.CMMESS] = {}
-        self._data[_Keys.CMMESS].update(mdict)
+        if self._data[_Keys.CMULTIPART] is None:
+            self._data[_Keys.CMULTIPART] = {}
+        self._data[_Keys.CMULTIPART].update(mdict)
 
     @property
     def sender(self) -> Optional[str]:
@@ -136,12 +207,12 @@ class Message(BClasses):
         self._data[_Keys.CSENDER] = value
 
     @property
-    def title(self) -> Optional[str]:
+    def subject(self) -> Optional[str]:
         """Return optional title string."""
-        return self._data[_Keys.CTITLE]
+        return self._data[_Keys.CSUBJECT]
 
-    @title.setter
-    def title(self, value: str):
+    @subject.setter
+    def subject(self, value: str):
         """Set optional title string."""
         if not isinstance(value, str):
             raise Raise.error(
@@ -150,7 +221,7 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.CTITLE] = value
+        self._data[_Keys.CSUBJECT] = value
 
     @property
     def to(self) -> Optional[str]:
@@ -264,6 +335,10 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
                 TypeError,
                 self._c_name,
                 currentframe(),
+            )
+        if self._debug:
+            self.logs.message_debug = (
+                f"Received message for priority: '{message.priority}'"
             )
         if str(message.priority) in self._data[_Keys.COMQUEUES]:
             for item in self._data[_Keys.COMQUEUES][str(message.priority)]:
