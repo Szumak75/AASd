@@ -26,14 +26,14 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    CMESS = "__message__"
-    CMULTIPART = "__mmessage__"
-    CPRIORITY = "__priority__"
-    CTO = "__to__"
-    CSUBJECT = "__subject__"
-    COMQUEUES = "__comq__"
-    COUNTER = "__counter__"
-    CSENDER = "__sender__"
+    MMESS = "__message__"
+    MMULTIPART = "__mmessage__"
+    MPRIORITY = "__priority__"
+    MTO = "__to__"
+    MSUBJECT = "__subject__"
+    MCOMQUEUES = "__comq__"
+    MCOUNTER = "__counter__"
+    MSENDER = "__sender__"
     PCONF = "__priorities__"
     PNEXT = "__next__"
     PINT = "__interval__"
@@ -121,30 +121,30 @@ class Message(BClasses):
 
     def __init__(self):
         """Constructor."""
-        self._data[_Keys.CMESS] = []
-        self._data[_Keys.CMULTIPART] = None
-        self._data[_Keys.CPRIORITY] = None
-        self._data[_Keys.CTO] = None
-        self._data[_Keys.CSUBJECT] = None
-        self._data[_Keys.CSENDER] = None
-        self._data[_Keys.COUNTER] = 0
+        self._data[_Keys.MMESS] = []
+        self._data[_Keys.MMULTIPART] = None
+        self._data[_Keys.MPRIORITY] = None
+        self._data[_Keys.MTO] = None
+        self._data[_Keys.MSUBJECT] = None
+        self._data[_Keys.MSENDER] = None
+        self._data[_Keys.MCOUNTER] = 0
 
     @property
     def counter(self) -> int:
         """Return counter."""
-        self._data[_Keys.COUNTER] += 1
-        return self._data[_Keys.COUNTER]
+        self._data[_Keys.MCOUNTER] += 1
+        return self._data[_Keys.MCOUNTER]
 
     @property
     def priority(self) -> Optional[int]:
         """Return priority int."""
-        return self._data[_Keys.CPRIORITY]
+        return self._data[_Keys.MPRIORITY]
 
     @priority.setter
     def priority(self, value: int) -> None:
         """Set message communication priority."""
         if isinstance(value, int):
-            self._data[_Keys.CPRIORITY] = value
+            self._data[_Keys.MPRIORITY] = value
         else:
             raise Raise.error(
                 f"Expected integer type, received '{type(value)}'.",
@@ -156,17 +156,17 @@ class Message(BClasses):
     @property
     def messages(self) -> List[str]:
         """Return messages list."""
-        return self._data[_Keys.CMESS]
+        return self._data[_Keys.MMESS]
 
     @messages.setter
     def messages(self, message: str) -> None:
         """Append message to list."""
-        self._data[_Keys.CMESS].append(str(message))
+        self._data[_Keys.MMESS].append(str(message))
 
     @property
     def mmessages(self) -> Optional[Dict]:
         """Return optional multipart messages list."""
-        return self._data[_Keys.CMULTIPART]
+        return self._data[_Keys.MMULTIPART]
 
     @mmessages.setter
     def mmessages(self, mdict: Dict) -> None:
@@ -185,14 +185,14 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        if self._data[_Keys.CMULTIPART] is None:
-            self._data[_Keys.CMULTIPART] = {}
-        self._data[_Keys.CMULTIPART].update(mdict)
+        if self._data[_Keys.MMULTIPART] is None:
+            self._data[_Keys.MMULTIPART] = {}
+        self._data[_Keys.MMULTIPART].update(mdict)
 
     @property
     def sender(self) -> Optional[str]:
         """Return optional sender string."""
-        return self._data[_Keys.CSENDER]
+        return self._data[_Keys.MSENDER]
 
     @sender.setter
     def sender(self, value: str) -> None:
@@ -204,12 +204,12 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.CSENDER] = value
+        self._data[_Keys.MSENDER] = value
 
     @property
     def subject(self) -> Optional[str]:
         """Return optional title string."""
-        return self._data[_Keys.CSUBJECT]
+        return self._data[_Keys.MSUBJECT]
 
     @subject.setter
     def subject(self, value: str):
@@ -221,7 +221,7 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.CSUBJECT] = value
+        self._data[_Keys.MSUBJECT] = value
 
     @property
     def to(self) -> Optional[str]:
@@ -229,7 +229,7 @@ class Message(BClasses):
 
         For example: custom email address.
         """
-        return self._data[_Keys.CTO]
+        return self._data[_Keys.MTO]
 
     @to.setter
     def to(self, value: str) -> None:
@@ -241,7 +241,7 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.CTO] = value
+        self._data[_Keys.MTO] = value
 
 
 class Dispatcher(Thread, ThBaseObject, BThProcessor):
@@ -277,7 +277,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
         #    level_1: [regisetred_queue1, registered_queue2, ]
         #    level_2: [regisetred_queue3, ]
         # }
-        self._data[_Keys.COMQUEUES] = dict()
+        self._data[_Keys.MCOMQUEUES] = dict()
 
     def register_queue(self, priority: int) -> Queue:
         """Register queue for communication module."""
@@ -288,14 +288,14 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
                 self._c_name,
                 currentframe(),
             )
-        if str(priority) not in self._data[_Keys.COMQUEUES]:
-            self._data[_Keys.COMQUEUES][str(priority)] = []
+        if str(priority) not in self._data[_Keys.MCOMQUEUES]:
+            self._data[_Keys.MCOMQUEUES][str(priority)] = []
         queue = Queue(maxsize=1000)
         if self._debug:
             self.logs.message_debug = (
                 f"add queue for communication priority: {priority}"
             )
-        self._data[_Keys.COMQUEUES][str(priority)].append(queue)
+        self._data[_Keys.MCOMQUEUES][str(priority)].append(queue)
         return queue
 
     def run(self) -> None:
@@ -340,8 +340,8 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
             self.logs.message_debug = (
                 f"Received message for priority: '{message.priority}'"
             )
-        if str(message.priority) in self._data[_Keys.COMQUEUES]:
-            for item in self._data[_Keys.COMQUEUES][str(message.priority)]:
+        if str(message.priority) in self._data[_Keys.MCOMQUEUES]:
+            for item in self._data[_Keys.MCOMQUEUES][str(message.priority)]:
                 try:
                     queue: Queue = item
                     queue.put(message, block=True, timeout=5.0)
