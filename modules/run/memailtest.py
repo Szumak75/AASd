@@ -24,7 +24,6 @@ from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Priority
-from libs.tools.datetool import DateTime, Timestamp, Intervals
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -211,9 +210,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="Emailtest configuration module.")
-        )
+        out.append(TemplateConfigItem(desc="Emailtest configuration module."))
         out.append(
             TemplateConfigItem(
                 desc="'sleep_period' [float], which determines the length of the break"
@@ -230,14 +227,10 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(
-                desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']"
-            )
+            TemplateConfigItem(desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']")
         )
         out.append(
-            TemplateConfigItem(
-                desc="where 'delay' means the time between generating"
-            )
+            TemplateConfigItem(desc="where 'delay' means the time between generating")
         )
         out.append(
             TemplateConfigItem(
