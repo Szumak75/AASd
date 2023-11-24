@@ -253,7 +253,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
             TemplateConfigItem(
                 varname=_Keys.SLEEP_PERIOD,
                 value=5.0,
-                desc="[second]",
+                desc="[seconds]",
             )
         )
         out.append(

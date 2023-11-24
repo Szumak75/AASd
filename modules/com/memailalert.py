@@ -454,6 +454,8 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                     self.logs.message_debug = "received message for sending"
                 try:
                     if not self.__send_message(message):
+                        if self.debug:
+                            self.logs.message_debug = "deffered message"
                         deffered_queue.put(message)
                 except Exception as ex:
                     self.logs.message_warning = "error processing message"
