@@ -31,6 +31,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     COMMAND = "__command_found__"
     CMD = "cmd"
     OPTS = "opts"
+    MULTIPLIER = "multip"
 
 
 class Pinger(BClasses):
@@ -50,13 +51,24 @@ class Pinger(BClasses):
         self._data[_Keys.COMMANDS].append(
             {
                 _Keys.CMD: "fping",
+                _Keys.MULTIPLIER: 1000,
                 _Keys.OPTS: "-AaqR -B1 -r2 -t{} {} >/dev/null 2>&1",
             }
         )
         self._data[_Keys.COMMANDS].append(
             {
+                # FreeBSD ping
                 _Keys.CMD: "ping",
+                _Keys.MULTIPLIER: 1000,
                 _Keys.OPTS: "-Qqo -c3 -W{} {} >/dev/null 2>&1",
+            }
+        )
+        self._data[_Keys.COMMANDS].append(
+            {
+                # Linux ping
+                _Keys.CMD: "ping",
+                _Keys.MULTIPLIER: 1,
+                _Keys.OPTS: "-q -c3 -W{} {} >/dev/null 2>&1",
             }
         )
         self._data[_Keys.COMMAND] = self.__is_tool
@@ -73,7 +85,11 @@ class Pinger(BClasses):
         if (
             os.system(
                 self._data[_Keys.COMMAND].format(
-                    int(self._data[_Keys.TIMEOUT] * 1000), str(Address(ip))
+                    int(
+                        self._data[_Keys.TIMEOUT]
+                        * self._data[_Keys.MULTIPLIER]
+                    ),
+                    str(Address(ip)),
                 )
             )
         ) == 0:
@@ -89,7 +105,11 @@ class Pinger(BClasses):
                 if (
                     os.system(
                         test_cmd.format(
-                            int(self._data[_Keys.TIMEOUT] * 10), "127.0.0.1"
+                            int(
+                                self._data[_Keys.TIMEOUT]
+                                * self._data[_Keys.MULTIPLIER]
+                            ),
+                            "127.0.0.1",
                         )
                     )
                     == 0
