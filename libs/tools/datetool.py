@@ -42,6 +42,13 @@ class DateTime(NoNewAttributes):
         return datetime.datetime.now(tz=tz)
 
     @classmethod
+    def from_timestamp(
+        self, seconds: int, tz: Optional[datetime.timezone] = None
+    ) -> str:
+        """Returns formatted date/time from timestamp."""
+        return str(datetime.datetime.fromtimestamp(seconds, tz=tz))
+
+    @classmethod
     @property
     def datetimenow(cls) -> str:
         """Return datetime string in isoformat."""

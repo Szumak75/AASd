@@ -11,7 +11,7 @@ import subprocess
 
 from inspect import currentframe
 from distutils.spawn import find_executable
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Tuple
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
@@ -38,7 +38,11 @@ class Pinger(BClasses):
     """Pinger class for testing ICMP echo."""
 
     def __init__(self, timeout: int = 1) -> None:
-        """Constructor."""
+        """Constructor.
+
+        Arguments:
+        - timeout [int] - timeout in seconds
+        """
         if not isinstance(timeout, int):
             raise Raise.error(
                 f"Expected Integer type, received: '{type(timeout)}'.",
@@ -48,6 +52,7 @@ class Pinger(BClasses):
             )
         self._data[_Keys.TIMEOUT] = timeout
         self._data[_Keys.COMMANDS] = []
+        self._data[_Keys.MULTIPLIER] = 1
         self._data[_Keys.COMMANDS].append(
             {
                 _Keys.CMD: "fping",
@@ -71,7 +76,10 @@ class Pinger(BClasses):
                 _Keys.OPTS: "-q -c3 -W{} {} >/dev/null 2>&1",
             }
         )
-        self._data[_Keys.COMMAND] = self.__is_tool
+        (
+            self._data[_Keys.COMMAND],
+            self._data[_Keys.MULTIPLIER],
+        ) = self.__is_tool
 
     def is_alive(self, ip: str) -> bool:
         """Check ICMP echo response."""
@@ -97,24 +105,22 @@ class Pinger(BClasses):
         return False
 
     @property
-    def __is_tool(self) -> Optional[str]:
+    def __is_tool(self) -> Optional[Tuple[str]]:
         """Check system command."""
         for cmd in self._data[_Keys.COMMANDS]:
             if find_executable(cmd[_Keys.CMD]) is not None:
                 test_cmd = f"{cmd[_Keys.CMD]} {cmd[_Keys.OPTS]}"
+                multi = cmd[_Keys.MULTIPLIER]
                 if (
                     os.system(
                         test_cmd.format(
-                            int(
-                                self._data[_Keys.TIMEOUT]
-                                * self._data[_Keys.MULTIPLIER]
-                            ),
+                            int(self._data[_Keys.TIMEOUT] * multi),
                             "127.0.0.1",
                         )
                     )
                     == 0
                 ):
-                    return test_cmd
+                    return test_cmd, multi
         return None
 
 

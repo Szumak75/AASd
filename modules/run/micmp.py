@@ -15,16 +15,18 @@ from queue import Queue
 from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
+from jsktoolbox.netaddresstool.ipv4 import Address
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 
-from libs.base.classes import BModule
+from libs.base.classes import BModule, BClasses
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Priority
 from libs.tools.icmp import Pinger
+from libs.tools.datetool import Timestamp, DateTime
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -37,6 +39,10 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SLEEP_PERIOD = "sleep_period"
     MESSAGE_PRIORITY = "message_priority"
     HOSTS = "hosts"
+    IP = "__ip__"
+    LASTUP = "__up__"
+    LASTDOWN = "__down__"
+    CHANGE = "__change__"
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -86,6 +92,62 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return float(var)
 
 
+class Ipv4Test(BClasses):
+    """Ipv4 container class."""
+
+    def __init__(self, address: Address) -> None:
+        """Constructor."""
+        self._data[_Keys.IP] = address
+        now = Timestamp.now
+        self._data[_Keys.LASTUP] = now
+        self._data[_Keys.LASTDOWN] = now
+        self._data[_Keys.CHANGE] = False
+
+    @property
+    def address(self) -> str:
+        """Returns ipv4 address object."""
+        return str(self._data[_Keys.IP])
+
+    @property
+    def change(self) -> bool:
+        """Returns True if change is set."""
+        if self._data[_Keys.CHANGE]:
+            self._data[_Keys.CHANGE] = False
+            return True
+        return False
+
+    @property
+    def last_up(self) -> int:
+        """Last UP timestamp."""
+        return self._data[_Keys.LASTUP]
+
+    @property
+    def last_down(self) -> int:
+        """Last down timestamp."""
+        return self._data[_Keys.LASTDOWN]
+
+    @property
+    def result(self) -> bool:
+        """Returns last avability result."""
+        if self.last_up >= self.last_down:
+            return True
+        return False
+
+    @result.setter
+    def result(self, value: bool) -> None:
+        """Set result."""
+        if value:
+            if self.last_up <= self.last_down:
+                if self.last_up < self.last_down:
+                    self._data[_Keys.CHANGE] = True
+                self._data[_Keys.LASTUP] = Timestamp.now
+        else:
+            if self.last_up >= self.last_down:
+                if self.last_up > self.last_down:
+                    self._data[_Keys.CHANGE] = True
+                self._data[_Keys.LASTDOWN] = Timestamp.now
+
+
 class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
     """ICMP testing module."""
 
@@ -132,6 +194,8 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
     def run(self) -> None:
         """Main loop."""
         # initialization local variables
+        ping = Pinger()
+        hosts = []
         priority = Priority(self.module_conf.message_priority)
 
         # initialization variables from config file
@@ -139,10 +203,45 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             self.logs.message_error = "configuration error."
             return
 
+        # append tested IPs
+        for host in self.module_conf.hosts:
+            hosts.append(Ipv4Test(Address(host)))
+
         # starting module loop
         while not self.stopped:
             # TODO: not implemented
             # TODO: do something, build a message if necessary, put it in the qcom queue
+            # test
+            for item in hosts:
+                host: Ipv4Test = item
+                host.result = ping.is_alive(host.address)
+            # analize
+            up_now = []
+            down_now = []
+            down = []
+            mes = []
+            for item in hosts:
+                host: Ipv4Test = item
+                if not host.result:
+                    if host.change:
+                        down_now.append(host)
+                    else:
+                        down.append(host)
+                elif host.change:
+                    up_now.append(host)
+            # down_now - build message now
+            for item in down_now:
+                host: Ipv4Test = item
+                self.logs.message_notice = f"{host.address} is down at {DateTime.from_timestamp(host.last_down)}"
+
+            # up_now - build message now
+            for item in up_now:
+                host: Ipv4Test = item
+                self.logs.message_notice = f"{host.address} is up now after {DateTime.time_from_seconds(host.last_up - host.last_down)}"
+            # down - build message if priority has expired timeout
+            for item in down:
+                host: Ipv4Test = item
+                self.logs.message_notice = f"{host.address} is down since {DateTime.time_from_seconds(Timestamp.now - host.last_down)}"
             time.sleep(self.sleep_period)
 
         # exiting from loop

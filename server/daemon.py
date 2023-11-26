@@ -25,6 +25,7 @@ from jsktoolbox.logstool.logs import (
     LoggerQueue,
     LogsLevelKeys,
 )
+
 from jsktoolbox.logstool.logs import ThLoggerProcessor
 from jsktoolbox.logstool.formatters import LogFormatterDateTime
 from jsktoolbox.libs.system import CommandLineParser
