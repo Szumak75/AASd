@@ -422,7 +422,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             self.logs.message_debug = "entering to the main loop"
         while not self.stopped:
             # read from deffered queue
-            if self.debug:
+            if self.debug and self.verbose:
                 self.logs.message_debug = "check deffered queue"
             if deffered < Timestamp.now:
                 tmp = []
@@ -459,10 +459,10 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                         deffered_queue.put(item)
 
             # read from queue, process message if received
-            if self.debug:
+            if self.debug and self.verbose:
                 self.logs.message_debug = "check comms queue"
             try:
-                message: Message = self.qcom.get_nowait()
+                message: Message = self.qcom.get(block=True, timeout=0.1)
                 if message is None:
                     if self.debug and self.verbose:
                         self.logs.message_debug = (
@@ -470,6 +470,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                         )
                 else:
                     # try to process message
+                    self.qcom.task_done()
                     if self.debug:
                         self.logs.message_debug = (
                             "received message for sending"
@@ -478,7 +479,8 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                         if not self.__send_message(message):
                             if self.debug:
                                 self.logs.message_debug = "deffered message"
-                            deffered_queue.put(message)
+                            if not deffered_queue.full():
+                                deffered_queue.put(message)
                         else:
                             continue
                     except Exception as ex:

@@ -340,8 +340,11 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
 
                 try:
                     self.__dispatch_message(message)
-                finally:
-                    self.qcom.task_done()
+                except Exception as ex:
+                    self.logs.message_critical = (
+                        f'error while dispatch message: "{ex}"'
+                    )
+                self.qcom.task_done()
 
             except Empty:
                 pass
@@ -370,13 +373,11 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
             for item in self._data[_Keys.MCOMQUEUES][str(message.priority)]:
                 try:
                     queue: Queue = item
-                    queue.put(message, block=True, timeout=5.0)
+                    queue.put(message, block=True, timeout=0.1)
                 except Full:
                     self.logs.message_critical = (
                         f"Queue is full exception... check procedure."
                     )
-                finally:
-                    queue.task_done()
         else:
             raise Raise.error(
                 f"Received message with unknown priority: {message.priority}",
