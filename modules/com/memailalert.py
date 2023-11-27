@@ -422,16 +422,28 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             self.logs.message_debug = "entering to the main loop"
         while not self.stopped:
             # read from deffered queue
+            if self.debug:
+                self.logs.message_debug = "check deffered queue"
             if deffered < Timestamp.now:
                 tmp = []
                 while not self.stopped:
                     try:
-                        message: Message = deffered_queue(timeout=0.1)
+                        message: Message = deffered_queue.get_nowait()
+                        if message is None:
+                            break
+                        if self.debug:
+                            self.logs.message_debug = (
+                                "found deffered message"
+                            )
                         # try to send for deffered_count times
                         if (
                             not self.__send_message(message)
                             and message.counter < deffered_count
                         ):
+                            if self.debug:
+                                self.logs.message_debug = (
+                                    "deffered message not sent, retry..."
+                                )
                             tmp.append(message)
 
                     except Empty:
@@ -440,30 +452,43 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                         self.logs.message_critical = (
                             f"error while processing deffered queue: {ex}"
                         )
+                        break
                 deffered = Timestamp.now + deffered_shift
                 for item in tmp:
-                    deffered_queue.put(item)
+                    if not deffered_queue.full():
+                        deffered_queue.put(item)
 
             # read from queue, process message if received
+            if self.debug:
+                self.logs.message_debug = "check comms queue"
             try:
-                message: Message = self.qcom.get(block=True, timeout=0.1)
+                message: Message = self.qcom.get_nowait()
                 if message is None:
-                    continue
-                # try to process message
-                if self.debug:
-                    self.logs.message_debug = "received message for sending"
-                try:
-                    if not self.__send_message(message):
-                        if self.debug:
-                            self.logs.message_debug = "deffered message"
-                        deffered_queue.put(message)
-                except Exception as ex:
-                    self.logs.message_warning = "error processing message"
+                    if self.debug and self.verbose:
+                        self.logs.message_debug = (
+                            "comms queue timeout, continue"
+                        )
+                else:
+                    # try to process message
                     if self.debug:
-                        self.logs.message_debug = f"[{self._f_name}] {ex}"
-                # finally:
-                # self.qcom.task_done()
-
+                        self.logs.message_debug = (
+                            "received message for sending"
+                        )
+                    try:
+                        if not self.__send_message(message):
+                            if self.debug:
+                                self.logs.message_debug = "deffered message"
+                            deffered_queue.put(message)
+                        else:
+                            continue
+                    except Exception as ex:
+                        self.logs.message_warning = (
+                            "error processing message"
+                        )
+                        if self.debug:
+                            self.logs.message_debug = (
+                                f"[{self._f_name}] {ex}"
+                            )
             except Empty:
                 pass
             except Exception as ex:

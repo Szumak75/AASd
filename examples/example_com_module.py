@@ -133,19 +133,20 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
 
     def run(self) -> None:
         """Main loop."""
-        # initialize local vars
-
         self.logs.message_notice = "starting..."
+
+        # initialize local vars
 
         # initialization variables from config file
         if not self._apply_config():
             self.logs.message_error = "configuration error"
             return
 
-        # starting module loop
-        if self._debug:
+        if self.debug:
+            self.logs.message_debug = "configuration processing complete"
             self.logs.message_debug = "entering to the main loop"
 
+        # starting module loop
         while not self.stopped:
             # read from queue, process message if received
             try:

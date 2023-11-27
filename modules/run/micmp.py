@@ -193,6 +193,8 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
 
     def run(self) -> None:
         """Main loop."""
+        self.logs.message_notice = "starting..."
+
         # initialization local variables
         ping = Pinger()
         hosts = []
@@ -207,6 +209,10 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         for host in self.module_conf.hosts:
             hosts.append(Ipv4Test(Address(host)))
 
+        if self.debug:
+            self.logs.message_debug = "configuration processing complete"
+            self.logs.message_debug = "entering to the main loop"
+
         # starting module loop
         while not self.stopped:
             # TODO: not implemented
@@ -219,7 +225,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             up_now = []
             down_now = []
             down = []
-            mes = []
+            msg = []
             for item in hosts:
                 host: Ipv4Test = item
                 if not host.result:
@@ -229,24 +235,73 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                         down.append(host)
                 elif host.change:
                     up_now.append(host)
+
             # down_now - build message now
             for item in down_now:
                 host: Ipv4Test = item
+                for prio in priority.priorities:
+                    message = Message()
+                    message.priority = int(prio)
+                    message.messages = f"{host.address} is down at {DateTime.from_timestamp(host.last_down)}"
+                    msg.append(message)
                 self.logs.message_notice = f"{host.address} is down at {DateTime.from_timestamp(host.last_down)}"
+                # reset priorities timeout
+                priority.get
 
             # up_now - build message now
             for item in up_now:
                 host: Ipv4Test = item
+                for prio in priority.priorities:
+                    message = Message()
+                    message.priority = int(prio)
+                    message.messages = f"{host.address} is up now after {DateTime.time_from_seconds(host.last_up - host.last_down)}"
+                    msg.append(message)
                 self.logs.message_notice = f"{host.address} is up now after {DateTime.time_from_seconds(host.last_up - host.last_down)}"
+
             # down - build message if priority has expired timeout
-            for item in down:
-                host: Ipv4Test = item
-                self.logs.message_notice = f"{host.address} is down since {DateTime.time_from_seconds(Timestamp.now - host.last_down)}"
+            if priority.check and down:
+                if self.debug:
+                    self.logs.message_debug = "expired priority found"
+                for item in down:
+                    host: Ipv4Test = item
+                    for prio in priority.get:
+                        if self.debug:
+                            self.logs.message_debug = (
+                                f"create message for priority: '{prio}'"
+                            )
+                            message = Message()
+                            message.priority = int(prio)
+                            message.messages = f"{host.address} is down since {DateTime.time_from_seconds(Timestamp.now - host.last_down)}"
+                            msg.append(message)
+                    self.logs.message_notice = f"{host.address} is down since {DateTime.time_from_seconds(Timestamp.now - host.last_down)}"
+            # build and send message
+            if msg:
+                # build priorities dict
+                tmp = dict()
+                for item in msg:
+                    msg_tmp: Message = item
+                    if str(msg_tmp.priority) not in tmp:
+                        tmp[str(msg_tmp.priority)] = list()
+                    tmp[str(msg_tmp.priority)].append(msg_tmp)
+                # build messages
+                for key in tmp.keys():
+                    message = Message()
+                    message.priority = int(key)
+                    message.subject = (
+                        f"[{self._c_name}] host reachability report"
+                    )
+                    for item in tmp[key]:
+                        tmp2: Message = item
+                        for item2 in tmp2.messages:
+                            message.messages = item2
+                    if self.debug:
+                        self.logs.message_debug = "add message to queue"
+                    self.qcom.put(message)
+            # sleep
             time.sleep(self.sleep_period)
 
         # exiting from loop
-        if self._debug:
-            self.logs.message_debug = "exiting from loop."
+        self.logs.message_notice = "exit"
 
     def stop(self) -> None:
         """Set stop event."""

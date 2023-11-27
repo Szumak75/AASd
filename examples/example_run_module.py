@@ -116,6 +116,8 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
 
     def run(self) -> None:
         """Main loop."""
+        self.logs.message_notice = "starting..."
+
         # initialization local variables
         priority = Priority(self.module_conf.message_priority)
 
@@ -124,6 +126,10 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
             self.logs.message_error = "configuration error."
             return
 
+        if self.debug:
+            self.logs.message_debug = "configuration processing complete"
+            self.logs.message_debug = "entering to the main loop"
+
         # starting module loop
         while not self.stopped:
             # TODO: not implemented
@@ -131,8 +137,7 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
             time.sleep(self.sleep_period)
 
         # exiting from loop
-        if self._debug:
-            self.logs.message_debug = "exiting from loop."
+        self.logs.message_notice = "exit"
 
     def stop(self) -> None:
         """Set stop event."""
@@ -171,7 +176,9 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Example configuration for module."))
+        out.append(
+            TemplateConfigItem(desc="Example configuration for module.")
+        )
         out.append(
             TemplateConfigItem(
                 desc="'sleep_period' [float], which determines the length of the break"
@@ -188,10 +195,14 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']")
+            TemplateConfigItem(
+                desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']"
+            )
         )
         out.append(
-            TemplateConfigItem(desc="where 'delay' means the time between generating")
+            TemplateConfigItem(
+                desc="where 'delay' means the time between generating"
+            )
         )
         out.append(
             TemplateConfigItem(
@@ -204,7 +215,9 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]")
+            TemplateConfigItem(
+                varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]"
+            )
         )
         out.append(
             TemplateConfigItem(

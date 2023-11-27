@@ -204,7 +204,6 @@ class AASd(BProjectClass, BImporter):
 
     def __help(self, command_conf: Dict) -> None:
         """Show help information and shutdown."""
-        print(f"[{self._c_name}.{self._f_name}] {command_conf}")
         command_opts = ""
         desc_opts = []
         max_len = 0
