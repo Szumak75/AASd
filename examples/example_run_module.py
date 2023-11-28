@@ -181,7 +181,7 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc="'sleep_period' [float], which determines the length of the break"
+                desc=f"'{_Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
             )
         )
         out.append(
@@ -191,7 +191,7 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc="'message_priority' [List[str]], comma separated communication priority list,"
+                desc=f"'{_Keys.MESSAGE_PRIORITY}' [List[str]], comma separated communication priority list,"
             )
         )
         out.append(

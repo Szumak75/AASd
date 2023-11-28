@@ -172,7 +172,7 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc="'sleep_period' [float], which determines the length of the break"
+                desc=f"'{_Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
             )
         )
         out.append(

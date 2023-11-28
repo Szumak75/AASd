@@ -210,10 +210,12 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Emailtest configuration module."))
+        out.append(
+            TemplateConfigItem(desc="Emailtest configuration module.")
+        )
         out.append(
             TemplateConfigItem(
-                desc="'sleep_period' [float], which determines the length of the break"
+                desc=f"'{_Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
             )
         )
         out.append(
@@ -223,14 +225,18 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc="'message_priority' [List[str]], comma separated communication priority list,"
+                desc=f"'{_Keys.MESSAGE_PRIORITY}' [List[str]], comma separated communication priority list,"
             )
         )
         out.append(
-            TemplateConfigItem(desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']")
+            TemplateConfigItem(
+                desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']"
+            )
         )
         out.append(
-            TemplateConfigItem(desc="where 'delay' means the time between generating")
+            TemplateConfigItem(
+                desc="where 'delay' means the time between generating"
+            )
         )
         out.append(
             TemplateConfigItem(

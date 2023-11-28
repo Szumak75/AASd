@@ -66,6 +66,8 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     def sleep_period(self) -> float:
         """Return sleep_period var."""
         var = self._get(varname=_Keys.SLEEP_PERIOD)
+        if var is None:
+            return None
         if not isinstance(var, (int, float)):
             raise Raise.error(
                 "Expected float type.",
@@ -225,48 +227,36 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Configuration for module."))
+        out.append(
+            TemplateConfigItem(desc="LMS payment notification module.")
+        )
+        out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
+                desc=f"'{_Keys.AT_PRIORITY}' [List[str]], comma separated communication priority list ['nr1:at', 'nr2:at']"
             )
         )
         out.append(
             TemplateConfigItem(
-                desc="between subsequent executions of the program's main loop"
+                desc=" where 'at' means the date/time generating notifications for given priority"
             )
         )
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.AT_PRIORITY}' [List[str]], comma separated communication priority list,"
-            )
-        )
-        out.append(TemplateConfigItem(desc="['nr1:at', 'nr2:at']"))
-        out.append(
-            TemplateConfigItem(
-                desc="where 'at' means the date/time generating notifications for given priority"
+                desc=" 'at' format: semicolon-separated numeric list"
             )
         )
         out.append(
             TemplateConfigItem(
-                desc="'at' format: space-separated numeric list compatible with crontab"
+                desc=" format: 'minute;hour;day-month;month;day-week'"
             )
         )
         out.append(
             TemplateConfigItem(
-                desc="format: 'minute hour day-month month day-week'"
+                desc=" It is allowed to use '*' and lists separated by '|' as field values."
             )
         )
-        out.append(
-            TemplateConfigItem(
-                desc="It is allowed to use '*' and comma-separated lists as field values."
-            )
-        )
-        out.append(
-            TemplateConfigItem(
-                desc="Defining all fields is required. [man 5 crontab]"
-            )
-        )
+        out.append(TemplateConfigItem(desc=" All fields must be defined."))
         out.append(
             TemplateConfigItem(
                 desc=f"'{_Keys.SQL_SERVER}' [List[str]] - list of SQL servers IP addresses"
@@ -289,13 +279,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                varname=_Keys.SLEEP_PERIOD, value=86400, desc="[second]"
-            )
-        )
-        out.append(
-            TemplateConfigItem(
                 varname=_Keys.AT_PRIORITY,
-                value=["1:0 0 7,10,12,13 * *", "1:0 8,12,16,21 14 * *"],
+                value=["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"],
             )
         )
         out.append(
