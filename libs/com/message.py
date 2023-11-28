@@ -40,6 +40,26 @@ class _Keys(object, metaclass=ReadOnlyClass):
     PINT = "__interval__"
 
 
+class AtPriority(BClasses):
+    """AtPriority class."""
+
+    def __init__(self, config_priority: List[str]) -> None:
+        """Constructor."""
+        # config_priority example:
+        # ["1:0 0 7,10,12,13 * *", "1:0 8,12,16,21 14 * *"]
+        self._data[_Keys.PCONF] = dict()
+        self.__config_priorities(config_priority)
+
+    def __config_priorities(self, config_priority: List[str]) -> None:
+        """Create priorities dict."""
+        if not isinstance(config_priority, List):
+            raise Raise.error(
+                f"Expected List type, received: '{type(config_priority)}'",
+                self._c_name,
+                currentframe(),
+            )
+
+
 class Priority(BClasses):
     """Priority class."""
 
