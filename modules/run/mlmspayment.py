@@ -13,13 +13,17 @@ from typing import Dict, List, Optional, Any
 from threading import Thread, Event
 from queue import Queue
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+from sqlalchemy.pool import QueuePool
+
 from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 
-from libs.base.classes import BModule
+from libs.base.classes import BModule, BConfigHandler, BLogs, BDebug
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
@@ -33,13 +37,42 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
+    # for database class
+    DPOOL = "__connection_pool__"
+    # for module class
     MODCONF = "__MODULE_CONF__"
-    SLEEP_PERIOD = "sleep_period"
+    # for configuration
     AT_PRIORITY = "at_priority"
+    SLEEP_PERIOD = "sleep_period"
     SQL_SERVER = "sql_server"
     SQL_DATABASE = "sql_database"
     SQL_USER = "sql_user"
     SQL_PASS = "sql_password"
+
+
+class _Database(BDebug, BLogs):
+    """Database class."""
+
+    def __init__(
+        self,
+        qlog: LoggerQueue,
+        config: Dict,
+        verbose: bool = False,
+        debug: bool = False,
+    ):
+        """Constructor."""
+        self.logs = LoggerClient(queue=qlog, name=self._c_name)
+        self._debug = debug
+        self._verbose = verbose
+
+        # config variables
+        self._data[_Keys.SQL_SERVER] = config[_Keys.SQL_SERVER]
+        self._data[_Keys.SQL_DATABASE] = config[_Keys.SQL_DATABASE]
+        self._data[_Keys.SQL_USER] = config[_Keys.SQL_USER]
+        self._data[_Keys.SQL_PASS] = config[_Keys.SQL_PASS]
+
+        # connection pool
+        self._data[_Keys.DPOOL] = []
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):

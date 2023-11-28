@@ -198,8 +198,8 @@ class BProjectClass(BLogs, BConfig):
     """Base Project class.
 
     Propertys:
-    - c_name: str
-    - f_name: str
+    - _c_name: str
+    - _f_name: str
     - conf: Optional[Config]
     - logs: Optional[LoggerClient]
     """
@@ -209,8 +209,8 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
     """Base class for module classes.
 
     Propertys:
-    - c_name: str
-    - f_name: str
+    - _c_name: str
+    - _f_name: str
     - _cfh: ConfigTool
     - _section: str
     - logs: LoggerClient
@@ -252,8 +252,8 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         self._data[Keys.VERBOSE] = verbose
 
 
-class BThProcessor(BCom, BLogs):
-    """Base class for ThProcessor."""
+class BDebug(BClasses):
+    """Base class for debug flags."""
 
     @property
     def _debug(self) -> bool:
@@ -278,6 +278,10 @@ class BThProcessor(BCom, BLogs):
     def _verbose(self, verbose: bool) -> None:
         """Set verbose flag."""
         self._data[Keys.VERBOSE] = verbose
+
+
+class BThProcessor(BCom, BDebug, BLogs):
+    """Base class for ThProcessor."""
 
 
 # #[EOF]#######################################################################
