@@ -14,7 +14,13 @@ from threading import Thread, Event
 from queue import Queue
 
 from sqlalchemy import create_engine, ForeignKey, Integer, Text, String
-from sqlalchemy.orm import Session, DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.orm import (
+    Session,
+    DeclarativeBase,
+    Mapped,
+    mapped_column,
+    relationship,
+)
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.ext.hybrid import hybrid_property
 
@@ -25,7 +31,7 @@ from jsktoolbox.netaddresstool.ipv4 import Address
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 
-from libs.base.classes import BModule,  BLogs, BDebug
+from libs.base.classes import BModule, BLogs, BDebug
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
@@ -76,8 +82,6 @@ class _Database(BDebug, BLogs):
         # connection pool
         self._data[_Keys.DPOOL] = []
 
-
-
     def create_connections(self) -> bool:
         """Create connections pool."""
         for ip in self._data[_Keys.SQL_SERVER]:
@@ -92,13 +96,20 @@ class _Database(BDebug, BLogs):
                     self._data[_Keys.SQL_DATABASE],
                 )
                 try:
-                    engine = create_engine(cstr, poolclass = QueuePool, pool_size = 10, max_overflow = 10, self._debug)
+                    engine = create_engine(
+                        cstr,
+                        poolclass=QueuePool,
+                        pool_size=10,
+                        max_overflow=10,
+                    )
                     if engine is not None:
                         self._data[_Keys.DPOOL].append(engine)
                     break
                 except Exception as ex:
                     if self._debug:
-                        self.logs.message_debug = f"Create engine thrown exception: {ex}"
+                        self.logs.message_debug = (
+                            f"Create engine thrown exception: {ex}"
+                        )
         if len(self._data[_Keys.DPOOL]) > 0:
             return True
         return False
@@ -111,13 +122,6 @@ class _Database(BDebug, BLogs):
             if session is not None:
                 return session
         return None
-
-class _Base(DeclarativeBase):
-    """Base class for db models."""
-
-
-
-
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -256,12 +260,17 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             return
 
         # database connection
-        dbh = _Database(self.logs.logs_queue, {
-            _Keys.SQL_SERVER: self._data[_Keys.SQL_SERVER],
-            _Keys.SQL_DATABASE: self._data[_Keys.SQL_DATABASE],
-            _Keys.SQL_USER: self._data[_Keys.SQL_USER],
-            _Keys.SQL_PASS: self._data[_Keys.SQL_PASS],
-        }, verbose = self._verbose, debug = self._debug)
+        dbh = _Database(
+            self.logs.logs_queue,
+            {
+                _Keys.SQL_SERVER: self._data[_Keys.SQL_SERVER],
+                _Keys.SQL_DATABASE: self._data[_Keys.SQL_DATABASE],
+                _Keys.SQL_USER: self._data[_Keys.SQL_USER],
+                _Keys.SQL_PASS: self._data[_Keys.SQL_PASS],
+            },
+            verbose=self._verbose,
+            debug=self._debug,
+        )
 
         if self.debug:
             self.logs.message_debug = "configuration processing complete"
