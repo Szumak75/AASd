@@ -28,7 +28,7 @@ class CustomerContact(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `customerid` int(11) NOT NULL,
-    customerid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
+    # customerid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `name` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
     name: Mapped[str] = mapped_column(
         VARCHAR(255), nullable=False, default=""
@@ -43,6 +43,7 @@ class CustomerContact(LmsBase):
     # KEY `customerid` (`customerid`),
     # KEY `contact` (`contact`),
     # CONSTRAINT `customercontacts_customerid_fkey` FOREIGN KEY (`customerid`) REFERENCES `customers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+    customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
 
     def __repr__(self):
         return (

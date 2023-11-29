@@ -40,7 +40,7 @@ class Cash(LmsBase):
     # `taxid` int(11) DEFAULT NULL,
     taxid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `customerid` int(11) DEFAULT NULL,
-    customerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
+    # customerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `comment` text COLLATE utf8_polish_ci NOT NULL,
     comment: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `docid` int(11) DEFAULT NULL,
@@ -67,6 +67,7 @@ class Cash(LmsBase):
     # CONSTRAINT `cash_sourceid_fkey` FOREIGN KEY (`sourceid`) REFERENCES `cashsources` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `cash_taxid_fkey` FOREIGN KEY (`taxid`) REFERENCES `taxes` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `cash_userid_fkey` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+    customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
 
     def __repr__(self):
         return (

@@ -5,6 +5,7 @@ Created on 6 oct 2020
 @author: szumak@virthost.pl
 """
 
+from typing import List
 from sqlalchemy import ForeignKey, Integer, Text, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.mysql import (
@@ -16,12 +17,18 @@ from sqlalchemy.dialects.mysql import (
     TINYINT,
     VARCHAR,
 )
+from sqlalchemy.ext.hybrid import hybrid_property
 
 from libs.db_models.base import LmsBase
+from libs.db_models.lms.customercontacts import CustomerContact
+from libs.db_models.lms.cash import Cash
 
 
 class Customer(LmsBase):
     __tablename__ = "customers"
+
+    # time of debt creation
+    __debt_time: int = 0
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
     id: Mapped[int] = mapped_column(
@@ -88,6 +95,7 @@ class Customer(LmsBase):
     # `message` text COLLATE utf8_polish_ci NOT NULL,
     message: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `cutoffstop` int(11) NOT NULL DEFAULT '0',
+    # timestamp dnia zawieszenia blokad
     cutoffstop: Mapped[int] = mapped_column(
         INTEGER(11), nullable=False, default=0
     )
@@ -121,6 +129,26 @@ class Customer(LmsBase):
     # CONSTRAINT `customers_creatorid_fkey` FOREIGN KEY (`creatorid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `customers_divisionid_fkey` FOREIGN KEY (`divisionid`) REFERENCES `divisions` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `customers_modid_fkey` FOREIGN KEY (`modid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+    contacts: Mapped[List["CustomerContact"]] = relationship(
+        "CustomerContact"
+    )
+    cash_operations: Mapped[List["Cash"]] = relationship("Cash")
+
+    @hybrid_property
+    def balance(self) -> int:
+        """Returns balance of cash operations."""
+        balance = 0
+        for item in self.cash_operations:
+            cash: Cash = item
+            if cash.value < 0 and balance >= 0:
+                self.__debt_time = cash.time
+            balance += cash.value
+        return balance
+
+    @property
+    def dept_timestamp(self) -> int:
+        """Returns time of debt creation."""
+        return self.__debt_time
 
     def __repr__(self):
         return (
@@ -136,14 +164,14 @@ class Customer(LmsBase):
             f"rbe='{self.rbe}', "
             f"icn='{self.icn}', "
             f"rbename='{self.rbename}', "
-            f"info='{self.info}', "
+            # f"info='{self.info}', "
             f"creationdate='{self.creationdate}', "
             f"moddate='{self.moddate}', "
-            f"notes='{self.notes}', "
-            f"creatorid='{self.creatorid}', "
+            # f"notes='{self.notes}', "
+            # f"creatorid='{self.creatorid}', "
             f"modid='{self.modid}', "
             f"deleted='{self.deleted}', "
-            f"message='{self.message}', "
+            # f"message='{self.message}', "
             f"cutoffstop='{self.cutoffstop}', "
             f"consentdate='{self.consentdate}', "
             f"pin='{self.pin}', "
@@ -152,5 +180,8 @@ class Customer(LmsBase):
             f"divisionid='{self.divisionid}', "
             f"mailingnotice='{self.mailingnotice}', "
             f"paytype='{self.paytype}', "
-            f"paytime='{self.paytime}' ) "
+            f"paytime='{self.paytime}', "
+            f"contacts='{self.contacts}', "
+            # f"cash_operations='{self.cash_operations}', "
+            f" ) "
         )

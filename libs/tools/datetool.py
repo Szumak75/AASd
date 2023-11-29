@@ -22,13 +22,18 @@ class DateTime(NoNewAttributes):
     """DateTime class to generate datetime string in various format."""
 
     @classmethod
-    def time_from_seconds(cls, seconds: int) -> str:
+    def time_from_seconds(
+        cls, seconds: int, tz: Optional[datetime.timezone] = None
+    ) -> str:
         """Generate date/time string with elapsed time, from seconds.
 
         Example return string:
         '578 days, 16:53:20'
         """
-        return str(datetime.timedelta(seconds=seconds))
+        out = cls.now(tz=tz) - datetime.datetime.fromtimestamp(
+            seconds, tz=tz
+        )
+        return str(datetime.timedelta(days=out.days, seconds=out.seconds))
 
     @classmethod
     def now(

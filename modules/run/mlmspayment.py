@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Any
 from threading import Thread, Event
 from queue import Queue
 
-from sqlalchemy import create_engine, ForeignKey, Integer, Text, String
+from sqlalchemy import create_engine, or_, text
 from sqlalchemy.orm import (
     Session,
     DeclarativeBase,
@@ -23,10 +23,12 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.engine.base import Engine
 
 from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
+from jsktoolbox.stringtool.crypto import SimpleCrypto
 from jsktoolbox.netaddresstool.ipv4 import Address
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
@@ -37,6 +39,9 @@ from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, AtPriority
+from libs.tools.datetool import Timestamp, DateTime
+
+import libs.db_models.lms as lms
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -56,6 +61,26 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SQL_DATABASE = "sql_database"
     SQL_USER = "sql_user"
     SQL_PASS = "sql_password"
+    # contact types
+    # email notification: 8|32=40, type&40==40 and type&16384==0
+    # mobile notification: 1|32=33, type&33==33 and type&16384==0
+    # type&16384|8|32==40 - True
+    CONTACT_MOBILE = 1
+    CONTACT_FAX = 2
+    CONTACT_LANDLINE = 4
+    CONTACT_EMAIL = 8
+    CONTACT_INVOICES = 16
+    CONTACT_NOTIFICATIONS = 32
+    CONTACT_BANKACCOUNT = 64
+    CONTACT_TECHNICAL = 128
+    CONTACT_URL = 256
+    CONTACT_IM = 7680
+    CONTACT_IM_GG = 512
+    CONTACT_IM_YAHOO = 1024
+    CONTACT_IM_SKYPE = 2048
+    CONTACT_IM_FACEBOOK = 4096
+    CONTACT_DISABLED = 16384
+    CONTACT_DOCUMENTS = 32768
 
 
 class _Database(BDebug, BLogs):
@@ -84,16 +109,24 @@ class _Database(BDebug, BLogs):
 
     def create_connections(self) -> bool:
         """Create connections pool."""
+        # mysql+mysqlconnector://<user>:<password>@<host>[:<port>]/<dbname>
+        # mysql+pymysql://<username>:<password>@<host>/<dbname>[?<options>]
+        # mysql+mysqldb://<user>:<password>@<host>[:<port>]/<dbname>
         for ip in self._data[_Keys.SQL_SERVER]:
             ipo = Address(ip)
-            for backend in ["pymysql", "mysqlconnector"]:
-                cstr = "mysql+{}://{}:{}@{}:{}?charset=utf8mb4".format(
+            for backend, options in [
+                ("pymysql", "?charset=utf8mb4"),
+                ("mysqlconnector", ""),
+                ("mysqldb", ""),
+            ]:
+                cstr = "mysql+{}://{}:{}@{}:{}/{}{}".format(
                     backend,
                     self._data[_Keys.SQL_USER],
                     self._data[_Keys.SQL_PASS],
                     str(ipo),
                     "3306",
                     self._data[_Keys.SQL_DATABASE],
+                    options,
                 )
                 try:
                     engine = create_engine(
@@ -101,8 +134,16 @@ class _Database(BDebug, BLogs):
                         poolclass=QueuePool,
                         pool_size=10,
                         max_overflow=10,
+                        pool_pre_ping=True,
+                        connect_args={
+                            "connect_timeout": 2,
+                        },
                     )
+                    with engine.connect() as connection:
+                        connection.execute(text("SELECT 1"))
                     if engine is not None:
+                        if self._debug:
+                            self.logs.message_debug = f"add connection to server: {ipo} with backend: {backend}"
                         self._data[_Keys.DPOOL].append(engine)
                     break
                 except Exception as ex:
@@ -117,10 +158,20 @@ class _Database(BDebug, BLogs):
     @property
     def session(self) -> Optional[Session]:
         """Returns db session."""
-        for engine in self._data[_Keys.DPOOL]:
-            session = Session(engine)
-            if session is not None:
-                return session
+        for item in self._data[_Keys.DPOOL]:
+            engine: Engine = item
+            try:
+                with engine.connect() as connection:
+                    connection.execute(text("SELECT 1"))
+                    if self._debug:
+                        self.logs.message_debug = (
+                            f"create session for {engine}"
+                        )
+                session = Session(engine)
+                if session is not None:
+                    return session
+            except:
+                continue
         return None
 
 
@@ -242,10 +293,76 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         try:
             if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
+            if not self.module_conf.sql_server:
+                self.logs.message_critical = (
+                    f"'{_Keys.SQL_SERVER}' not configured"
+                )
+                self.stop()
+            if not self.module_conf.sql_database:
+                self.logs.message_critical = (
+                    f"'{_Keys.SQL_DATABASE}' not configured"
+                )
+                self.stop()
+            if not self.module_conf.sql_user:
+                self.logs.message_critical = (
+                    f"'{_Keys.SQL_USER}' not configured"
+                )
+                self.stop()
+            if not self.module_conf.sql_pass:
+                self.logs.message_critical = (
+                    f"'{_Keys.SQL_PASS}' not configured"
+                )
+                self.stop()
         except Exception as ex:
             self.logs.message_critical = f"{ex}"
             return False
         return True
+
+    def __get_customers_list(self, dbh: _Database) -> List[lms.Customer]:
+        """Returns a list of Customers for sending notifications."""
+        out = []
+        email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
+        mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
+        disabled = _Keys.CONTACT_DISABLED
+        # create session
+        if dbh.create_connections():
+            session = dbh.session
+            if session is None:
+                self.logs.message_critical = (
+                    "cannot make database operations"
+                )
+                self.stop()
+        else:
+            self.logs.message_critical = "cannot connect to the database"
+            self.stop()
+
+        if session:
+            customers: lms.Customer = (
+                session.query(lms.Customer)
+                .filter(
+                    lms.Customer.deleted == 0,
+                    lms.Customer.mailingnotice == 1,
+                )
+                .all()
+            )
+            for item1 in customers:
+                customer: lms.Customer = item1
+                if customer.balance < 0:
+                    test = False
+
+                    for item2 in customer.contacts:
+                        contact: lms.CustomerContact = item2
+                        if (
+                            contact.type & email == email
+                            and contact.type & disabled == 0
+                        ) or (
+                            contact.type & mobile == mobile
+                            and contact.type & disabled == 0
+                        ):
+                            test = True
+                    if test:
+                        out.append(customer)
+        return out
 
     def run(self) -> None:
         """Main loop."""
@@ -253,6 +370,13 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         # initialization local variables
         priority = AtPriority(self.module_conf.at_priority)
+        salt = self._cfh.get(self._cfh.main_section_name, "salt")
+        if salt is not None:
+            password = SimpleCrypto.multiple_decrypt(
+                salt, self.module_conf.sql_pass
+            )
+        else:
+            password = self.module_conf.sql_pass
 
         # initialization variables from config file
         if not self._apply_config():
@@ -263,10 +387,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         dbh = _Database(
             self.logs.logs_queue,
             {
-                _Keys.SQL_SERVER: self._data[_Keys.SQL_SERVER],
-                _Keys.SQL_DATABASE: self._data[_Keys.SQL_DATABASE],
-                _Keys.SQL_USER: self._data[_Keys.SQL_USER],
-                _Keys.SQL_PASS: self._data[_Keys.SQL_PASS],
+                _Keys.SQL_SERVER: self.module_conf.sql_server,
+                _Keys.SQL_DATABASE: self.module_conf.sql_database,
+                _Keys.SQL_USER: self.module_conf.sql_user,
+                _Keys.SQL_PASS: password,
             },
             verbose=self._verbose,
             debug=self._debug,
@@ -274,6 +398,18 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         if self.debug:
             self.logs.message_debug = "configuration processing complete"
+
+        # test database query
+        count = 0
+        for item in self.__get_customers_list(dbh):
+            count += 1
+            customer: lms.Customer = item
+            self.logs.message_info = f"[{count}] {customer}"
+            self.logs.message_info = f"Balance: {customer.balance} since: {DateTime.time_from_seconds(customer.dept_timestamp)}"
+
+        # end test database query
+
+        if self.debug:
             self.logs.message_debug = "entering to the main loop"
 
         # starting module loop
