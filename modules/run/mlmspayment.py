@@ -416,10 +416,16 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         while not self.stopped:
             # TODO: not implemented
             # TODO: do something, build a message if necessary, put it in the qcom queue
-            time.sleep(self.sleep_period)
+            self.sleep()
 
         # exiting from loop
         self.logs.message_notice = "exit"
+
+    def sleep(self) -> None:
+        """Sleep interval for main loop."""
+        sbreak = Timestamp.now + self.sleep_period
+        while not self.stopped and sbreak > Timestamp.now:
+            time.sleep(0.2)
 
     def stop(self) -> None:
         """Set stop event."""

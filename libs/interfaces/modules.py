@@ -32,6 +32,10 @@ class IRunModule(ABC):
         """Main loop."""
 
     @abstractmethod
+    def sleep(self) -> None:
+        """Sleep interval for main loop."""
+
+    @abstractmethod
     def stop(self) -> None:
         """Set stop event."""
 
@@ -76,6 +80,10 @@ class IComModule(ABC):
     @abstractmethod
     def run(self) -> None:
         """Main loop."""
+
+    @abstractmethod
+    def sleep(self) -> None:
+        """Sleep interval for main loop."""
 
     @abstractmethod
     def stop(self) -> None:

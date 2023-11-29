@@ -24,6 +24,7 @@ from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Priority
+from libs.tools.datetool import Timestamp
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -167,11 +168,17 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
                     if self.debug:
                         self.logs.message_debug = f"put message to queue"
                     self.qcom.put(message)
-            time.sleep(self.sleep_period)
+            self.sleep()
 
         # exiting from loop
         if self._debug:
             self.logs.message_debug = "exiting from loop."
+
+    def sleep(self) -> None:
+        """Sleep interval for main loop."""
+        sbreak = Timestamp.now + self.sleep_period
+        while not self.stopped and sbreak > Timestamp.now:
+            time.sleep(0.2)
 
     def stop(self) -> None:
         """Set stop event."""

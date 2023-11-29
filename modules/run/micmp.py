@@ -298,10 +298,16 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                         self.logs.message_debug = "add message to queue"
                     self.qcom.put(message)
             # sleep
-            time.sleep(self.sleep_period)
+            self.sleep()
 
         # exiting from loop
         self.logs.message_notice = "exit"
+
+    def sleep(self) -> None:
+        """Sleep interval for main loop."""
+        sbreak = Timestamp.now + self.sleep_period
+        while not self.stopped and sbreak > Timestamp.now:
+            time.sleep(0.2)
 
     def stop(self) -> None:
         """Set stop event."""

@@ -172,10 +172,17 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
                     f'error while processing message: "{ex}"'
                 )
 
-            time.sleep(self.sleep_period)
+            # sleep time
+            self.sleep()
 
         # exiting from loop
         self.logs.message_notice = "exit"
+
+    def sleep(self) -> None:
+        """Sleep interval for main loop."""
+        sbreak = Timestamp.now + self.sleep_period
+        while not self.stopped and sbreak > Timestamp.now:
+            time.sleep(0.2)
 
     def stop(self) -> None:
         """Set stop event."""
