@@ -242,9 +242,9 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 for prio in priority.priorities:
                     message = Message()
                     message.priority = int(prio)
-                    message.messages = f"{host.address} is down at {DateTime.from_timestamp(host.last_down)}"
+                    message.messages = f"{host.address} is down at {DateTime.datetime_from_timestamp(host.last_down)}"
                     msg.append(message)
-                self.logs.message_notice = f"{host.address} is down at {DateTime.from_timestamp(host.last_down)}"
+                self.logs.message_notice = f"{host.address} is down at {DateTime.datetime_from_timestamp(host.last_down)}"
                 # reset priorities timeout
                 priority.get
 
@@ -254,26 +254,26 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 for prio in priority.priorities:
                     message = Message()
                     message.priority = int(prio)
-                    message.messages = f"{host.address} is up now after {DateTime.time_from_seconds(host.last_up - host.last_down)}"
+                    message.messages = f"{host.address} is up now after {DateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
                     msg.append(message)
-                self.logs.message_notice = f"{host.address} is up now after {DateTime.time_from_seconds(host.last_up - host.last_down)}"
+                self.logs.message_notice = f"{host.address} is up now after {DateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
 
             # down - build message if priority has expired timeout
             if priority.check and down:
                 if self.debug:
                     self.logs.message_debug = "expired priority found"
-                for item in down:
-                    host: Ipv4Test = item
-                    for prio in priority.get:
+                for prio in priority.get:
+                    for item in down:
+                        host: Ipv4Test = item
                         if self.debug:
                             self.logs.message_debug = (
                                 f"create message for priority: '{prio}'"
                             )
                             message = Message()
                             message.priority = int(prio)
-                            message.messages = f"{host.address} is down since {DateTime.time_from_seconds(Timestamp.now - host.last_down)}"
+                            message.messages = f"{host.address} is down since {DateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
                             msg.append(message)
-                    self.logs.message_notice = f"{host.address} is down since {DateTime.time_from_seconds(Timestamp.now - host.last_down)}"
+                    self.logs.message_notice = f"{host.address} is down since {DateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
             # build and send message
             if msg:
                 # build priorities dict

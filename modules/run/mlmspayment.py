@@ -342,6 +342,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 .filter(
                     lms.Customer.deleted == 0,
                     lms.Customer.mailingnotice == 1,
+                    lms.Customer.id == 3,
                 )
                 .all()
             )
@@ -405,7 +406,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             count += 1
             customer: lms.Customer = item
             self.logs.message_info = f"[{count}] {customer}"
-            self.logs.message_info = f"Balance: {customer.balance} since: {DateTime.time_from_seconds(customer.dept_timestamp)}"
+            self.logs.message_info = f"Balance: {customer.balance} since: {DateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
 
         # end test database query
 

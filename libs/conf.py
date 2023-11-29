@@ -32,6 +32,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
+    APPNAME = "__app_name__"
     CF = "__cf__"
     CUPDATE = "__config_update__"
     DEBUG = "__DEBUG__"
@@ -105,7 +106,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         # self.module_conf
         self._data[_Keys.MODCONF] = None
         # configfile main section name
-        self._section = app_name
+        self.app_name = app_name
         # config file handler
         self._data[_Keys.CF] = None
 
@@ -312,6 +313,26 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             if self.debug:
                 self.logs.message_debug = f"{ex}"
             return False
+
+    @property
+    def app_name(self) -> Optional[str]:
+        """Returns app name."""
+        if _Keys.APPNAME not in self.__main:
+            self.__main[_Keys.APPNAME] = None
+        return self.__main[_Keys.APPNAME]
+
+    @app_name.setter
+    def app_name(self, value: str) -> None:
+        """Sets app name string."""
+        if not isinstance(value, str):
+            raise Raise.error(
+                f"Expected string type",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        self.__main[_Keys.APPNAME] = value
+        self._section = value
 
     @property
     def cf(self) -> Optional[ConfigTool]:
