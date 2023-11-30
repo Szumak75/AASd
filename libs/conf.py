@@ -24,7 +24,6 @@ from libs.base.classes import (
 from libs.interfaces.conf import IModuleConfig
 from libs.interfaces.modules import IComModule, IRunModule
 from libs.templates.modules import TemplateConfigItem
-from libs.tools.datetool import Timestamp
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -98,6 +97,8 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
 
     def __init__(self, qlog: LoggerQueue, app_name: str) -> None:
         """Constructor."""
+        from libs.tools.datetool import Timestamp
+
         # class logger client
         self.logs = LoggerClient(queue=qlog, name=self._c_name)
 
