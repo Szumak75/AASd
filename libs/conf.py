@@ -14,16 +14,17 @@ from jsktoolbox.raisetool import Raise
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.stringtool.crypto import SimpleCrypto
-from .base.classes import (
+from libs.base.classes import (
     BLogs,
     BConfigSection,
     BConfigHandler,
     BModuleConfig,
     BImporter,
 )
-from .interfaces.conf import IModuleConfig
-from .interfaces.modules import IComModule, IRunModule
-from .templates.modules import TemplateConfigItem
+from libs.interfaces.conf import IModuleConfig
+from libs.interfaces.modules import IComModule, IRunModule
+from libs.templates.modules import TemplateConfigItem
+from libs.tools.datetool import Timestamp
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -49,6 +50,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     PASSWORD = "__password__"
     PSECTION = "__psection__"
     PVAR = "__pvar__"
+    STARTTIME = "__tstart__"
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -103,6 +105,8 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         # initialization data structure
         self._data[_Keys.MAIN] = dict()
         self._data[_Keys.MODULES] = dict()
+        # starting timestamp
+        self._data[_Keys.MAIN][_Keys.STARTTIME] = Timestamp.now
         # self.module_conf
         self._data[_Keys.MODCONF] = None
         # configfile main section name

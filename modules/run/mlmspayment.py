@@ -342,7 +342,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 .filter(
                     lms.Customer.deleted == 0,
                     lms.Customer.mailingnotice == 1,
-                    lms.Customer.id == 3,
+                    # lms.Customer.id == 8227,
                 )
                 .all()
             )
@@ -361,7 +361,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                             and contact.type & disabled == 0
                         ):
                             test = True
-                    if test:
+                    if customer.tariffs and test:
                         out.append(customer)
         return out
 
@@ -407,6 +407,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             customer: lms.Customer = item
             self.logs.message_info = f"[{count}] {customer}"
             self.logs.message_info = f"Balance: {customer.balance} since: {DateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
+            # for item2 in item.tariffs:
+            # tariff: lms.Tariff = item2
+            # self.logs.message_info = f"Tariff: {tariff}"
 
         # end test database query
 

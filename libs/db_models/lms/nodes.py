@@ -44,7 +44,7 @@ class Node(LmsBase):
         VARCHAR(32), nullable=False, default=""
     )
     # `ownerid` int(11) DEFAULT NULL,
-    ownerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
+    # ownerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `creationdate` int(11) NOT NULL DEFAULT '0',
     creationdate: Mapped[int] = mapped_column(
         INTEGER(11), nullable=False, default=0
@@ -136,36 +136,40 @@ class Node(LmsBase):
     # CONSTRAINT `nodes_modid_fkey` FOREIGN KEY (`modid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `nodes_netdev_fkey` FOREIGN KEY (`netdev`) REFERENCES `netdevices` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `nodes_ownerid_fkey` FOREIGN KEY (`ownerid`) REFERENCES `customers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
+    ownerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
+    nodeassignment: Mapped[int] = relationship("NodeAssignment")
 
     def __repr__(self):
         return (
             f"Node(id='{self.id}', "
             f"name='{self.name}', "
             f"ipaddr='{self.ipaddr}', "
-            f"ipaddr_pub='{self.ipaddr_pub}', "
-            f"passwd='{self.passwd}', "
-            f"ownerid='{self.ownerid}', "
+            # f"ipaddr_pub='{self.ipaddr_pub}', "
+            # f"passwd='{self.passwd}', "
+            # f"ownerid='{self.ownerid}', "
             f"creationdate='{self.creationdate}', "
             f"moddate='{self.moddate}', "
-            f"creatorid='{self.creatorid}', "
-            f"modid='{self.modid}', "
-            f"netdev='{self.netdev}', "
-            f"linktype='{self.linktype}', "
-            f"linkradiosector='{self.linkradiosector}', "
-            f"linkspeed='{self.linkspeed}', "
-            f"linktechnology='{self.linktechnology}', "
-            f"port='{self.port}', "
+            # f"creatorid='{self.creatorid}', "
+            # f"modid='{self.modid}', "
+            # f"netdev='{self.netdev}', "
+            # f"linktype='{self.linktype}', "
+            # f"linkradiosector='{self.linkradiosector}', "
+            # f"linkspeed='{self.linkspeed}', "
+            # f"linktechnology='{self.linktechnology}', "
+            # f"port='{self.port}', "
             f"access='{self.access}', "
             f"warning='{self.warning}', "
-            f"authtype='{self.authtype}', "
-            f"chkmac='{self.chkmac}', "
-            f"halfduplex='{self.halfduplex}', "
+            # f"authtype='{self.authtype}', "
+            # f"chkmac='{self.chkmac}', "
+            # f"halfduplex='{self.halfduplex}', "
             f"lastonline='{self.lastonline}', "
             f"info='{self.info}', "
-            f"nas='{self.nas}', "
-            f"longitude='{self.longitude}', "
-            f"latitude='{self.latitude}', "
-            f"netid='{self.netid}', "
-            f"invprojectid='{self.invprojectid}', "
-            f"address_id='{self.address_id}' ) "
+            # f"nas='{self.nas}', "
+            # f"longitude='{self.longitude}', "
+            # f"latitude='{self.latitude}', "
+            # f"netid='{self.netid}', "
+            # f"invprojectid='{self.invprojectid}', "
+            # f"address_id='{self.address_id}', "
+            f"nodeassignment='{self.nodeassignment}', "
+            ") "
         )
