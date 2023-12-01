@@ -44,7 +44,7 @@ class Node(LmsBase):
         VARCHAR(32), nullable=False, default=""
     )
     # `ownerid` int(11) DEFAULT NULL,
-    ownerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
+    # ownerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `creationdate` int(11) NOT NULL DEFAULT '0',
     creationdate: Mapped[int] = mapped_column(
         INTEGER(11), nullable=False, default=0

@@ -28,11 +28,11 @@ class Assignment(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `tariffid` int(11) DEFAULT NULL,
-    tariffid: Mapped[int] = mapped_column(INTEGER(11), default=None)
+    # tariffid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `liabilityid` int(11) DEFAULT NULL,
     liabilityid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `customerid` int(11) NOT NULL,
-    customerid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
+    # customerid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `period` smallint(6) NOT NULL DEFAULT '0',
     period: Mapped[int] = mapped_column(
         SMALLINT(6), nullable=False, default=0

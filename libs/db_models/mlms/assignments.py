@@ -6,28 +6,15 @@
   Purpose:
 """
 
-from typing import List, Optional
+from typing import Optional
 
-from sqlalchemy import ForeignKey, Integer, Text, String
+from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.mysql import (
-    DECIMAL,
-    INTEGER,
-    MEDIUMTEXT,
-    SMALLINT,
-    TEXT,
-    TINYINT,
-    VARCHAR,
-)
-from sqlalchemy.ext.hybrid import hybrid_property
 
-from libs.db_models.base import LmsBase
-from libs.db_models.lms.customercontacts import CustomerContact
-from libs.db_models.lms.cash import Cash
-from libs.db_models.lms.nodes import Node
-from libs.db_models.lms.tariffs import Tariff
-from libs.db_models.lms.assignments import Assignment
-from libs.db_models.lms.nodeassignments import NodeAssignment
+from libs.db_models.mlms.tariffs import MTariff
+
+# from libs.db_models.mlms.nodeassignments import MNodeAssignment
+
 from libs.db_models.lms.assignments import Assignment
 
 
@@ -36,10 +23,10 @@ class MAssignment(Assignment):
 
     tariffid: Mapped[int] = mapped_column(ForeignKey("tariffs.id"))
     customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
-    tariff: Mapped[Optional["Tariff"]] = relationship(
+    tariff: Mapped[Optional["MTariff"]] = relationship(
         back_populates="assignments"
     )
-    nodeassignment: Mapped[Optional["NodeAssignment"]] = relationship(
+    nodeassignment: Mapped[Optional["MNodeAssignment"]] = relationship(
         back_populates="assignment"
     )
 

@@ -10,26 +10,16 @@
 from typing import List, Optional
 
 from sqlalchemy import ForeignKey, Integer, Text, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.mysql import (
-    DECIMAL,
-    INTEGER,
-    MEDIUMTEXT,
-    SMALLINT,
-    TEXT,
-    TINYINT,
-    VARCHAR,
-)
+from sqlalchemy.orm import Mapped, relationship
 from sqlalchemy.ext.hybrid import hybrid_property
 
-from libs.db_models.base import LmsBase
-from libs.db_models.lms.customercontacts import CustomerContact
-from libs.db_models.lms.cash import Cash
-from libs.db_models.lms.nodes import Node
-from libs.db_models.lms.tariffs import Tariff
-from libs.db_models.lms.assignments import Assignment
-from libs.db_models.lms.nodeassignments import NodeAssignment
 from libs.db_models.lms.customers import Customer
+from libs.db_models.mlms.cash import MCash
+from libs.db_models.mlms.nodes import MNode
+from libs.db_models.mlms.tariffs import MTariff
+from libs.db_models.mlms.assignments import MAssignment
+from libs.db_models.mlms.customercontacts import MCustomerContact
+from libs.db_models.mlms.nodeassignments import MNodeAssignment
 
 
 class MCustomer(Customer):
@@ -39,19 +29,19 @@ class MCustomer(Customer):
     __debt_time: int = 0
     __cash_warning: bool = False
 
-    contacts: Mapped[List["CustomerContact"]] = relationship(
-        "CustomerContact"
+    contacts: Mapped[List["MCustomerContact"]] = relationship(
+        "MCustomerContact"
     )
-    cash_operations: Mapped[List["Cash"]] = relationship("Cash")
-    nodes: Mapped[List["Node"]] = relationship("Node")
-    assignments: Mapped[List["Assignment"]] = relationship("Assignment")
+    cash_operations: Mapped[List["MCash"]] = relationship("MCash")
+    nodes: Mapped[List["MNode"]] = relationship("MNode")
+    assignments: Mapped[List["MAssignment"]] = relationship("MAssignment")
 
     @hybrid_property
     def balance(self) -> int:
         """Returns balance of cash operations."""
         balance = 0
         for item in self.cash_operations:
-            cash: Cash = item
+            cash: MCash = item
             if cash.value < 0:
                 if cash.docid is not None:
                     if balance >= 0:
@@ -81,7 +71,7 @@ class MCustomer(Customer):
         test = False
         for item in self.nodes:
             count += 1
-            node: Node = item
+            node: MNode = item
             if node.access:
                 test = True
         if count > 0:
@@ -89,20 +79,20 @@ class MCustomer(Customer):
         return None
 
     @hybrid_property
-    def tariffs(self) -> List[Tariff]:
+    def tariffs(self) -> List[MTariff]:
         """Return list of Tariffs."""
         out = []
         for item in self.assignments:
-            assignment: Assignment = item
+            assignment: MAssignment = item
             if assignment.tariff:
                 out.append(assignment.tariff)
         # for item in self.nodes:
-        # node: Node = item
+        # node: MNode = item
         # if node.nodeassignment:
         # for item2 in node.nodeassignment:
-        # nas: NodeAssignment = item2
+        # nas: MNodeAssignment = item2
         # if nas.assignment:
-        # asign: Assignment = nas.assignment
+        # asign: MAssignment = nas.assignment
         # if asign.tariff:
         # out.append(asign.tariff)
         return out

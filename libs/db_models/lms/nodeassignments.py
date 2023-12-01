@@ -28,9 +28,9 @@ class NodeAssignment(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `nodeid` int(11) NOT NULL,
-    nodeid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
+    # nodeid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `assignmentid` int(11) NOT NULL,
-    assignmentid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
+    # assignmentid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # PRIMARY KEY (`id`),
     # UNIQUE KEY `nodeid` (`nodeid`,`assignmentid`),
     # KEY `assignmentid` (`assignmentid`),

@@ -43,7 +43,6 @@ class CustomerContact(LmsBase):
     # KEY `customerid` (`customerid`),
     # KEY `contact` (`contact`),
     # CONSTRAINT `customercontacts_customerid_fkey` FOREIGN KEY (`customerid`) REFERENCES `customers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-    customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
 
     def __repr__(self):
         return (

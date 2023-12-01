@@ -343,7 +343,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 .filter(
                     mlms.MCustomer.deleted == 0,
                     mlms.MCustomer.mailingnotice == 1,
-                    mlms.MCustomer.id < 1000,
+                    # mlms.MCustomer.id < 1000,
                 )
                 .all()
             )
