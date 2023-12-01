@@ -270,7 +270,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         Thread.__init__(self, name=self._c_name)
         self._stop_event = Event()
         self.daemon = True
-        self.sleep_period = 5.0
+        self.sleep_period = 45.0
 
         # configuration section name
         self._section = self._c_name
@@ -434,9 +434,12 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 if self.debug:
                     self.logs.message_debug = "expired priority found"
                 for prio in priority.get:
+                    count = 0
                     for item in self.__get_indebted_customers_list(dbh):
                         customer: mlms.MCustomer = item
-                        self.logs.message_info = f"Balance: {customer.balance} since: {DateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
+                        if customer.dept_timestamp > 60 * 60 * 24 * 30:
+                            count += 1
+                            self.logs.message_info = f"[{count}] Customer: {customer.id}, Balance: {customer.balance} since: {DateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
 
             # TODO: not implemented
             # TODO: do something, build a message if necessary, put it in the qcom queue
