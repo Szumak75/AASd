@@ -133,7 +133,7 @@ class Customer(LmsBase):
             f"rbe='{self.rbe}', "
             f"icn='{self.icn}', "
             f"rbename='{self.rbename}', "
-            f"info='{self.info}', "
+            # f"info='{self.info}', "
             f"creationdate='{self.creationdate}', "
             f"moddate='{self.moddate}', "
             # f"notes='{self.notes}', "
