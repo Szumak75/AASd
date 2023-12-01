@@ -22,7 +22,6 @@ from sqlalchemy.orm import (
     relationship,
 )
 from sqlalchemy.pool import QueuePool
-from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.engine.base import Engine
 
 from jsktoolbox.libs.base_th import ThBaseObject
@@ -318,7 +317,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             return False
         return True
 
-    def __get_customers_list(self, dbh: _Database) -> List[lms.Customer]:
+    def __get_indebted_customers_list(
+        self, dbh: _Database
+    ) -> List[lms.Customer]:
         """Returns a list of Customers for sending notifications."""
         out = []
         email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
@@ -361,7 +362,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                             and contact.type & disabled == 0
                         ):
                             test = True
-                    if customer.tariffs and test:
+                    if (
+                        customer.tariffs
+                        and customer.has_active_node is not None
+                        and test
+                    ):
                         out.append(customer)
         return out
 
@@ -402,7 +407,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         # test database query
         count = 0
-        for item in self.__get_customers_list(dbh):
+        for item in self.__get_indebted_customers_list(dbh):
             count += 1
             customer: lms.Customer = item
             self.logs.message_info = f"[{count}] {customer}"
