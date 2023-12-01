@@ -19,7 +19,7 @@ from libs.db_models.lms.assignments import Assignment
 
 
 class MAssignment(Assignment):
-    """"""
+    """LMS assignments table."""
 
     tariffid: Mapped[int] = mapped_column(ForeignKey("tariffs.id"))
     customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))

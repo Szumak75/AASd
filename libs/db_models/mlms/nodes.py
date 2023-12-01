@@ -14,7 +14,7 @@ from libs.db_models.mlms.nodeassignments import MNodeAssignment
 
 
 class MNode(Node):
-    """"""
+    """LMS nodes table."""
 
     ownerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
     nodeassignment: Mapped[int] = relationship("MNodeAssignment")

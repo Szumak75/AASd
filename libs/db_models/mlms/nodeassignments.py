@@ -14,7 +14,7 @@ from libs.db_models.mlms.assignments import MAssignment
 
 
 class MNodeAssignment(NodeAssignment):
-    """"""
+    """LMS nodeassignments table."""
 
     nodeid: Mapped[int] = mapped_column(ForeignKey("nodes.id"))
     assignmentid: Mapped[int] = mapped_column(ForeignKey("assignments.id"))

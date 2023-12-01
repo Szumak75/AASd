@@ -14,7 +14,7 @@ from libs.db_models.lms.cash import Cash
 
 
 class MCash(Cash):
-    """"""
+    """LMS cash table."""
 
     customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
 

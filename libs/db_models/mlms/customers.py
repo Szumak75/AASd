@@ -23,7 +23,7 @@ from libs.db_models.mlms.nodeassignments import MNodeAssignment
 
 
 class MCustomer(Customer):
-    """"""
+    """LMS customers table."""
 
     # time of debt creation
     __debt_time: int = 0

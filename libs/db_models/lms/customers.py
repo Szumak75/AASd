@@ -5,12 +5,9 @@ Created on 6 oct 2020
 @author: szumak@virthost.pl
 """
 
-from sqlalchemy import ForeignKey, Integer, Text, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.mysql import (
-    DECIMAL,
     INTEGER,
-    MEDIUMTEXT,
     SMALLINT,
     TEXT,
     TINYINT,
@@ -139,11 +136,11 @@ class Customer(LmsBase):
             f"info='{self.info}', "
             f"creationdate='{self.creationdate}', "
             f"moddate='{self.moddate}', "
-            f"notes='{self.notes}', "
+            # f"notes='{self.notes}', "
             f"creatorid='{self.creatorid}', "
             f"modid='{self.modid}', "
             f"deleted='{self.deleted}', "
-            f"message='{self.message}', "
+            # f"message='{self.message}', "
             f"cutoffstop='{self.cutoffstop}', "
             f"consentdate='{self.consentdate}', "
             f"pin='{self.pin}', "

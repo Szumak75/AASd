@@ -14,7 +14,7 @@ from libs.db_models.lms.customercontacts import CustomerContact
 
 
 class MCustomerContact(CustomerContact):
-    """"""
+    """LMS customercontacts table."""
 
     customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
 
