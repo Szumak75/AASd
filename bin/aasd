@@ -2,4 +2,4 @@
 
 cd /opt/AASd
 . ./.venv/bin/activate
-exec ./aasd.py ${OPTS}
+exec ./aasd.py $@
