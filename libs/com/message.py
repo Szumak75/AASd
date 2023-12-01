@@ -17,7 +17,7 @@ from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 
 from libs.base.classes import BThProcessor, BClasses
-from libs.tools.datetool import Intervals, Timestamp
+from libs.tools.datetool import Intervals, Timestamp, DateTime
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -26,6 +26,11 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
+    ATDAY = "dmonth"
+    ATDWEEK = "dweek"
+    ATHOUR = "hour"
+    ATMINUTE = "minute"
+    ATMONTH = "month"
     MMESS = "__message__"
     MMULTIPART = "__mmessage__"
     MPRIORITY = "__priority__"
@@ -137,15 +142,25 @@ class AtPriority(BClasses):
             )
         # value format: '\d+', '\d+|\d+|\d+', '\d+-\d+', '\d+|\d+-\d+', '*'
         # minutes
-        out["minute"] = self.__build_value_list(form=tmp[0], vrange=[0, 59])
+        out[_Keys.ATMINUTE] = self.__build_value_list(
+            form=tmp[0], vrange=[0, 59]
+        )
         # hours
-        out["hour"] = self.__build_value_list(form=tmp[1], vrange=[0, 23])
+        out[_Keys.ATHOUR] = self.__build_value_list(
+            form=tmp[1], vrange=[0, 23]
+        )
         # days-of-month
-        out["dmonth"] = self.__build_value_list(form=tmp[2], vrange=[1, 31])
+        out[_Keys.ATDAY] = self.__build_value_list(
+            form=tmp[2], vrange=[1, 31]
+        )
         # months
-        out["month"] = self.__build_value_list(form=tmp[3], vrange=[1, 12])
+        out[_Keys.ATMONTH] = self.__build_value_list(
+            form=tmp[3], vrange=[1, 12]
+        )
         # days-of-week
-        out["dweek"] = self.__build_value_list(form=tmp[4], vrange=[0, 7])
+        out[_Keys.ATDWEEK] = self.__build_value_list(
+            form=tmp[4], vrange=[0, 7]
+        )
 
         return out
 
@@ -171,6 +186,56 @@ class AtPriority(BClasses):
             self._data[_Keys.PCONF][priority].append(
                 self.__build_cron_data(cron)
             )
+
+    @property
+    def check(self) -> bool:
+        """Returns True, if the time has come :)"""
+        date = DateTime.now()
+        # "priority:minute;hour;day-of-month;month;day-of-week"
+        # date.minute
+        # date.hour
+        # date.day
+        # date.month
+        # date.weekday() + 1 == crontab weekday (sunday:0 or 7)
+
+        for prio in self.priorities:
+            for item in self._data[_Keys.PCONF][prio]:
+                if (
+                    date.minute in item[_Keys.ATMINUTE]
+                    and date.hour in item[_Keys.ATHOUR]
+                    and date.day in item[_Keys.ATDAY]
+                    and date.month in item[_Keys.ATMONTH]
+                ):
+                    if date.weekday() == 6 and (
+                        0 in item[_Keys.ATDWEEK] or 7 in item[_Keys.ATDWEEK]
+                    ):
+                        return True
+                    elif date.weekday() + 1 in item[_Keys.ATDWEEK]:
+                        return True
+        return False
+
+    @property
+    def get(self) -> List[str]:
+        """Get a list of expired priorities."""
+        date = DateTime.now()
+        out = list()
+        for prio in self.priorities:
+            for item in self._data[_Keys.PCONF][prio]:
+                if (
+                    date.minute in item[_Keys.ATMINUTE]
+                    and date.hour in item[_Keys.ATHOUR]
+                    and date.day in item[_Keys.ATDAY]
+                    and date.month in item[_Keys.ATMONTH]
+                ):
+                    if date.weekday() == 6 and (
+                        0 in item[_Keys.ATDWEEK] or 7 in item[_Keys.ATDWEEK]
+                    ):
+                        if prio not in out:
+                            out.append(prio)
+                    elif date.weekday() + 1 in item[_Keys.ATDWEEK]:
+                        if prio not in out:
+                            out.append(prio)
+        return out
 
     @property
     def priorities(self) -> List[str]:
