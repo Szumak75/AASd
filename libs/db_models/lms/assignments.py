@@ -5,8 +5,6 @@ Created on 6 oct 2020
 @author: szumak@virthost.pl
 """
 
-from typing import Optional
-
 from sqlalchemy import ForeignKey, Integer, Text, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.mysql import (
@@ -21,8 +19,6 @@ from sqlalchemy.dialects.mysql import (
 
 from libs.db_models.base import LmsBase
 
-# from libs.db_models.lms.tariffs import Tariff
-
 
 class Assignment(LmsBase):
     __tablename__ = "assignments"
@@ -32,11 +28,11 @@ class Assignment(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `tariffid` int(11) DEFAULT NULL,
-    # tariffid: Mapped[int] = mapped_column(INTEGER(11), default=None)
+    tariffid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `liabilityid` int(11) DEFAULT NULL,
     liabilityid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `customerid` int(11) NOT NULL,
-    # customerid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
+    customerid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `period` smallint(6) NOT NULL DEFAULT '0',
     period: Mapped[int] = mapped_column(
         SMALLINT(6), nullable=False, default=0
@@ -104,14 +100,6 @@ class Assignment(LmsBase):
     # CONSTRAINT `assignments_numberplanid` FOREIGN KEY (`numberplanid`) REFERENCES `numberplans` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `assignments_recipient_address_id_fkey` FOREIGN KEY (`recipient_address_id`) REFERENCES `addresses` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `assignments_tariffid_fkey` FOREIGN KEY (`tariffid`) REFERENCES `tariffs` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-    tariffid: Mapped[int] = mapped_column(ForeignKey("tariffs.id"))
-    customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
-    tariff: Mapped[Optional["Tariff"]] = relationship(
-        back_populates="assignments"
-    )
-    nodeassignment: Mapped[Optional["NodeAssignment"]] = relationship(
-        back_populates="assignment"
-    )
 
     def __repr__(self):
         return (
@@ -134,7 +122,5 @@ class Assignment(LmsBase):
             f"recipient_address_id='{self.recipient_address_id}', "
             f"docid='{self.docid}', "
             f"commited='{self.commited}', "
-            f"separatedocument='{self.separatedocument}', "
-            f"tarrif='{self.tariff}', "
-            ") "
+            f"separatedocument='{self.separatedocument}' ) "
         )

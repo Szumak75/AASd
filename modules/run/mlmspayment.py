@@ -40,7 +40,7 @@ from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, AtPriority
 from libs.tools.datetool import Timestamp, DateTime
 
-import libs.db_models.lms as lms
+import libs.db_models.mlms as mlms
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -319,7 +319,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
     def __get_indebted_customers_list(
         self, dbh: _Database
-    ) -> List[lms.Customer]:
+    ) -> List[mlms.MCustomer]:
         """Returns a list of Customers for sending notifications."""
         out = []
         email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
@@ -338,22 +338,22 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             self.stop()
 
         if session:
-            customers: lms.Customer = (
-                session.query(lms.Customer)
+            customers: mlms.MCustomer = (
+                session.query(mlms.MCustomer)
                 .filter(
-                    lms.Customer.deleted == 0,
-                    lms.Customer.mailingnotice == 1,
-                    # lms.Customer.id == 8227,
+                    mlms.MCustomer.deleted == 0,
+                    mlms.MCustomer.mailingnotice == 1,
+                    mlms.MCustomer.id < 1000,
                 )
                 .all()
             )
             for item1 in customers:
-                customer: lms.Customer = item1
+                customer: mlms.MCustomer = item1
                 if customer.balance < 0:
                     test = False
 
                     for item2 in customer.contacts:
-                        contact: lms.CustomerContact = item2
+                        contact: mlms.MCustomerContact = item2
                         if (
                             contact.type & email == email
                             and contact.type & disabled == 0
@@ -409,7 +409,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         count = 0
         for item in self.__get_indebted_customers_list(dbh):
             count += 1
-            customer: lms.Customer = item
+            customer: mlms.MCustomer = item
             self.logs.message_info = f"[{count}] {customer}"
             self.logs.message_info = f"Balance: {customer.balance} since: {DateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
             # for item2 in item.tariffs:

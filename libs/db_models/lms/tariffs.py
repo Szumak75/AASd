@@ -5,8 +5,6 @@ Created on 9 oct 2020
 @author: szumak@virthost.pl
 """
 
-from typing import List
-
 from sqlalchemy import ForeignKey, Integer, Text, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.mysql import (
@@ -20,8 +18,6 @@ from sqlalchemy.dialects.mysql import (
 )
 
 from libs.db_models.base import LmsBase
-
-# from libs.db_models.lms.assignments import Assignment
 
 
 class Tariff(LmsBase):
@@ -154,9 +150,6 @@ class Tariff(LmsBase):
     # CONSTRAINT `tariffs_ibfk_2` FOREIGN KEY (`voip_tariff_id`) REFERENCES `voip_tariffs` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `tariffs_ibfk_3` FOREIGN KEY (`voip_tariff_rule_id`) REFERENCES `voip_rules` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `tariffs_taxid_fkey` FOREIGN KEY (`taxid`) REFERENCES `taxes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
-    assignments: Mapped[List["Assignment"]] = relationship(
-        back_populates="tariff"
-    )
 
     def __repr__(self):
         return (
