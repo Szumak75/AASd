@@ -413,15 +413,15 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             self.logs.message_debug = "configuration processing complete"
 
         # test database query
-        count = 0
-        for item in self.__get_indebted_customers_list(dbh):
-            count += 1
-            customer: mlms.MCustomer = item
-            self.logs.message_info = f"[{count}] {customer}"
-            self.logs.message_info = f"Balance: {customer.balance} since: {DateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
-            # for item2 in item.tariffs:
-            # tariff: lms.Tariff = item2
-            # self.logs.message_info = f"Tariff: {tariff}"
+        # count = 0
+        # for item in self.__get_indebted_customers_list(dbh):
+        # count += 1
+        # customer: mlms.MCustomer = item
+        # self.logs.message_info = f"[{count}] {customer}"
+        # self.logs.message_info = f"Balance: {customer.balance} since: {DateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
+        # # for item2 in item.tariffs:
+        # # tariff: lms.Tariff = item2
+        # # self.logs.message_info = f"Tariff: {tariff}"
 
         # end test database query
 
@@ -430,6 +430,14 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         # starting module loop
         while not self.stopped:
+            if priority.check:
+                if self.debug:
+                    self.logs.message_debug = "expired priority found"
+                for prio in priority.get:
+                    for item in self.__get_indebted_customers_list(dbh):
+                        customer: mlms.MCustomer = item
+                        self.logs.message_info = f"Balance: {customer.balance} since: {DateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
+
             # TODO: not implemented
             # TODO: do something, build a message if necessary, put it in the qcom queue
             self.sleep()

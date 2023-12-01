@@ -219,8 +219,8 @@ class AtPriority(BClasses):
         """Get a list of expired priorities."""
         date = DateTime.now()
         out = list()
-        for prio in self.priorities:
-            for item in self._data[_Keys.PCONF][prio]:
+        for priority in self.priorities:
+            for item in self._data[_Keys.PCONF][priority]:
                 if (
                     date.minute in item[_Keys.ATMINUTE]
                     and date.hour in item[_Keys.ATHOUR]
@@ -230,11 +230,11 @@ class AtPriority(BClasses):
                     if date.weekday() == 6 and (
                         0 in item[_Keys.ATDWEEK] or 7 in item[_Keys.ATDWEEK]
                     ):
-                        if prio not in out:
-                            out.append(prio)
+                        if priority not in out:
+                            out.append(priority)
                     elif date.weekday() + 1 in item[_Keys.ATDWEEK]:
-                        if prio not in out:
-                            out.append(prio)
+                        if priority not in out:
+                            out.append(priority)
         return out
 
     @property
