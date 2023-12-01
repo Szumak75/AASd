@@ -46,9 +46,108 @@ class AtPriority(BClasses):
     def __init__(self, config_priority: List[str]) -> None:
         """Constructor."""
         # config_priority example:
-        # ["1:0 0 7,10,12,13 * *", "1:0 8,12,16,21 14 * *"]
+        # ["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"]
+        # explanation of string format:
+        # "priority:minute;hour;day-of-month;month;day-of-week"
         self._data[_Keys.PCONF] = dict()
         self.__config_priorities(config_priority)
+
+    def __build_value_list(self, form: str, vrange: List[int]) -> List[int]:
+        """Create list of integer from formatted string."""
+        out = list()
+        if form.find("*") > -1:
+            for i in range(vrange[0], vrange[1] + 1):
+                out.append(i)
+        elif form.find("|") == -1 and form.find("-") == -1:
+            try:
+                out.append(int(form))
+            except Exception as ex:
+                raise Raise.error(
+                    f"String format error, check example in config file. Exception: {ex}",
+                    ValueError,
+                    self._c_name,
+                    currentframe(),
+                )
+        elif form.find("|") > -1 and form.find("-") == -1:
+            tmp = form.split("|")
+            for i in tmp:
+                try:
+                    out.append(int(i))
+                except Exception as ex:
+                    raise Raise.error(
+                        f"String format error, check example in config file. Exception: {ex}",
+                        ValueError,
+                        self._c_name,
+                        currentframe(),
+                    )
+        elif form.find("-") > -1 and form.find("|") == -1:
+            tmp = form.split("-")
+            if len(tmp) == 2:
+                try:
+                    for i in range(int(tmp[0]), int(tmp[1]) + 1):
+                        if i in range(vrange[0], vrange[1] + 1):
+                            out.append(i)
+                except Exception as ex:
+                    raise Raise.error(
+                        f"String format error, check example in config file. Exception: {ex}",
+                        ValueError,
+                        self._c_name,
+                        currentframe(),
+                    )
+        elif form.find("-") > -1 and form.find("|") > -1:
+            tmp = form.split("|")
+            for item in tmp:
+                if item.find("-") > -1:
+                    tmp2 = item.split("-")
+                    if len(tmp2) == 2:
+                        try:
+                            for i in range(int(tmp2[0]), int(tmp2[1]) + 1):
+                                if i in range(vrange[0], vrange[1] + 1):
+                                    out.append(i)
+                        except Exception as ex:
+                            raise Raise.error(
+                                f"String format error, check example in config file. Exception: {ex}",
+                                ValueError,
+                                self._c_name,
+                                currentframe(),
+                            )
+                else:
+                    try:
+                        out.append(int(item))
+                    except Exception as ex:
+                        raise Raise.error(
+                            f"String format error, check example in config file. Exception: {ex}",
+                            ValueError,
+                            self._c_name,
+                            currentframe(),
+                        )
+
+        return out
+
+    def __build_cron_data(self, cron: str) -> Dict:
+        """Create dictionary for cron configuration."""
+        out = dict()
+        tmp = cron.split(";")
+        if len(tmp) != 5:
+            raise Raise.error(
+                f"String format error, check example in config file.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        # value format: '\d+', '\d+|\d+|\d+', '\d+-\d+', '\d+|\d+-\d+', '*'
+        # minutes
+        out["minute"] = self.__build_value_list(form=tmp[0], vrange=[0, 59])
+        # hours
+        out["hour"] = self.__build_value_list(form=tmp[1], vrange=[0, 23])
+        # days-of-month
+        out["dmonth"] = self.__build_value_list(form=tmp[2], vrange=[1, 31])
+        # months
+        out["month"] = self.__build_value_list(form=tmp[3], vrange=[1, 12])
+        # days-of-week
+        out["dweek"] = self.__build_value_list(form=tmp[4], vrange=[0, 7])
+
+        return out
 
     def __config_priorities(self, config_priority: List[str]) -> None:
         """Create priorities dict."""
@@ -58,6 +157,30 @@ class AtPriority(BClasses):
                 self._c_name,
                 currentframe(),
             )
+        for item in config_priority:
+            if item.find(":") < 0:
+                raise Raise.error(
+                    f"Priority string format error, check example in config file.",
+                    ValueError,
+                    self._c_name,
+                    currentframe(),
+                )
+            priority, cron = item.split(":", 1)
+            if priority not in self._data[_Keys.PCONF]:
+                self._data[_Keys.PCONF][priority] = []
+            self._data[_Keys.PCONF][priority].append(
+                self.__build_cron_data(cron)
+            )
+
+    @property
+    def priorities(self) -> List[str]:
+        """Get configured priorities list."""
+        return list(self._data[_Keys.PCONF].keys())
+
+    @property
+    def dump(self) -> Dict:
+        """Test."""
+        return self._data[_Keys.PCONF]
 
 
 class Priority(BClasses):
@@ -124,7 +247,7 @@ class Priority(BClasses):
     @property
     def priorities(self) -> List[str]:
         """Get configured priorities list."""
-        return self._data[_Keys.PCONF].keys()
+        return list(self._data[_Keys.PCONF].keys())
 
 
 class Multipart(object, metaclass=ReadOnlyClass):

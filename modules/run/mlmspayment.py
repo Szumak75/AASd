@@ -375,7 +375,14 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         self.logs.message_notice = "starting..."
 
         # initialization local variables
-        priority = AtPriority(self.module_conf.at_priority)
+        try:
+            priority = AtPriority(self.module_conf.at_priority)
+        except Exception as ex:
+            self.logs.message_critical = "priority configuration error"
+            if self.debug:
+                self.logs.message_debug = f"{ex}"
+            self.stop()
+
         salt = self._cfh.get(self._cfh.main_section_name, "salt")
         if salt is not None:
             password = SimpleCrypto.multiple_decrypt(

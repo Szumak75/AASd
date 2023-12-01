@@ -6,10 +6,11 @@
   Purpose:
 """
 
-import datetime
-import time
+
 import re
 
+from time import time
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional, Dict
 from inspect import currentframe
 
@@ -23,60 +24,54 @@ class DateTime(NoNewAttributes):
 
     @classmethod
     def elapsed_time_from_seconds(
-        cls, seconds: int, tz: Optional[datetime.timezone] = None
-    ):
+        cls, seconds: int, tz: Optional[timezone] = None
+    ) -> timedelta:
         """Generate date/time string with elapsed time, from seconds.
 
         Example return string:
         '578 days, 16:53:20'
         """
-        return str(datetime.timedelta(seconds=seconds))
+        return timedelta(seconds=seconds)
 
     @classmethod
     def elapsed_time_from_timestamp(
-        cls, seconds: int, tz: Optional[datetime.timezone] = None
-    ) -> str:
+        cls, seconds: int, tz: Optional[timezone] = None
+    ) -> timedelta:
         """Generate date/time string with elapsed time, from seconds.
 
         Example return string:
         '578 days, 16:53:20'
         """
-        out = cls.now(tz=tz) - datetime.datetime.fromtimestamp(
-            seconds, tz=tz
-        )
-        return str(datetime.timedelta(days=out.days, seconds=out.seconds))
+        out = cls.now(tz=tz) - datetime.fromtimestamp(seconds, tz=tz)
+        return timedelta(days=out.days, seconds=out.seconds)
 
     @classmethod
-    def now(
-        cls, tz: Optional[datetime.timezone] = None
-    ) -> datetime.datetime:
+    def now(cls, tz: Optional[timezone] = None) -> datetime:
         """Return datetime.datetime.now() object.
 
         Argument:
         tz [datetime.timezone] - datetime.timezone.utc for UTC, default None for current set timezone.
         """
-        return datetime.datetime.now(tz=tz)
+        return datetime.now(tz=tz)
 
     @classmethod
     def datetime_from_timestamp(
-        self, seconds: int, tz: Optional[datetime.timezone] = None
-    ) -> str:
+        self, seconds: int, tz: Optional[timezone] = None
+    ) -> datetime:
         """Returns formatted date/time from timestamp."""
-        return str(datetime.datetime.fromtimestamp(seconds, tz=tz))
+        return datetime.fromtimestamp(seconds, tz=tz)
 
     @classmethod
     @property
     def datetimenow(cls) -> str:
         """Return datetime string in isoformat."""
-        return f"{datetime.date.today().isoformat()} {cls.now().strftime('%H:%M:%S')}"
+        return f"{date.today().isoformat()} {cls.now().strftime('%H:%M:%S')}"
 
     @classmethod
     @property
     def email_date(cls) -> str:
         """Return email date formatted string."""
-        return cls.now(datetime.timezone.utc).strftime(
-            "%a, %d %b %Y %H:%M:%S %z"
-        )
+        return cls.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %z")
 
     @classmethod
     @property
@@ -102,7 +97,7 @@ class Timestamp(NoNewAttributes):
     @property
     def now(cls) -> int:
         """Return timestamp int."""
-        return int(time.time())
+        return int(time())
 
 
 class Intervals(BClasses):
