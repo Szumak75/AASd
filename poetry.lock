@@ -164,13 +164,13 @@ files = [
 
 [[package]]
 name = "jsktoolbox"
-version = "1.0.11"
+version = "1.0.12"
 description = "Small sets of classes for varoius operations."
 optional = false
 python-versions = ">=3.9,<4.0"
 files = [
-    {file = "jsktoolbox-1.0.11-py3-none-any.whl", hash = "sha256:44aa515db27f61f0a82411122be78dffaa92db112af38c7266358a45ef5efba1"},
-    {file = "jsktoolbox-1.0.11.tar.gz", hash = "sha256:2576c246b7f860fc93b2ba1a04a244d810e553b4973f44a003eb123ca2b71af8"},
+    {file = "jsktoolbox-1.0.12-py3-none-any.whl", hash = "sha256:85af487ff48ed170e96edc3c4a08863c15176362ea4152b50b8bd280097b8dbc"},
+    {file = "jsktoolbox-1.0.12.tar.gz", hash = "sha256:84009d0db2d579bb023db380192d1e5c9f05d4e3a41b01dd355d976d847f0bc7"},
 ]
 
 [[package]]
@@ -591,4 +591,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "891339c6b1d345084cefcd5f64664d4be3422d82dde65b7d4ba22dec66039219"
+content-hash = "691c7c55aae44040b2ac00bea6a140bb93de5caba7a14af1595bec70ea97280d"
