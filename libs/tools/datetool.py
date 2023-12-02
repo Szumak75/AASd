@@ -9,57 +9,18 @@
 
 import re
 
-from time import time
 from datetime import date, datetime, timedelta, timezone
-from typing import Optional, Dict
+from typing import Dict
 from inspect import currentframe
 
-from jsktoolbox.attribtool import NoNewAttributes
 from jsktoolbox.raisetool import Raise
+from jsktoolbox.datetool import DateTime
+
 from libs.base.classes import BClasses
 
 
-class DateTime(NoNewAttributes):
+class MDateTime(DateTime):
     """DateTime class to generate datetime string in various format."""
-
-    @classmethod
-    def elapsed_time_from_seconds(
-        cls, seconds: int, tz: Optional[timezone] = None
-    ) -> timedelta:
-        """Generate date/time string with elapsed time, from seconds.
-
-        Example return string:
-        '578 days, 16:53:20'
-        """
-        return timedelta(seconds=seconds)
-
-    @classmethod
-    def elapsed_time_from_timestamp(
-        cls, seconds: int, tz: Optional[timezone] = None
-    ) -> timedelta:
-        """Generate date/time string with elapsed time, from seconds.
-
-        Example return string:
-        '578 days, 16:53:20'
-        """
-        out = cls.now(tz=tz) - datetime.fromtimestamp(seconds, tz=tz)
-        return timedelta(days=out.days, seconds=out.seconds)
-
-    @classmethod
-    def now(cls, tz: Optional[timezone] = None) -> datetime:
-        """Return datetime.datetime.now() object.
-
-        Argument:
-        tz [datetime.timezone] - datetime.timezone.utc for UTC, default None for current set timezone.
-        """
-        return datetime.now(tz=tz)
-
-    @classmethod
-    def datetime_from_timestamp(
-        self, seconds: int, tz: Optional[timezone] = None
-    ) -> datetime:
-        """Returns formatted date/time from timestamp."""
-        return datetime.fromtimestamp(seconds, tz=tz)
 
     @classmethod
     @property
@@ -90,7 +51,7 @@ class DateTime(NoNewAttributes):
         return cls.now().strftime("%Y%m%d-%H%M%S")
 
 
-class Intervals(BClasses):
+class MIntervals(BClasses):
     """Intervals converter class."""
 
     __name = None
@@ -105,7 +66,7 @@ class Intervals(BClasses):
         """Convert string value to seconds.
 
         Arguments:
-        value [str] - value to convert, format: (\d)w: weeks, (\d)d: days, (\d)h: hours, (\d)m: minutes, (\d)s: seconds
+        value [str] - value to convert, format: (d)w: weeks, (d)d: days, (d)h: hours, (d)m: minutes, (d)s: seconds
         """
         match = self.__re.match(value)
 

@@ -27,7 +27,7 @@ from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Priority
 from libs.tools.icmp import Pinger
-from libs.tools.datetool import DateTime
+from libs.tools.datetool import MDateTime
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -243,9 +243,9 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 for prio in priority.priorities:
                     message = Message()
                     message.priority = int(prio)
-                    message.messages = f"{host.address} is down at {DateTime.datetime_from_timestamp(host.last_down)}"
+                    message.messages = f"{host.address} is down at {MDateTime.datetime_from_timestamp(host.last_down)}"
                     msg.append(message)
-                self.logs.message_notice = f"{host.address} is down at {DateTime.datetime_from_timestamp(host.last_down)}"
+                self.logs.message_notice = f"{host.address} is down at {MDateTime.datetime_from_timestamp(host.last_down)}"
                 # reset priorities timeout
                 priority.get
 
@@ -255,9 +255,9 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 for prio in priority.priorities:
                     message = Message()
                     message.priority = int(prio)
-                    message.messages = f"{host.address} is up now after {DateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
+                    message.messages = f"{host.address} is up now after {MDateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
                     msg.append(message)
-                self.logs.message_notice = f"{host.address} is up now after {DateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
+                self.logs.message_notice = f"{host.address} is up now after {MDateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
 
             # down - build message if priority has expired timeout
             if priority.check and down:
@@ -272,9 +272,9 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                             )
                             message = Message()
                             message.priority = int(prio)
-                            message.messages = f"{host.address} is down since {DateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
+                            message.messages = f"{host.address} is down since {MDateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
                             msg.append(message)
-                    self.logs.message_notice = f"{host.address} is down since {DateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
+                    self.logs.message_notice = f"{host.address} is down since {MDateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
             # build and send message
             if msg:
                 # build priorities dict
@@ -288,7 +288,9 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 for key in tmp.keys():
                     message = Message()
                     message.priority = int(key)
-                    message.subject = f"[{self._c_name}] host reachability report"
+                    message.subject = (
+                        f"[{self._c_name}] host reachability report"
+                    )
                     for item in tmp[key]:
                         tmp2: Message = item
                         for item2 in tmp2.messages:
@@ -362,10 +364,14 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']")
+            TemplateConfigItem(
+                desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']"
+            )
         )
         out.append(
-            TemplateConfigItem(desc="where 'delay' means the time between generating")
+            TemplateConfigItem(
+                desc="where 'delay' means the time between generating"
+            )
         )
         out.append(
             TemplateConfigItem(
@@ -383,7 +389,9 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=15, desc="[second]")
+            TemplateConfigItem(
+                varname=_Keys.SLEEP_PERIOD, value=15, desc="[second]"
+            )
         )
         out.append(
             TemplateConfigItem(

@@ -30,7 +30,7 @@ class TestAtPriority(unittest.TestCase):
         self.assertIsInstance(obj.priorities, List)
         self.assertTrue(len(obj.priorities) == 1, msg=f"{obj.priorities}")
 
-        self.fail(f"{obj.dump}")
+        # self.fail(f"{obj.dump}")
 
 
 # #[EOF]#######################################################################

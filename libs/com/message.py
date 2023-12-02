@@ -18,7 +18,7 @@ from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.datetool import Timestamp
 
 from libs.base.classes import BThProcessor, BClasses
-from libs.tools.datetool import Intervals, DateTime
+from libs.tools.datetool import MIntervals, MDateTime
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -143,15 +143,25 @@ class AtPriority(BClasses):
             )
         # value format: '\d+', '\d+|\d+|\d+', '\d+-\d+', '\d+|\d+-\d+', '*'
         # minutes
-        out[_Keys.ATMINUTE] = self.__build_value_list(form=tmp[0], vrange=[0, 59])
+        out[_Keys.ATMINUTE] = self.__build_value_list(
+            form=tmp[0], vrange=[0, 59]
+        )
         # hours
-        out[_Keys.ATHOUR] = self.__build_value_list(form=tmp[1], vrange=[0, 23])
+        out[_Keys.ATHOUR] = self.__build_value_list(
+            form=tmp[1], vrange=[0, 23]
+        )
         # days-of-month
-        out[_Keys.ATDAY] = self.__build_value_list(form=tmp[2], vrange=[1, 31])
+        out[_Keys.ATDAY] = self.__build_value_list(
+            form=tmp[2], vrange=[1, 31]
+        )
         # months
-        out[_Keys.ATMONTH] = self.__build_value_list(form=tmp[3], vrange=[1, 12])
+        out[_Keys.ATMONTH] = self.__build_value_list(
+            form=tmp[3], vrange=[1, 12]
+        )
         # days-of-week
-        out[_Keys.ATDWEEK] = self.__build_value_list(form=tmp[4], vrange=[0, 7])
+        out[_Keys.ATDWEEK] = self.__build_value_list(
+            form=tmp[4], vrange=[0, 7]
+        )
 
         return out
 
@@ -174,12 +184,14 @@ class AtPriority(BClasses):
             priority, cron = item.split(":", 1)
             if priority not in self._data[_Keys.PCONF]:
                 self._data[_Keys.PCONF][priority] = []
-            self._data[_Keys.PCONF][priority].append(self.__build_cron_data(cron))
+            self._data[_Keys.PCONF][priority].append(
+                self.__build_cron_data(cron)
+            )
 
     @property
     def check(self) -> bool:
         """Returns True, if the time has come :)"""
-        date = DateTime.now()
+        date = MDateTime.now()
         # "priority:minute;hour;day-of-month;month;day-of-week"
         # date.minute
         # date.hour
@@ -206,7 +218,7 @@ class AtPriority(BClasses):
     @property
     def get(self) -> List[str]:
         """Get a list of expired priorities."""
-        date = DateTime.now()
+        date = MDateTime.now()
         out = list()
         for priority in self.priorities:
             for item in self._data[_Keys.PCONF][priority]:
@@ -258,7 +270,7 @@ class Priority(BClasses):
         for item in config_priority:
             if str(item).find(":") > -1:
                 (priority, interval) = item.split(":")
-                conv = Intervals(self._c_name)
+                conv = MIntervals(self._c_name)
                 self.__add_priority(priority, conv.convert(interval))
             else:
                 self.__add_priority(item, 0)
@@ -538,13 +550,17 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
                 try:
                     self.__dispatch_message(message)
                 except Exception as ex:
-                    self.logs.message_critical = f'error while dispatch message: "{ex}"'
+                    self.logs.message_critical = (
+                        f'error while dispatch message: "{ex}"'
+                    )
                 self.qcom.task_done()
 
             except Empty:
                 pass
             except Exception as ex:
-                self.logs.message_critical = f'error while processing message: "{ex}"'
+                self.logs.message_critical = (
+                    f'error while processing message: "{ex}"'
+                )
 
         if self._debug:
             self.logs.message_debug = "exit from loop"

@@ -11,7 +11,7 @@ import unittest
 from datetime import datetime, timedelta, timezone, tzinfo
 from time import time
 
-from libs.tools.datetool import DateTime
+from libs.tools.datetool import MDateTime
 
 
 class TestDateTime(unittest.TestCase):
@@ -19,23 +19,25 @@ class TestDateTime(unittest.TestCase):
 
     def test_01_datetime_now(self):
         """Test nr 01."""
-        self.assertIsInstance(DateTime.now(), datetime)
+        self.assertIsInstance(MDateTime.now(), datetime)
 
     def test_02_datetime_elapsed_from_seconds(self):
         """Test nr 02."""
         self.assertIsInstance(
-            DateTime.elapsed_time_from_seconds(10), timedelta
+            MDateTime.elapsed_time_from_seconds(10), timedelta
         )
 
     def test_03_datetime_elapsed_from_timestamp(self):
         """Test nr 03."""
         self.assertIsInstance(
-            DateTime.elapsed_time_from_timestamp(10), timedelta
+            MDateTime.elapsed_time_from_timestamp(10), timedelta
         )
 
     def test_04_datetime_datetime_from_timestamp(self):
         """Test nr 04."""
-        self.assertIsInstance(DateTime.datetime_from_timestamp(10), datetime)
+        self.assertIsInstance(
+            MDateTime.datetime_from_timestamp(10), datetime
+        )
 
 
 # #[EOF]#######################################################################
