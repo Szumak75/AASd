@@ -17,6 +17,7 @@ from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
+from jsktoolbox.datetool import Timestamp
 
 from libs.base.classes import BModule
 from libs.interfaces.modules import IRunModule
@@ -24,7 +25,6 @@ from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Priority
-from libs.tools.datetool import Timestamp
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -217,9 +217,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="Emailtest configuration module.")
-        )
+        out.append(TemplateConfigItem(desc="Emailtest configuration module."))
         out.append(
             TemplateConfigItem(
                 desc=f"'{_Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
@@ -236,14 +234,10 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(
-                desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']"
-            )
+            TemplateConfigItem(desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']")
         )
         out.append(
-            TemplateConfigItem(
-                desc="where 'delay' means the time between generating"
-            )
+            TemplateConfigItem(desc="where 'delay' means the time between generating")
         )
         out.append(
             TemplateConfigItem(

@@ -31,6 +31,7 @@ from jsktoolbox.stringtool.crypto import SimpleCrypto
 from jsktoolbox.netaddresstool.ipv4 import Address
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
+from jsktoolbox.datetool import Timestamp
 
 from libs.base.classes import BModule, BLogs, BDebug
 from libs.interfaces.modules import IRunModule
@@ -38,7 +39,7 @@ from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, AtPriority
-from libs.tools.datetool import Timestamp, DateTime
+from libs.tools.datetool import DateTime
 
 import libs.db_models.mlms as mlms
 
@@ -163,9 +164,7 @@ class _Database(BDebug, BLogs):
                 with engine.connect() as connection:
                     connection.execute(text("SELECT 1"))
                     if self._debug:
-                        self.logs.message_debug = (
-                            f"create session for {engine}"
-                        )
+                        self.logs.message_debug = f"create session for {engine}"
                 session = Session(engine)
                 if session is not None:
                     return session
@@ -224,9 +223,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         """Returns sql table name."""
         var = self._get(varname=_Keys.SQL_DATABASE)
         if var is not None and not isinstance(var, str):
-            raise Raise.error(
-                "Expected str type", self._c_name, currentframe()
-            )
+            raise Raise.error("Expected str type", self._c_name, currentframe())
         return var
 
     @property
@@ -234,9 +231,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         """Returns sql user name."""
         var = self._get(varname=_Keys.SQL_USER)
         if var is not None and not isinstance(var, str):
-            raise Raise.error(
-                "Expected str type", self._c_name, currentframe()
-            )
+            raise Raise.error("Expected str type", self._c_name, currentframe())
         return var
 
     @property
@@ -244,9 +239,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         """Returns sql user password."""
         var = self._get(varname=_Keys.SQL_PASS)
         if var is not None and not isinstance(var, str):
-            raise Raise.error(
-                "Expected str type", self._c_name, currentframe()
-            )
+            raise Raise.error("Expected str type", self._c_name, currentframe())
         return var
 
 
@@ -293,33 +286,23 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
             if not self.module_conf.sql_server:
-                self.logs.message_critical = (
-                    f"'{_Keys.SQL_SERVER}' not configured"
-                )
+                self.logs.message_critical = f"'{_Keys.SQL_SERVER}' not configured"
                 self.stop()
             if not self.module_conf.sql_database:
-                self.logs.message_critical = (
-                    f"'{_Keys.SQL_DATABASE}' not configured"
-                )
+                self.logs.message_critical = f"'{_Keys.SQL_DATABASE}' not configured"
                 self.stop()
             if not self.module_conf.sql_user:
-                self.logs.message_critical = (
-                    f"'{_Keys.SQL_USER}' not configured"
-                )
+                self.logs.message_critical = f"'{_Keys.SQL_USER}' not configured"
                 self.stop()
             if not self.module_conf.sql_pass:
-                self.logs.message_critical = (
-                    f"'{_Keys.SQL_PASS}' not configured"
-                )
+                self.logs.message_critical = f"'{_Keys.SQL_PASS}' not configured"
                 self.stop()
         except Exception as ex:
             self.logs.message_critical = f"{ex}"
             return False
         return True
 
-    def __get_indebted_customers_list(
-        self, dbh: _Database
-    ) -> List[mlms.MCustomer]:
+    def __get_indebted_customers_list(self, dbh: _Database) -> List[mlms.MCustomer]:
         """Returns a list of Customers for sending notifications."""
         out = []
         email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
@@ -329,9 +312,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         if dbh.create_connections():
             session = dbh.session
             if session is None:
-                self.logs.message_critical = (
-                    "cannot make database operations"
-                )
+                self.logs.message_critical = "cannot make database operations"
                 self.stop()
         else:
             self.logs.message_critical = "cannot connect to the database"
@@ -385,9 +366,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         salt = self._cfh.get(self._cfh.main_section_name, "salt")
         if salt is not None:
-            password = SimpleCrypto.multiple_decrypt(
-                salt, self.module_conf.sql_pass
-            )
+            password = SimpleCrypto.multiple_decrypt(salt, self.module_conf.sql_pass)
         else:
             password = self.module_conf.sql_pass
 
@@ -491,9 +470,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="LMS payment notification module.")
-        )
+        out.append(TemplateConfigItem(desc="LMS payment notification module."))
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
@@ -506,14 +483,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(
-                desc=" 'at' format: semicolon-separated numeric list"
-            )
+            TemplateConfigItem(desc=" 'at' format: semicolon-separated numeric list")
         )
         out.append(
-            TemplateConfigItem(
-                desc=" format: 'minute;hour;day-month;month;day-week'"
-            )
+            TemplateConfigItem(desc=" format: 'minute;hour;day-month;month;day-week'")
         )
         out.append(
             TemplateConfigItem(

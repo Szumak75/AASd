@@ -17,13 +17,13 @@ from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
+from jsktoolbox.datetool import Timestamp
 
 from libs.base.classes import BModule
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
-from libs.tools.datetool import Timestamp
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -161,22 +161,14 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="Example configuration for test module.")
-        )
-        out.append(
-            TemplateConfigItem(
-                desc="This module is for testing purposes only."
-            )
-        )
+        out.append(TemplateConfigItem(desc="Example configuration for test module."))
+        out.append(TemplateConfigItem(desc="This module is for testing purposes only."))
         out.append(
             TemplateConfigItem(
                 desc="It works by periodically sending messages to the logger."
             )
         )
-        out.append(
-            TemplateConfigItem(desc="the module defines only one variable:")
-        )
+        out.append(TemplateConfigItem(desc="the module defines only one variable:"))
         out.append(
             TemplateConfigItem(
                 desc=f"'{_Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
@@ -188,9 +180,7 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(
-                varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]"
-            )
+            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]")
         )
         return out
 

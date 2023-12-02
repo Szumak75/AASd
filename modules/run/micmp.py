@@ -18,6 +18,7 @@ from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.netaddresstool.ipv4 import Address
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
+from jsktoolbox.datetool import Timestamp
 
 from libs.base.classes import BModule, BClasses
 from libs.interfaces.modules import IRunModule
@@ -26,7 +27,7 @@ from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Priority
 from libs.tools.icmp import Pinger
-from libs.tools.datetool import Timestamp, DateTime
+from libs.tools.datetool import DateTime
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -287,9 +288,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 for key in tmp.keys():
                     message = Message()
                     message.priority = int(key)
-                    message.subject = (
-                        f"[{self._c_name}] host reachability report"
-                    )
+                    message.subject = f"[{self._c_name}] host reachability report"
                     for item in tmp[key]:
                         tmp2: Message = item
                         for item2 in tmp2.messages:
@@ -363,14 +362,10 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(
-                desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']"
-            )
+            TemplateConfigItem(desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']")
         )
         out.append(
-            TemplateConfigItem(
-                desc="where 'delay' means the time between generating"
-            )
+            TemplateConfigItem(desc="where 'delay' means the time between generating")
         )
         out.append(
             TemplateConfigItem(
@@ -388,9 +383,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(
-                varname=_Keys.SLEEP_PERIOD, value=15, desc="[second]"
-            )
+            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=15, desc="[second]")
         )
         out.append(
             TemplateConfigItem(

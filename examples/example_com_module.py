@@ -20,6 +20,7 @@ from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
+from jsktoolbox.datetool import Timestamp
 
 from libs.base.classes import BModule
 from libs.interfaces.modules import IComModule
@@ -27,7 +28,7 @@ from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart
-from libs.tools.datetool import Timestamp, DateTime
+from libs.tools.datetool import DateTime
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -168,9 +169,7 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
             except Empty:
                 pass
             except Exception as ex:
-                self.logs.message_critical = (
-                    f'error while processing message: "{ex}"'
-                )
+                self.logs.message_critical = f'error while processing message: "{ex}"'
 
             # sleep time
             self.sleep()
@@ -221,9 +220,7 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="Example alert configuration module.")
-        )
+        out.append(TemplateConfigItem(desc="Example alert configuration module."))
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(

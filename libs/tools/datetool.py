@@ -90,16 +90,6 @@ class DateTime(NoNewAttributes):
         return cls.now().strftime("%Y%m%d-%H%M%S")
 
 
-class Timestamp(NoNewAttributes):
-    """Timestamp class for geting current timestamp."""
-
-    @classmethod
-    @property
-    def now(cls) -> int:
-        """Return timestamp int."""
-        return int(time())
-
-
 class Intervals(BClasses):
     """Intervals converter class."""
 
