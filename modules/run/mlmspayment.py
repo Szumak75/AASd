@@ -438,7 +438,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     count = 0
                     for item in self.__get_indebted_customers_list(dbh):
                         customer: mlms.MCustomer = item
-                        if customer.dept_timestamp > 60 * 60 * 24 * 30:
+                        if MDateTime.elapsed_time_from_timestamp(
+                            customer.dept_timestamp
+                        ) > MDateTime.elapsed_time_from_seconds(
+                            60 * 60 * 24 * 30
+                        ):
                             count += 1
                             self.logs.message_info = f"[{count}] Customer: {customer.id}, Balance: {customer.balance} since: {MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
 
