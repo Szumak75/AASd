@@ -522,8 +522,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc=" It is allowed to use '*' and lists separated by '|' as field values."
+                desc=" It is allowed to use '*' character, the '-' range separator and lists separated"
             )
+        )
+        out.append(
+            TemplateConfigItem(desc=" by '|' character as field values.")
         )
         out.append(TemplateConfigItem(desc=" All fields must be defined."))
         out.append(
