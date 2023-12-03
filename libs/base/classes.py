@@ -105,7 +105,7 @@ class BImporter(BClasses):
                     and entry.name.find(".py") > 0
                 ):
                     out.append(entry.name[:-3])
-        return out
+        return sorted(out)
 
     def import_module(self, package: str, name: str) -> Optional[object]:
         """Try to import module.

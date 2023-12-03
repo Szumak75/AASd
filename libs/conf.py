@@ -84,7 +84,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
                         self._c_name,
                         currentframe(),
                     )
-        return tmp
+        return sorted(tmp)
 
     @property
     def salt(self) -> int:
@@ -143,7 +143,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             # check module updates
             if self.__check_module_config_updates():
                 if self.debug:
-                    self.logs.message_debug = "found new module configuration"
+                    self.logs.message_debug = (
+                        "found new module configuration"
+                    )
                 if not self._cfh.save():
                     self.logs.message_critical = "cannot update config file."
             return out
@@ -203,8 +205,8 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         config = dict()
 
         # get modules name list
-        com_mods = self.import_name_list("modules.com")
-        run_mods = self.import_name_list("modules.run")
+        com_mods = sorted(self.import_name_list("modules.com"))
+        run_mods = sorted(self.import_name_list("modules.run"))
 
         # get config template
         for item in com_mods:
@@ -214,7 +216,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 for mod_item in mod.template_module_variables():
                     config[item].append(mod_item)
             else:
-                self.logs.message_error = f"Cannot load module: modules.com.'{item}'"
+                self.logs.message_error = (
+                    f"Cannot load module: modules.com.'{item}'"
+                )
         for item in run_mods:
             config[item] = []
             mod: IRunModule = self.import_module("modules.run", item)
@@ -222,7 +226,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 for mod_item in mod.template_module_variables():
                     config[item].append(mod_item)
             else:
-                self.logs.message_error = f"Cannot load module: modules.run.'{item}'"
+                self.logs.message_error = (
+                    f"Cannot load module: modules.run.'{item}'"
+                )
         return com_mods, run_mods, config
 
     def __create_config_file(self) -> bool:
@@ -230,7 +236,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         # main section
         (com_mods, run_mods, config) = self.__get_modules_config()
         # set header file
-        self._cfh.set(self._section, desc=f"{self._section} configuration file")
+        self._cfh.set(
+            self._section, desc=f"{self._section} configuration file"
+        )
         # generate description for communication modules
         self._cfh.set(self._section, desc="[ communication modules ]:")
         for item in com_mods:
@@ -261,7 +269,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         # modules section
         # comunication modules
         if self.debug:
-            self.logs.message_debug = f"Found communication modules list: {com_mods}"
+            self.logs.message_debug = (
+                f"Found communication modules list: {com_mods}"
+            )
         if com_mods:
             for name in com_mods:
                 if name not in config:
@@ -280,7 +290,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
 
         # running modules
         if self.debug:
-            self.logs.message_debug = f"Found running modules list: {run_mods}"
+            self.logs.message_debug = (
+                f"Found running modules list: {run_mods}"
+            )
         if run_mods:
             for name in run_mods:
                 if name not in config:
@@ -383,7 +395,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             )
         self.__main[_Keys.DEBUG] = value
 
-    def __get_modules_list(self, package: str) -> List[Union[IComModule, IRunModule]]:
+    def __get_modules_list(
+        self, package: str
+    ) -> List[Union[IComModule, IRunModule]]:
         """Get configured modules list."""
         out = []
         if self.module_conf.modules:
@@ -392,7 +406,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             if self.debug:
                 self.logs.message_debug = f"found module list: {name_list}"
             # make dictionary
-            tmp = dict(zip(self.module_conf.modules, self.module_conf.modules))
+            tmp = dict(
+                zip(self.module_conf.modules, self.module_conf.modules)
+            )
             # find name in tmp dict
             for name in name_list:
                 if name in tmp:
