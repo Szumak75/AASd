@@ -24,7 +24,7 @@ from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
-from libs.com.message import Message, Multipart, Priority
+from libs.com.message import Message, Multipart, Channel
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -35,7 +35,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
     MODCONF = "__MODULE_CONF__"
     SLEEP_PERIOD = "sleep_period"
-    MESSAGE_PRIORITY = "message_priority"
+    MESSAGE_CHANNEL = "message_channel"
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -46,9 +46,9 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return self._cfh.get(self._section, varname)
 
     @property
-    def message_priority(self) -> Optional[List[str]]:
-        """Return message priority list."""
-        var = self._get(varname=_Keys.MESSAGE_PRIORITY)
+    def message_channel(self) -> Optional[List[str]]:
+        """Return message channel list."""
+        var = self._get(varname=_Keys.MESSAGE_CHANNEL)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -119,7 +119,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         """Main loop."""
         self.logs.message_notice = "starting..."
         # initialization local variables
-        priority = Priority(self.module_conf.message_priority)
+        channel = Channel(self.module_conf.message_channel)
 
         # initialization variables from config file
         if not self._apply_config():
@@ -130,16 +130,16 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         if self.debug:
             self.logs.message_debug = "entering to the main loop"
         while not self.stopped:
-            if priority.check:
+            if channel.check:
                 if self.debug:
-                    self.logs.message_debug = "expired priority found"
-                for prio in priority.get:
+                    self.logs.message_debug = "expired channel found"
+                for chan in channel.get:
                     if self.debug:
                         self.logs.message_debug = (
-                            f"create message for priority: '{prio}'"
+                            f"create message for channel: '{chan}'"
                         )
                     message = Message()
-                    message.priority = int(prio)
+                    message.channel = int(chan)
                     message.subject = "This is example email."
                     message.reply_to = "marauder@virthost.pl"
                     message.to = "Szumak <szumak@virthost.pl>"
@@ -217,7 +217,9 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Emailtest configuration module."))
+        out.append(
+            TemplateConfigItem(desc="Emailtest configuration module.")
+        )
         out.append(
             TemplateConfigItem(
                 desc=f"'{_Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
@@ -230,18 +232,22 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.MESSAGE_PRIORITY}' [List[str]], comma separated communication priority list,"
+                desc=f"'{_Keys.MESSAGE_CHANNEL}' [List[str]], comma separated communication channels list,"
             )
         )
         out.append(
-            TemplateConfigItem(desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']")
-        )
-        out.append(
-            TemplateConfigItem(desc="where 'delay' means the time between generating")
+            TemplateConfigItem(
+                desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']"
+            )
         )
         out.append(
             TemplateConfigItem(
-                desc="subsequent notifications for a given priority and can be given in"
+                desc="where 'delay' means the time between generating"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="subsequent notifications for a given channel and can be given in"
             )
         )
         out.append(
@@ -258,7 +264,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                varname=_Keys.MESSAGE_PRIORITY,
+                varname=_Keys.MESSAGE_CHANNEL,
                 value=["1"],
             )
         )

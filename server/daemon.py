@@ -141,7 +141,7 @@ class AASd(BProjectClass, BImporter):
                     self.conf.debug,
                 )
                 o_mod.qcom = dispatch.register_queue(
-                    o_mod.module_conf.priority
+                    o_mod.module_conf.channel
                 )
                 o_mod.start()
                 com_mods.append(o_mod)

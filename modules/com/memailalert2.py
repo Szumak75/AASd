@@ -47,7 +47,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
     MODCONF = "__MODULE_CONF__"
     SLEEP_PERIOD = "sleep_period"
-    PRIORITY = "priority"
+    CHANNEL = "channel"
     SMTP_SERVER = "smtp_server"
     SMTP_PORT = "smtp_port"
     SMTP_USER = "smtp_user"
@@ -64,9 +64,9 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return self._cfh.get(self._section, varname)
 
     @property
-    def priority(self) -> int:
-        """Return priority var."""
-        var = self._get(varname=_Keys.PRIORITY)
+    def channel(self) -> int:
+        """Return channel var."""
+        var = self._get(varname=_Keys.CHANNEL)
         if var is not None and not isinstance(var, int):
             raise Raise.error(
                 "Expected int type.",
@@ -192,32 +192,34 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         try:
             if self.module_conf.sleep_period is not None:
                 self.sleep_period = self.module_conf.sleep_period
-            # priority
-            if not self.module_conf.priority:
-                self.logs.message_critical = "'priority' not set, exiting..."
+            # channel
+            if not self.module_conf.channel:
+                self.logs.message_critical = (
+                    f"'{_Keys.CHANNEL}' not set, exiting..."
+                )
                 self.stop()
             # smtp_server
             if not self.module_conf.smtp_server:
                 self.logs.message_critical = (
-                    "'smtp_server' not set, exiting..."
+                    f"'{_Keys.SMTP_SERVER}' not set, exiting..."
                 )
                 self.stop()
             # smtp_user
             if not self.module_conf.smtp_user:
-                self.logs.message_warning = "'smtp_user' not set, it doesn't have to be a mistake, but check..."
+                self.logs.message_warning = f"'{_Keys.SMTP_USER}' not set, it doesn't have to be a mistake, but check..."
             # smtp_pass
             if not self.module_conf.smtp_pass:
-                self.logs.message_warning = "'smtp_pass' not set, it doesn't have to be a mistake, but check..."
+                self.logs.message_warning = f"'{_Keys.SMTP_PASS}' not set, it doesn't have to be a mistake, but check..."
             # address_from
             if not self.module_conf.address_from:
                 self.logs.message_critical = (
-                    "'address_from' not set, exiting..."
+                    f"'{_Keys.ADDRESS_FROM}' not set, exiting..."
                 )
                 self.stop()
             # address_to
             if not self.module_conf.address_to:
                 self.logs.message_critical = (
-                    "'address_to' not set, exiting..."
+                    f"'{_Keys.ADDRESS_TO}' not set, exiting..."
                 )
                 self.stop()
 
@@ -553,7 +555,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
-                desc=f"{_Keys.PRIORITY} [int] - unique priority for communication method (default: 1)"
+                desc=f"{_Keys.CHANNEL} [int] - unique channel for communication method (default: 1)"
             )
         )
         out.append(
@@ -591,7 +593,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                 desc="may be overrited by Message class properties if set."
             )
         )
-        out.append(TemplateConfigItem(varname=_Keys.PRIORITY, value=2))
+        out.append(TemplateConfigItem(varname=_Keys.CHANNEL, value=2))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_SERVER))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_USER))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_PASS))

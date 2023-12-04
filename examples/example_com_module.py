@@ -39,7 +39,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
     MODCONF = "__MODULE_CONF__"
     SLEEP_PERIOD = "sleep_period"
-    PRIORITY = "priority"
+    CHANNEL = "channel"
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -50,9 +50,9 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return self._cfh.get(self._section, varname)
 
     @property
-    def priority(self) -> int:
-        """Return priority var."""
-        var = self._get(varname=_Keys.PRIORITY)
+    def channel(self) -> int:
+        """Return channel var."""
+        var = self._get(varname=_Keys.CHANNEL)
         if var is not None and not isinstance(var, int):
             raise Raise.error(
                 "Expected int type.",
@@ -112,11 +112,9 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         try:
             if self.module_conf.sleep_period is not None:
                 self.sleep_period = self.module_conf.sleep_period
-            # priority
-            if not self.module_conf.priority:
-                self.logs.message_critical = (
-                    "required variable 'priority' not set, exiting..."
-                )
+            # channel
+            if not self.module_conf.channel:
+                self.logs.message_critical = f"required variable '{_Keys.CHANNEL}' not set, exiting..."
                 self.stop()
 
         except Exception as ex:
@@ -228,10 +226,10 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
-                desc=f"{_Keys.PRIORITY} [int] - unique priority for communication method (for example: 100)"
+                desc=f"{_Keys.CHANNEL} [int] - unique channel for communication method (for example: 100)"
             )
         )
-        out.append(TemplateConfigItem(varname=_Keys.PRIORITY, value=100))
+        out.append(TemplateConfigItem(varname=_Keys.CHANNEL, value=100))
 
         return out
 

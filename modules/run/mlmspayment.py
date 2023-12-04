@@ -38,7 +38,7 @@ from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
-from libs.com.message import Message, Multipart, AtPriority
+from libs.com.message import Message, Multipart, AtChannel
 from libs.tools.datetool import MDateTime
 
 import libs.db_models.mlms as mlms
@@ -55,7 +55,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     # for module class
     MODCONF = "__MODULE_CONF__"
     # for configuration
-    AT_PRIORITY = "at_priority"
+    AT_CHANNEL = "at_channel"
     SLEEP_PERIOD = "sleep_period"
     SQL_SERVER = "sql_server"
     SQL_DATABASE = "sql_database"
@@ -183,9 +183,9 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return self._cfh.get(self._section, varname)
 
     @property
-    def at_priority(self) -> Optional[List[str]]:
-        """Return message priority list."""
-        var = self._get(varname=_Keys.AT_PRIORITY)
+    def at_channel(self) -> Optional[List[str]]:
+        """Return message channel list."""
+        var = self._get(varname=_Keys.AT_CHANNEL)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -293,6 +293,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         try:
             if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
+            if not self.module_conf.at_channel:
+                self.logs.message_critical = (
+                    f"'{_Keys.AT_CHANNEL}' not configured"
+                )
+                self.stop()
             if not self.module_conf.sql_server:
                 self.logs.message_critical = (
                     f"'{_Keys.SQL_SERVER}' not configured"
@@ -377,9 +382,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         # initialization local variables
         try:
-            priority = AtPriority(self.module_conf.at_priority)
+            channel = AtChannel(self.module_conf.at_channel)
         except Exception as ex:
-            self.logs.message_critical = "priority configuration error"
+            self.logs.message_critical = "channel configuration error"
             if self.debug:
                 self.logs.message_debug = f"{ex}"
             self.stop()
@@ -431,10 +436,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         # starting module loop
         while not self.stopped:
-            if priority.check:
+            if channel.check:
                 if self.debug:
-                    self.logs.message_debug = "expired priority found"
-                for prio in priority.get:
+                    self.logs.message_debug = "expired channel found"
+                for chan in channel.get:
                     count = 0
                     for item in self.__get_indebted_customers_list(dbh):
                         customer: mlms.MCustomer = item
@@ -502,12 +507,12 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.AT_PRIORITY}' [List[str]], comma separated communication priority list ['nr1:at', 'nr2:at']"
+                desc=f"'{_Keys.AT_CHANNEL}' [List[str]], comma separated communication channels list ['nr1:at', 'nr2:at']"
             )
         )
         out.append(
             TemplateConfigItem(
-                desc=" where 'at' means the date/time generating notifications for given priority"
+                desc=" where 'at' means the date/time generating notifications for given channel"
             )
         )
         out.append(
@@ -551,7 +556,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                varname=_Keys.AT_PRIORITY,
+                varname=_Keys.AT_CHANNEL,
                 value=["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"],
             )
         )

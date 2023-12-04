@@ -25,7 +25,7 @@ from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
-from libs.com.message import Message, Multipart, Priority
+from libs.com.message import Message, Multipart, Channel
 from libs.tools.icmp import Pinger
 from libs.tools.datetool import MDateTime
 
@@ -38,7 +38,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
     MODCONF = "__MODULE_CONF__"
     SLEEP_PERIOD = "sleep_period"
-    MESSAGE_PRIORITY = "message_priority"
+    MESSAGE_CHANEL = "message_channel"
     HOSTS = "hosts"
     IP = "__ip__"
     LASTUP = "__up__"
@@ -67,9 +67,9 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def message_priority(self) -> Optional[List[str]]:
-        """Return message priority list."""
-        var = self._get(varname=_Keys.MESSAGE_PRIORITY)
+    def message_channel(self) -> Optional[List[str]]:
+        """Return message channel list."""
+        var = self._get(varname=_Keys.MESSAGE_CHANEL)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -199,7 +199,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         # initialization local variables
         ping = Pinger()
         hosts = []
-        priority = Priority(self.module_conf.message_priority)
+        channel = Channel(self.module_conf.message_channel)
 
         # initialization variables from config file
         if not self._apply_config():
@@ -240,54 +240,54 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             # down_now - build message now
             for item in down_now:
                 host: Ipv4Test = item
-                for prio in priority.priorities:
+                for chan in channel.channels:
                     message = Message()
-                    message.priority = int(prio)
+                    message.channel = int(chan)
                     message.messages = f"{host.address} is down at {MDateTime.datetime_from_timestamp(host.last_down)}"
                     msg.append(message)
                 self.logs.message_notice = f"{host.address} is down at {MDateTime.datetime_from_timestamp(host.last_down)}"
-                # reset priorities timeout
-                priority.get
+                # reset channels timeout
+                channel.get
 
             # up_now - build message now
             for item in up_now:
                 host: Ipv4Test = item
-                for prio in priority.priorities:
+                for chan in channel.channels:
                     message = Message()
-                    message.priority = int(prio)
+                    message.channel = int(chan)
                     message.messages = f"{host.address} is up now after {MDateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
                     msg.append(message)
                 self.logs.message_notice = f"{host.address} is up now after {MDateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
 
-            # down - build message if priority has expired timeout
-            if priority.check and down:
+            # down - build message if channel has expired timeout
+            if channel.check and down:
                 if self.debug:
-                    self.logs.message_debug = "expired priority found"
-                for prio in priority.get:
+                    self.logs.message_debug = "expired channel found"
+                for chan in channel.get:
                     for item in down:
                         host: Ipv4Test = item
                         if self.debug:
                             self.logs.message_debug = (
-                                f"create message for priority: '{prio}'"
+                                f"create message for channel: '{chan}'"
                             )
                             message = Message()
-                            message.priority = int(prio)
+                            message.channel = int(chan)
                             message.messages = f"{host.address} is down since {MDateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
                             msg.append(message)
                     self.logs.message_notice = f"{host.address} is down since {MDateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
             # build and send message
             if msg:
-                # build priorities dict
+                # build channels dict
                 tmp = dict()
                 for item in msg:
                     msg_tmp: Message = item
-                    if str(msg_tmp.priority) not in tmp:
-                        tmp[str(msg_tmp.priority)] = list()
-                    tmp[str(msg_tmp.priority)].append(msg_tmp)
+                    if str(msg_tmp.channel) not in tmp:
+                        tmp[str(msg_tmp.channel)] = list()
+                    tmp[str(msg_tmp.channel)].append(msg_tmp)
                 # build messages
                 for key in tmp.keys():
                     message = Message()
-                    message.priority = int(key)
+                    message.channel = int(key)
                     message.subject = (
                         f"[{self._c_name}] host reachability report"
                     )
@@ -360,7 +360,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.MESSAGE_PRIORITY}' [List[str]], comma separated communication priority list,"
+                desc=f"'{_Keys.MESSAGE_CHANEL}' [List[str]], comma separated communication channels list,"
             )
         )
         out.append(
@@ -375,7 +375,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc="subsequent notifications for a given priority and can be given in"
+                desc="subsequent notifications for a given channel and can be given in"
             )
         )
         out.append(
@@ -395,7 +395,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                varname=_Keys.MESSAGE_PRIORITY,
+                varname=_Keys.MESSAGE_CHANEL,
                 value=["1:30m"],
             )
         )

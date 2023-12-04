@@ -32,31 +32,31 @@ class _Keys(object, metaclass=ReadOnlyClass):
     ATHOUR = "hour"
     ATMINUTE = "minute"
     ATMONTH = "month"
+    CHANNELS = "__channels__"
     MMESS = "__message__"
     MMULTIPART = "__mmessage__"
-    MPRIORITY = "__priority__"
+    MCHANNEL = "__channel__"
     MTO = "__to__"
     MSUBJECT = "__subject__"
     MCOMQUEUES = "__comq__"
     MCOUNTER = "__counter__"
     MSENDER = "__sender__"
     MREPLY = "__reply__"
-    PCONF = "__priorities__"
     PNEXT = "__next__"
     PINT = "__interval__"
 
 
-class AtPriority(BClasses):
-    """AtPriority class."""
+class AtChannel(BClasses):
+    """AtChannel class."""
 
-    def __init__(self, config_priority: List[str]) -> None:
+    def __init__(self, config_channel: List[str]) -> None:
         """Constructor."""
-        # config_priority example:
+        # config_channel example:
         # ["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"]
         # explanation of string format:
-        # "priority:minute;hour;day-of-month;month;day-of-week"
-        self._data[_Keys.PCONF] = dict()
-        self.__config_priorities(config_priority)
+        # "channel:minute;hour;day-of-month;month;day-of-week"
+        self._data[_Keys.CHANNELS] = dict()
+        self.__config_channels(config_channel)
 
     def __build_value_list(self, form: str, vrange: List[int]) -> List[int]:
         """Create list of integer from formatted string."""
@@ -165,26 +165,26 @@ class AtPriority(BClasses):
 
         return out
 
-    def __config_priorities(self, config_priority: List[str]) -> None:
-        """Create priorities dict."""
-        if not isinstance(config_priority, List):
+    def __config_channels(self, config_channel: List[str]) -> None:
+        """Create channels dict."""
+        if not isinstance(config_channel, List):
             raise Raise.error(
-                f"Expected List type, received: '{type(config_priority)}'",
+                f"Expected List type, received: '{type(config_channel)}'",
                 self._c_name,
                 currentframe(),
             )
-        for item in config_priority:
+        for item in config_channel:
             if item.find(":") < 0:
                 raise Raise.error(
-                    f"Priority string format error, check example in config file.",
+                    f"Channel string format error, check example in config file.",
                     ValueError,
                     self._c_name,
                     currentframe(),
                 )
-            priority, cron = item.split(":", 1)
-            if priority not in self._data[_Keys.PCONF]:
-                self._data[_Keys.PCONF][priority] = []
-            self._data[_Keys.PCONF][priority].append(
+            channel, cron = item.split(":", 1)
+            if channel not in self._data[_Keys.CHANNELS]:
+                self._data[_Keys.CHANNELS][channel] = []
+            self._data[_Keys.CHANNELS][channel].append(
                 self.__build_cron_data(cron)
             )
 
@@ -192,15 +192,15 @@ class AtPriority(BClasses):
     def check(self) -> bool:
         """Returns True, if the time has come :)"""
         date = MDateTime.now()
-        # "priority:minute;hour;day-of-month;month;day-of-week"
+        # "channel:minute;hour;day-of-month;month;day-of-week"
         # date.minute
         # date.hour
         # date.day
         # date.month
         # date.weekday() + 1 == crontab weekday (sunday:0 or 7)
 
-        for prio in self.priorities:
-            for item in self._data[_Keys.PCONF][prio]:
+        for chan in self.channels:
+            for item in self._data[_Keys.CHANNELS][chan]:
                 if (
                     date.minute in item[_Keys.ATMINUTE]
                     and date.hour in item[_Keys.ATHOUR]
@@ -217,11 +217,11 @@ class AtPriority(BClasses):
 
     @property
     def get(self) -> List[str]:
-        """Get a list of expired priorities."""
+        """Get a list of expired channels."""
         date = MDateTime.now()
         out = list()
-        for priority in self.priorities:
-            for item in self._data[_Keys.PCONF][priority]:
+        for channel in self.channels:
+            for item in self._data[_Keys.CHANNELS][channel]:
                 if (
                     date.minute in item[_Keys.ATMINUTE]
                     and date.hour in item[_Keys.ATHOUR]
@@ -231,60 +231,60 @@ class AtPriority(BClasses):
                     if date.weekday() == 6 and (
                         0 in item[_Keys.ATDWEEK] or 7 in item[_Keys.ATDWEEK]
                     ):
-                        if priority not in out:
-                            out.append(priority)
+                        if channel not in out:
+                            out.append(channel)
                     elif date.weekday() + 1 in item[_Keys.ATDWEEK]:
-                        if priority not in out:
-                            out.append(priority)
+                        if channel not in out:
+                            out.append(channel)
         return out
 
     @property
-    def priorities(self) -> List[str]:
-        """Get configured priorities list."""
-        return list(self._data[_Keys.PCONF].keys())
+    def channels(self) -> List[str]:
+        """Get configured channels list."""
+        return list(self._data[_Keys.CHANNELS].keys())
 
     @property
     def dump(self) -> Dict:
         """Test."""
-        return self._data[_Keys.PCONF]
+        return self._data[_Keys.CHANNELS]
 
 
-class Priority(BClasses):
-    """Priority class."""
+class Channel(BClasses):
+    """Channel class."""
 
-    def __init__(self, config_priority: List[str]) -> None:
+    def __init__(self, config_channel: List[str]) -> None:
         """Constructor."""
-        # config_priority example:
+        # config_channel example:
         # ['1','2:300s','3:3h']
-        self._data[_Keys.PCONF] = dict()
-        self.__config_priorities(config_priority)
+        self._data[_Keys.CHANNELS] = dict()
+        self.__config_channels(config_channel)
 
-    def __config_priorities(self, config_priority: List[str]) -> None:
-        """Create priorities dict."""
-        if not isinstance(config_priority, List):
+    def __config_channels(self, config_channel: List[str]) -> None:
+        """Create channels dict."""
+        if not isinstance(config_channel, List):
             raise Raise.error(
-                f"Expected List type, received: '{type(config_priority)}'",
+                f"Expected List type, received: '{type(config_channel)}'",
                 self._c_name,
                 currentframe(),
             )
-        for item in config_priority:
+        for item in config_channel:
             if str(item).find(":") > -1:
-                (priority, interval) = item.split(":")
+                (channel, interval) = item.split(":")
                 conv = MIntervals(self._c_name)
-                self.__add_priority(priority, conv.convert(interval))
+                self.__add_channel(channel, conv.convert(interval))
             else:
-                self.__add_priority(item, 0)
+                self.__add_channel(item, 0)
 
-    def __add_priority(self, priority: str, interval: int) -> None:
-        """Add priority config to dict."""
-        if priority in self._data[_Keys.PCONF]:
+    def __add_channel(self, channel: str, interval: int) -> None:
+        """Add channel config to dict."""
+        if channel in self._data[_Keys.CHANNELS]:
             raise Raise.error(
-                f"Duplicate priority key found: '{priority}'",
+                f"Duplicate channel key found: '{channel}'",
                 KeyError,
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.PCONF][priority] = {
+        self._data[_Keys.CHANNELS][channel] = {
             _Keys.PINT: interval,
             _Keys.PNEXT: Timestamp.now,
         }
@@ -293,27 +293,27 @@ class Priority(BClasses):
     def check(self) -> bool:
         """Returns True, if the time has come :)"""
         now = Timestamp.now
-        for item in self.priorities:
-            if self._data[_Keys.PCONF][item][_Keys.PNEXT] < now:
+        for item in self.channels:
+            if self._data[_Keys.CHANNELS][item][_Keys.PNEXT] < now:
                 return True
         return False
 
     @property
     def get(self) -> List[str]:
-        """Get a list of expired priorities."""
+        """Get a list of expired channels."""
         now = Timestamp.now
         out = []
-        for item in self.priorities:
-            pdict: Dict = self._data[_Keys.PCONF][item]
+        for item in self.channels:
+            pdict: Dict = self._data[_Keys.CHANNELS][item]
             if pdict[_Keys.PNEXT] < now:
                 out.append(item)
                 pdict[_Keys.PNEXT] = now + pdict[_Keys.PINT]
         return out
 
     @property
-    def priorities(self) -> List[str]:
-        """Get configured priorities list."""
-        return list(self._data[_Keys.PCONF].keys())
+    def channels(self) -> List[str]:
+        """Get configured channels list."""
+        return list(self._data[_Keys.CHANNELS].keys())
 
 
 class Multipart(object, metaclass=ReadOnlyClass):
@@ -333,7 +333,7 @@ class Message(BClasses):
         """Constructor."""
         self._data[_Keys.MMESS] = []
         self._data[_Keys.MMULTIPART] = None
-        self._data[_Keys.MPRIORITY] = None
+        self._data[_Keys.MCHANNEL] = None
         self._data[_Keys.MTO] = None
         self._data[_Keys.MSUBJECT] = None
         self._data[_Keys.MSENDER] = None
@@ -347,15 +347,15 @@ class Message(BClasses):
         return self._data[_Keys.MCOUNTER]
 
     @property
-    def priority(self) -> Optional[int]:
-        """Return priority int."""
-        return self._data[_Keys.MPRIORITY]
+    def channel(self) -> Optional[int]:
+        """Return channel int."""
+        return self._data[_Keys.MCHANNEL]
 
-    @priority.setter
-    def priority(self, value: int) -> None:
-        """Set message communication priority."""
+    @channel.setter
+    def channel(self, value: int) -> None:
+        """Set message communication channel."""
         if isinstance(value, int):
-            self._data[_Keys.MPRIORITY] = value
+            self._data[_Keys.MCHANNEL] = value
         else:
             raise Raise.error(
                 f"Expected integer type, received '{type(value)}'.",
@@ -514,29 +514,29 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
         # }
         self._data[_Keys.MCOMQUEUES] = dict()
 
-    def register_queue(self, priority: int) -> Queue:
+    def register_queue(self, channel: int) -> Queue:
         """Register queue for communication module."""
-        if not isinstance(priority, (str, int)):
+        if not isinstance(channel, (str, int)):
             raise Raise.error(
-                f"Expected string or integer type, received '{type(priority)}'.",
+                f"Expected string or integer type, received '{type(channel)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),
             )
-        if str(priority) not in self._data[_Keys.MCOMQUEUES]:
-            self._data[_Keys.MCOMQUEUES][str(priority)] = []
+        if str(channel) not in self._data[_Keys.MCOMQUEUES]:
+            self._data[_Keys.MCOMQUEUES][str(channel)] = []
         queue = Queue(maxsize=1000)
         if self._debug:
             self.logs.message_debug = (
-                f"add queue for communication priority: {priority}"
+                f"add queue for communication channel: {channel}"
             )
-        self._data[_Keys.MCOMQUEUES][str(priority)].append(queue)
+        self._data[_Keys.MCOMQUEUES][str(channel)].append(queue)
         return queue
 
     def run(self) -> None:
         """Main loop."""
         # 1. read qcom
-        # 2. dispatch received message object to queues with appropriate communication priority
+        # 2. dispatch received message object to queues with appropriate communication channel
         # 3. loop to 1.
         if self._debug:
             self.logs.message_debug = "entering to the main loop"
@@ -576,10 +576,10 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
             )
         if self._debug:
             self.logs.message_debug = (
-                f"Received message for priority: '{message.priority}'"
+                f"Received message for channel: '{message.channel}'"
             )
-        if str(message.priority) in self._data[_Keys.MCOMQUEUES]:
-            for item in self._data[_Keys.MCOMQUEUES][str(message.priority)]:
+        if str(message.channel) in self._data[_Keys.MCOMQUEUES]:
+            for item in self._data[_Keys.MCOMQUEUES][str(message.channel)]:
                 try:
                     queue: Queue = item
                     queue.put(message, block=True, timeout=0.1)
@@ -589,7 +589,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
                     )
         else:
             raise Raise.error(
-                f"Received message with unknown priority: {message.priority}",
+                f"Received message with unknown channel: {message.channel}",
                 ValueError,
                 self._c_name,
                 currentframe(),
