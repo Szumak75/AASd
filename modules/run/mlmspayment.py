@@ -9,7 +9,7 @@
 
 import time
 from inspect import currentframe
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Tuple, Any
 from threading import Thread, Event
 from queue import Queue
 
@@ -56,6 +56,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
     MODCONF = "__MODULE_CONF__"
     # for configuration
     AT_CHANNEL = "at_channel"
+    DCHANNEL = "diagnostic_channel"
+    MCHANNEL = "message_channel"
     SLEEP_PERIOD = "sleep_period"
     SQL_SERVER = "sql_server"
     SQL_DATABASE = "sql_database"
@@ -184,8 +186,34 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
 
     @property
     def at_channel(self) -> Optional[List[str]]:
-        """Return message channel list."""
+        """Return message channel configuration list."""
         var = self._get(varname=_Keys.AT_CHANNEL)
+        if var is not None and not isinstance(var, List):
+            raise Raise.error(
+                "Expected list type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
+    def diagnostic_channel(self) -> Optional[List[str]]:
+        """Return diagnostic channel list."""
+        var = self._get(varname=_Keys.DCHANNEL)
+        if var is not None and not isinstance(var, List):
+            raise Raise.error(
+                "Expected list type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
+    def message_channel(self) -> Optional[List[str]]:
+        """Return message channel list."""
+        var = self._get(varname=_Keys.MCHANNEL)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -298,6 +326,13 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     f"'{_Keys.AT_CHANNEL}' not configured"
                 )
                 self.stop()
+            if not self.module_conf.message_channel:
+                self.logs.message_critical = (
+                    f"'{_Keys.MCHANNEL}' not configured"
+                )
+                self.stop()
+            if not self.module_conf.diagnostic_channel:
+                self.logs.message_warning = f"'{_Keys.DCHANNEL}' not configured, maybe it's not an error, but check..."
             if not self.module_conf.sql_server:
                 self.logs.message_critical = (
                     f"'{_Keys.SQL_SERVER}' not configured"
@@ -322,6 +357,71 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             self.logs.message_critical = f"{ex}"
             return False
         return True
+
+    def __get_customers_for_verification(
+        self, dbh: _Database
+    ) -> List[mlms.MCustomer]:
+        """Returns a list of Customes to verification."""
+        email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
+        mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
+        disabled = _Keys.CONTACT_DISABLED
+
+        out_debt = []
+        out_contact = []
+        out_tariff = []
+
+        if dbh.create_connections():
+            session = dbh.session
+            if session is None:
+                self.logs.message_critical = (
+                    "cannot make database operations"
+                )
+                return [out_debt, out_contact]
+        else:
+            self.logs.message_critical = "cannot connect to the database"
+            return [out_debt, out_contact]
+
+        # customers query
+        customers: mlms.MCustomer = (
+            session.query(mlms.MCustomer)
+            .filter(
+                mlms.MCustomer.deleted == 0,
+            )
+            .order_by(mlms.MCustomer.id)
+            .all()
+        )
+
+        # analysis
+        for item1 in customers:
+            customer: mlms.MCustomer = item1
+            # build debt list
+            if (
+                customer.balance < 0
+                and MDateTime.elapsed_time_from_timestamp(
+                    customer.dept_timestamp
+                )
+                > MDateTime.elapsed_time_from_seconds(60 * 60 * 24 * 30)
+            ):
+                out_debt.append(customer)
+            # build contact list
+            if customer.tariffs and customer.has_active_node is not None:
+                test = False
+                for item2 in customer.contacts:
+                    contact: mlms.CustomerContact = item2
+                    if (
+                        contact.type & email == email
+                        and contact.type & disabled == 0
+                    ) or (
+                        contact.type & mobile == mobile
+                        and contact.type & disabled == 0
+                    ):
+                        test = True
+                if not test:
+                    out_contact.append(customer)
+            elif not customer.tariffs:
+                out_tariff.append(customer)
+
+        return [out_debt, out_contact, out_tariff]
 
     def __get_indebted_customers_list(
         self, dbh: _Database
@@ -376,6 +476,156 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                         out.append(customer)
         return out
 
+    def __send_diagnostic(self, channel: int, data: List) -> None:
+        """Make email notification for diagnostic channel."""
+        debt_check, contact_check, tariff_check = data
+        style = """<style>
+BODY { font-size: 8pt; font-family: Tahoma, Verdana, Arial, Helvetica; background-color: #EBE4D6; margin: 0; padding: 0; vertical-align: middle; }
+H1 { font-size: 14pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
+H2 { font-size: 12pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
+H3 { font-size: 10pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
+TABLE { border-collapse: collapse; border-color: #000000 }
+TD { font-size: 8pt; font-family: Tahoma, Verdana, Arial, Helvetica; vertical-align: middle; border-color: black; }
+th { background-color: black; color: white; }
+th, td { text-align: left; padding: 2px; }
+tr:nth-child(even){background-color: #DFD5BD}
+A { text-decoration: none; vertical-align: baseline; }
+A:link { color: #800000; }
+A:active { color: #336600; }
+A:visited { color: #800000; }
+A.blend { color: #888888; }
+A:hover { text-decoration: underline; color: #336600; }
+div.centered { text-align: center; }
+div.centered table { margin: 0 auto; text-align: left; }
+</style>"""
+        # debt
+        if debt_check:
+            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td></tr>"
+            mes = Message()
+            mes.channel = channel
+            mes.subject = "[AIR-NET] Klienci zadłużeni powyżej 30 dni."
+            # head
+            mes.mmessages = {}
+            mes.mmessages[Multipart.HTML] = [
+                "<html>",
+                "<head></head>",
+                "<body>",
+                style,
+                "<div class='centered'><h1>Wykaz klientów z przedawnionym zadłużeniem.</h1></div>",
+                "<div class='centered'>",
+                "<table>",
+                "<tr><th>nr</th><th>cid</th><th>nazwa</th><th>bilans</th><th>od</th></tr>",
+            ]
+            count = 0
+            for item in debt_check:
+                count += 1
+                customer: mlms.MCustomer = item
+                mes.mmessages[Multipart.HTML].append(
+                    template.format(
+                        nr=count,
+                        cid=customer.id,
+                        nazwa=f"{customer.name} {customer.lastname}",
+                        bilans=customer.balance,
+                        od=f"{MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).days} dni, {MDateTime.elapsed_time_from_seconds(MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).seconds)}",
+                    )
+                )
+            # foot
+            mes.mmessages[Multipart.HTML].extend(
+                [
+                    "<tr><td colspan='5'><hr></td></tr>",
+                    "</table>",
+                    "</div>",
+                    "</body>",
+                    "</html>",
+                ]
+            )
+            # put message to communication queue
+            self.qcom.put(mes)
+
+        # contacts
+        if contact_check:
+            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td></tr>"
+            mes = Message()
+            mes.channel = channel
+            mes.subject = "[AIR-NET] Klienci bez zgody na kontakt."
+            # head
+            mes.mmessages = {}
+            mes.mmessages[Multipart.HTML] = [
+                "<html>",
+                "<head></head>",
+                "<body>",
+                style,
+                "<div class='centered'><h1>Wykaz klientów do sprawdzenia zgód kontaktowych.</h1></div>",
+                "<div class='centered'>",
+                "<table>",
+                "<tr><th>nr</th><th>cid</th><th>nazwa</th></tr>",
+            ]
+            count = 0
+            for item in contact_check:
+                count += 1
+                customer: mlms.MCustomer = item
+                mes.mmessages[Multipart.HTML].append(
+                    template.format(
+                        nr=count,
+                        cid=customer.id,
+                        nazwa=f"{customer.name} {customer.lastname}",
+                    )
+                )
+            # foot
+            mes.mmessages[Multipart.HTML].extend(
+                [
+                    "<tr><td colspan='3'><hr></td></tr>",
+                    "</table>",
+                    "</div>",
+                    "</body>",
+                    "</html>",
+                ]
+            )
+            # put message to communication queue
+            self.qcom.put(mes)
+
+        # tariff
+        if tariff_check:
+            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td></tr>"
+            mes = Message()
+            mes.channel = channel
+            mes.subject = "[AIR-NET] Klienci bez taryf."
+            # head
+            mes.mmessages = {}
+            mes.mmessages[Multipart.HTML] = [
+                "<html>",
+                "<head></head>",
+                "<body>",
+                style,
+                "<div class='centered'><h1>Wykaz klientów do bez przypisanych taryf.</h1></div>",
+                "<div class='centered'>",
+                "<table>",
+                "<tr><th>nr</th><th>cid</th><th>nazwa</th></tr>",
+            ]
+            count = 0
+            for item in tariff_check:
+                count += 1
+                customer: mlms.MCustomer = item
+                mes.mmessages[Multipart.HTML].append(
+                    template.format(
+                        nr=count,
+                        cid=customer.id,
+                        nazwa=f"{customer.name} {customer.lastname}",
+                    )
+                )
+            # foot
+            mes.mmessages[Multipart.HTML].extend(
+                [
+                    "<tr><td colspan='3'><hr></td></tr>",
+                    "</table>",
+                    "</div>",
+                    "</body>",
+                    "</html>",
+                ]
+            )
+            # put message to communication queue
+            self.qcom.put(mes)
+
     def run(self) -> None:
         """Main loop."""
         self.logs.message_notice = "starting..."
@@ -418,19 +668,6 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         if self.debug:
             self.logs.message_debug = "configuration processing complete"
 
-        # test database query
-        # count = 0
-        # for item in self.__get_indebted_customers_list(dbh):
-        # count += 1
-        # customer: mlms.MCustomer = item
-        # self.logs.message_info = f"[{count}] {customer}"
-        # self.logs.message_info = f"Balance: {customer.balance} since: {DateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
-        # # for item2 in item.tariffs:
-        # # tariff: lms.Tariff = item2
-        # # self.logs.message_info = f"Tariff: {tariff}"
-
-        # end test database query
-
         if self.debug:
             self.logs.message_debug = "entering to the main loop"
 
@@ -440,19 +677,22 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 if self.debug:
                     self.logs.message_debug = "expired channel found"
                 for chan in channel.get:
-                    count = 0
-                    for item in self.__get_indebted_customers_list(dbh):
-                        customer: mlms.MCustomer = item
-                        if MDateTime.elapsed_time_from_timestamp(
-                            customer.dept_timestamp
-                        ) > MDateTime.elapsed_time_from_seconds(
-                            60 * 60 * 24 * 30
-                        ):
-                            count += 1
-                            self.logs.message_info = f"[{count}] Customer: {customer.id}, Balance: {customer.balance} since: {MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp)}"
+                    # diagnostic channel
+                    if (
+                        self.module_conf.diagnostic_channel
+                        and chan in self.module_conf.diagnostic_channel
+                    ):
+                        self.__send_diagnostic(
+                            int(chan),
+                            self.__get_customers_for_verification(dbh),
+                        )
 
-            # TODO: not implemented
-            # TODO: do something, build a message if necessary, put it in the qcom queue
+                    # message channel
+                    if (
+                        self.module_conf.message_channel
+                        and chan in self.module_conf.message_channel
+                    ):
+                        pass
             self.sleep()
 
         # exiting from loop
@@ -536,6 +776,16 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         out.append(TemplateConfigItem(desc=" All fields must be defined."))
         out.append(
             TemplateConfigItem(
+                desc=f"'{_Keys.DCHANNEL}' [List[str]] - diagnostic channels for sending statistics."
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc=f"'{_Keys.MCHANNEL}' [List[str]] - message channels for notifications sent to customers."
+            )
+        )
+        out.append(
+            TemplateConfigItem(
                 desc=f"'{_Keys.SQL_SERVER}' [List[str]] - list of SQL servers IP addresses"
             )
         )
@@ -560,6 +810,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 value=["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"],
             )
         )
+        out.append(TemplateConfigItem(varname=_Keys.DCHANNEL, value=[]))
+        out.append(TemplateConfigItem(varname=_Keys.MCHANNEL, value=[1]))
         out.append(
             TemplateConfigItem(
                 varname=_Keys.SQL_SERVER,
