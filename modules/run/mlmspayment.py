@@ -637,7 +637,10 @@ div.centered table { margin: 0 auto; text-align: left; }
             ]
             count = 0
             info = ""
-            if customer.has_active_node:
+            if (
+                customer.has_active_node is not None
+                and customer.has_active_node == True
+            ):
                 info += "aktywna usługa, "
             info = info.strip()[:-1]
             for item in tariff_check:

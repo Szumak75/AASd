@@ -83,12 +83,14 @@ if session:
         session.query(mlms.MCustomer)
         .filter(
             mlms.MCustomer.deleted == 0,
-            mlms.MCustomer.id == 8770,
+            mlms.MCustomer.id == 46,
         )
         .all()
     )
+
     for item1 in customers:
         customer: mlms.MCustomer = item1
+        print(customer.has_active_node)
         if customer.balance < 0:
             if customer.tariffs and customer.has_active_node is not None:
                 print(customer)
