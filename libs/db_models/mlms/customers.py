@@ -10,7 +10,7 @@
 from typing import List, Optional
 
 from sqlalchemy import ForeignKey, Integer, Text, String
-from sqlalchemy.orm import Mapped, relationship
+from sqlalchemy.orm import Mapped, relationship, backref
 from sqlalchemy.ext.hybrid import hybrid_property
 
 from libs.db_models.lms.customers import Customer
@@ -27,12 +27,13 @@ class MCustomer(Customer):
 
     # time of debt creation
     __debt_time: int = 0
-    __cash_warning: bool = False
 
     contacts: Mapped[List["MCustomerContact"]] = relationship(
         "MCustomerContact"
     )
-    cash_operations: Mapped[List["MCash"]] = relationship("MCash")
+    cash_operations: Mapped[List["MCash"]] = relationship(
+        "MCash", order_by=MCash.time
+    )
     nodes: Mapped[List["MNode"]] = relationship("MNode")
     assignments: Mapped[List["MAssignment"]] = relationship("MAssignment")
 
@@ -47,8 +48,6 @@ class MCustomer(Customer):
                     if balance >= 0:
                         self.__debt_time = cash.time
                     balance += cash.value
-                else:
-                    self.__cash_warning = True
             else:
                 balance += cash.value
         return balance
