@@ -83,7 +83,7 @@ if session:
         session.query(mlms.MCustomer)
         .filter(
             mlms.MCustomer.deleted == 0,
-            mlms.MCustomer.id == 7236,
+            mlms.MCustomer.id == 8770,
         )
         .all()
     )
@@ -116,5 +116,14 @@ if session:
                     customer.dept_timestamp
                 )
             )
+            print(
+                f"consent date: {MDateTime.datetime_from_timestamp(customer.consentdate)}"
+            )
+            print(
+                f"cutoff stop: {MDateTime.datetime_from_timestamp(customer.cutoffstop)}"
+            )
+            for item2 in customer.tariffs:
+                tariff: mlms.Tariff = item2
+                print(tariff)
 
 # #[EOF]#######################################################################

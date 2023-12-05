@@ -637,13 +637,13 @@ div.centered table { margin: 0 auto; text-align: left; }
             ]
             count = 0
             info = ""
+            if customer.has_active_node:
+                info += "aktywna usługa, "
+            info = info.strip()[:-1]
             for item in tariff_check:
                 count += 1
                 customer: mlms.MCustomer = item
                 # uwagi
-                if customer.has_active_node:
-                    info += "aktywna usługa, "
-                info = info.strip()[:-1]
                 mes.mmessages[Multipart.HTML].append(
                     template.format(
                         nr=count,
