@@ -83,17 +83,25 @@ if session:
         session.query(mlms.MCustomer)
         .filter(
             mlms.MCustomer.deleted == 0,
-            mlms.MCustomer.id == 46,
+            # mlms.MCustomer.id == 1679,
+            mlms.MCustomer.paytime != "-1",
         )
         .all()
     )
-
+    count = 0
     for item1 in customers:
         customer: mlms.MCustomer = item1
-        print(customer.has_active_node)
+        # print(customer.has_active_node)
+        count += 1
+        print(
+            f"{count}: CID: {customer.id} Termin płatności: {customer.paytime}"
+        )
+        if True:
+            continue
         if customer.balance < 0:
             if customer.tariffs and customer.has_active_node is not None:
                 print(customer)
+                continue
             # print(customer.cash_operations)
             balance = 0
             for item2 in customer.cash_operations:
