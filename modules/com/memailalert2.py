@@ -144,10 +144,10 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def address_to(self) -> str:
+    def address_to(self) -> Optional[Union[str, List]]:
         """Return address_to var."""
         var = self._get(varname=_Keys.ADDRESS_TO)
-        if var is not None and not isinstance(var, str):
+        if var is not None and not isinstance(var, (str, List)):
             raise Raise.error(
                 "Expected str type.",
                 TypeError,
