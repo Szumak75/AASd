@@ -144,12 +144,12 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def address_to(self) -> str:
+    def address_to(self) -> Optional[Union[str]]:
         """Return address_to var."""
         var = self._get(varname=_Keys.ADDRESS_TO)
-        if var is not None and not isinstance(var, str):
+        if var is not None and not isinstance(var, (str, List)):
             raise Raise.error(
-                "Expected str type.",
+                "Expected str or list type.",
                 TypeError,
                 self._c_name,
                 currentframe(),
@@ -598,7 +598,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         out.append(TemplateConfigItem(varname=_Keys.SMTP_USER))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_PASS))
         out.append(TemplateConfigItem(varname=_Keys.ADDRESS_FROM))
-        out.append(TemplateConfigItem(varname=_Keys.ADDRESS_TO))
+        out.append(TemplateConfigItem(varname=_Keys.ADDRESS_TO, value=[]))
 
         return out
 

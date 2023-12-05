@@ -149,7 +149,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         var = self._get(varname=_Keys.ADDRESS_TO)
         if var is not None and not isinstance(var, (str, List)):
             raise Raise.error(
-                "Expected str type.",
+                "Expected str or list type.",
                 TypeError,
                 self._c_name,
                 currentframe(),
@@ -598,7 +598,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         out.append(TemplateConfigItem(varname=_Keys.SMTP_USER))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_PASS))
         out.append(TemplateConfigItem(varname=_Keys.ADDRESS_FROM))
-        out.append(TemplateConfigItem(varname=_Keys.ADDRESS_TO))
+        out.append(TemplateConfigItem(varname=_Keys.ADDRESS_TO, value=[]))
 
         return out
 
