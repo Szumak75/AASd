@@ -518,7 +518,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<div class='centered'><h1>Wykaz klientów z przedawnionym zadłużeniem.</h1></div>",
                 "<div class='centered'>",
                 "<table>",
-                "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>bilans:</th><th>od:</th><td>uwagi:</td></tr>",
+                "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>bilans:</th><th>od:</th><th>uwagi:</th></tr>",
             ]
             count = 0
             for item in debt_check:
@@ -575,7 +575,7 @@ div.centered table { margin: 0 auto; text-align: left; }
 
         # contacts
         if contact_check:
-            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td></tr>"
+            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez zgody na kontakt."
@@ -589,9 +589,10 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<div class='centered'><h1>Wykaz klientów do sprawdzenia zgód kontaktowych.</h1></div>",
                 "<div class='centered'>",
                 "<table>",
-                "<tr><th>nr</th><th>cid</th><th>nazwa</th></tr>",
+                "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
             ]
             count = 0
+            info = ""
             for item in contact_check:
                 count += 1
                 customer: mlms.MCustomer = item
@@ -600,12 +601,13 @@ div.centered table { margin: 0 auto; text-align: left; }
                         nr=count,
                         cid=customer.id,
                         nazwa=f"{customer.name} {customer.lastname}",
+                        info=info,
                     )
                 )
             # foot
             mes.mmessages[Multipart.HTML].extend(
                 [
-                    "<tr><td colspan='3'><hr></td></tr>",
+                    "<tr><td colspan='4'><hr></td></tr>",
                     "</table>",
                     "</div>",
                     "</body>",
@@ -617,7 +619,7 @@ div.centered table { margin: 0 auto; text-align: left; }
 
         # tariff
         if tariff_check:
-            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td></tr>"
+            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez taryf."
@@ -631,23 +633,29 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<div class='centered'><h1>Wykaz klientów do bez przypisanych taryf.</h1></div>",
                 "<div class='centered'>",
                 "<table>",
-                "<tr><th>nr</th><th>cid</th><th>nazwa</th></tr>",
+                "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
             ]
             count = 0
+            info = ""
             for item in tariff_check:
                 count += 1
                 customer: mlms.MCustomer = item
+                # uwagi
+                if customer.has_active_node:
+                    info += "aktywna usługa, "
+                info = info.strip()[:-1]
                 mes.mmessages[Multipart.HTML].append(
                     template.format(
                         nr=count,
                         cid=customer.id,
                         nazwa=f"{customer.name} {customer.lastname}",
+                        info=info,
                     )
                 )
             # foot
             mes.mmessages[Multipart.HTML].extend(
                 [
-                    "<tr><td colspan='3'><hr></td></tr>",
+                    "<tr><td colspan='4'><hr></td></tr>",
                     "</table>",
                     "</div>",
                     "</body>",
