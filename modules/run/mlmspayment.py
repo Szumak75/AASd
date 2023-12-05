@@ -479,6 +479,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
     def __send_diagnostic(self, channel: int, data: List) -> None:
         """Make email notification for diagnostic channel."""
         debt_check, contact_check, tariff_check = data
+        nemail = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
+        email = _Keys.CONTACT_EMAIL
+        mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
+        disabled = _Keys.CONTACT_DISABLED
         style = """<style>
 BODY { font-size: 8pt; font-family: Tahoma, Verdana, Arial, Helvetica; background-color: #EBE4D6; margin: 0; padding: 0; vertical-align: middle; }
 H1 { font-size: 14pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
@@ -500,7 +504,7 @@ div.centered table { margin: 0 auto; text-align: left; }
 </style>"""
         # debt
         if debt_check:
-            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td></tr>"
+            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td><td>{info}</td></tr>"
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci zadłużeni powyżej 30 dni."
@@ -514,12 +518,38 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<div class='centered'><h1>Wykaz klientów z przedawnionym zadłużeniem.</h1></div>",
                 "<div class='centered'>",
                 "<table>",
-                "<tr><th>nr</th><th>cid</th><th>nazwa</th><th>bilans</th><th>od</th></tr>",
+                "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>bilans:</th><th>od:</th><td>uwagi:</td></tr>",
             ]
             count = 0
             for item in debt_check:
+                info = ""
                 count += 1
                 customer: mlms.MCustomer = item
+                # uwagi
+                has_email = False
+                has_nemail = False
+                for item2 in customer.contacts:
+                    contact: mlms.MCustomerContact = item2
+                    if (
+                        contact.type & email == email
+                        and contact.type & disabled == 0
+                    ):
+                        has_email = True
+                    if (
+                        contact.type & nemail == nemail
+                        and contact.type & disabled == 0
+                    ):
+                        has_nemail = True
+                if not has_email:
+                    info += "brak email, "
+                elif not has_nemail:
+                    info += "brak zgody email, "
+                if not customer.has_active_node:
+                    info += "blokada, "
+                if not customer.tariffs:
+                    info += "brak taryf, "
+                info = info.strip()[:-1]
+
                 mes.mmessages[Multipart.HTML].append(
                     template.format(
                         nr=count,
@@ -527,12 +557,13 @@ div.centered table { margin: 0 auto; text-align: left; }
                         nazwa=f"{customer.name} {customer.lastname}",
                         bilans=customer.balance,
                         od=f"{MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).days} dni, {MDateTime.elapsed_time_from_seconds(MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).seconds)}",
+                        info=info,
                     )
                 )
             # foot
             mes.mmessages[Multipart.HTML].extend(
                 [
-                    "<tr><td colspan='5'><hr></td></tr>",
+                    "<tr><td colspan='6'><hr></td></tr>",
                     "</table>",
                     "</div>",
                     "</body>",
