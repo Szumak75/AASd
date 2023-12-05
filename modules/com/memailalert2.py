@@ -385,7 +385,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                 )
             smtp.send_message(msg)
             if self.debug:
-                self.logs.message_debug = "message was send"
+                self.logs.message_debug = "message was sent"
             out = True
         except smtplib.SMTPAuthenticationError as ex:
             self.logs.message_critical = f"authentication error: {ex}"
