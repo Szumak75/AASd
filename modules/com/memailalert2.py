@@ -64,7 +64,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return self._cfh.get(self._section, varname)
 
     @property
-    def channel(self) -> int:
+    def channel(self) -> Optional[int]:
         """Return channel var."""
         var = self._get(varname=_Keys.CHANNEL)
         if var is not None and not isinstance(var, int):
@@ -77,7 +77,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def sleep_period(self) -> float:
+    def sleep_period(self) -> Optional[float]:
         """Return sleep_period var."""
         var = self._get(varname=_Keys.SLEEP_PERIOD)
         if var is None:
@@ -92,7 +92,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return float(var)
 
     @property
-    def smtp_server(self) -> str:
+    def smtp_server(self) -> Optional[str]:
         """Return smtp_server var."""
         var = self._get(varname=_Keys.SMTP_SERVER)
         if var is not None and not isinstance(var, str):
@@ -105,7 +105,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def smtp_user(self) -> str:
+    def smtp_user(self) -> Optional[str]:
         """Return smtp_user var."""
         var = self._get(varname=_Keys.SMTP_USER)
         if var is not None and not isinstance(var, str):
@@ -118,7 +118,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def smtp_pass(self) -> str:
+    def smtp_pass(self) -> Optional[str]:
         """Return smtp_pass var."""
         var = self._get(varname=_Keys.SMTP_PASS)
         if var is not None and not isinstance(var, str):
@@ -131,7 +131,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def address_from(self) -> str:
+    def address_from(self) -> Optional[str]:
         """Return address_from var."""
         var = self._get(varname=_Keys.ADDRESS_FROM)
         if var is not None and not isinstance(var, str):
