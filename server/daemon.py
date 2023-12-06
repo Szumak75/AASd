@@ -28,7 +28,10 @@ from jsktoolbox.logstool.logs import (
 )
 
 from jsktoolbox.logstool.logs import ThLoggerProcessor
-from jsktoolbox.logstool.formatters import LogFormatterDateTime
+from jsktoolbox.logstool.formatters import (
+    LogFormatterDateTime,
+    LogFormatterNull,
+)
 from jsktoolbox.libs.system import CommandLineParser
 from jsktoolbox.stringtool.crypto import SimpleCrypto
 
@@ -327,7 +330,8 @@ class AASd(BProjectClass, BImporter):
             LogsLevelKeys.ALERT,
             LoggerEngineStdout(
                 name=f"{self._c_name}->ALERT",
-                formatter=LogFormatterDateTime(),
+                # formatter=LogFormatterDateTime(),
+                formatter=LogFormatterNull(),
             ),
         )
         # DEBUG
@@ -335,7 +339,8 @@ class AASd(BProjectClass, BImporter):
             LogsLevelKeys.DEBUG,
             LoggerEngineStdout(
                 name=f"{self._c_name}->DEBUG",
-                formatter=LogFormatterDateTime(),
+                # formatter=LogFormatterDateTime(),
+                formatter=LogFormatterNull(),
             ),
         )
         # ERROR
@@ -343,7 +348,8 @@ class AASd(BProjectClass, BImporter):
             LogsLevelKeys.ERROR,
             LoggerEngineStdout(
                 name=f"{self._c_name}->ERROR",
-                formatter=LogFormatterDateTime(),
+                # formatter=LogFormatterDateTime(),
+                formatter=LogFormatterNull(),
             ),
         )
         # NOTICE
@@ -351,7 +357,8 @@ class AASd(BProjectClass, BImporter):
             LogsLevelKeys.NOTICE,
             LoggerEngineStdout(
                 name=f"{self._c_name}->NOTICE",
-                formatter=LogFormatterDateTime(),
+                # formatter=LogFormatterDateTime(),
+                formatter=LogFormatterNull(),
             ),
         )
         # CRITICAL
@@ -359,7 +366,8 @@ class AASd(BProjectClass, BImporter):
             LogsLevelKeys.CRITICAL,
             LoggerEngineStdout(
                 name=f"{self._c_name}->CRITICAL",
-                formatter=LogFormatterDateTime(),
+                # formatter=LogFormatterDateTime(),
+                formatter=LogFormatterNull(),
             ),
         )
         # EMERGENCY
@@ -367,14 +375,17 @@ class AASd(BProjectClass, BImporter):
             LogsLevelKeys.EMERGENCY,
             LoggerEngineStdout(
                 name=f"{self._c_name}->EMERGENCY",
-                formatter=LogFormatterDateTime(),
+                # formatter=LogFormatterDateTime(),
+                formatter=LogFormatterNull(),
             ),
         )
         # INFO
         engine.add_engine(
             LogsLevelKeys.INFO,
             LoggerEngineStdout(
-                name=self._c_name, formatter=LogFormatterDateTime()
+                name=self._c_name,
+                # formatter=LogFormatterDateTime(),
+                formatter=LogFormatterNull(),
             ),
         )
         # WARNING
@@ -382,7 +393,8 @@ class AASd(BProjectClass, BImporter):
             LogsLevelKeys.WARNING,
             LoggerEngineStdout(
                 name=f"{self._c_name}->WARNING",
-                formatter=LogFormatterDateTime(),
+                # formatter=LogFormatterDateTime(),
+                formatter=LogFormatterNull(),
             ),
         )
 
