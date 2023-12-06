@@ -114,6 +114,121 @@ class AASd(BProjectClass, BImporter):
         setproctitle.setproctitle(self.conf.app_name)
         gc.enable()
 
+    def __start_subsystem(self) -> List:
+        """"""
+        self.logs.message_info = "starting..."
+
+        # logger processor
+        self.logs_processor.start()
+
+        # communication queue
+        qcom = Queue()
+
+        # dispatcher processor
+        dispatch = Dispatcher(
+            qlog=self.logs.logs_queue,
+            qcom=qcom,
+            verbose=self.conf.verbose,
+            debug=self.conf.debug,
+        )
+
+        # start dispatcher
+        dispatch.start()
+
+        # break for coffe
+        time.sleep(1)
+
+        # start communication modules
+        com_mods = []
+        for item in self.conf.get_com_modules:
+            c_mod: IComModule = item
+            try:
+                o_mod = c_mod(
+                    self.conf.cf,
+                    self.logs.logs_queue,
+                    self.conf.verbose,
+                    self.conf.debug,
+                )
+                o_mod.qcom = dispatch.register_queue(
+                    o_mod.module_conf.channel
+                )
+                o_mod.start()
+                com_mods.append(o_mod)
+            except Exception as ex:
+                if self.conf.debug:
+                    self.logs.message_debug = f"{ex}"
+
+        # start running modules
+        run_mods = []
+        for item in self.conf.get_run_modules:
+            c_mod: IRunModule = item
+            try:
+                o_mod = c_mod(
+                    self.conf.cf,
+                    self.logs.logs_queue,
+                    qcom,
+                    self.conf.verbose,
+                    self.conf.debug,
+                )
+                o_mod.start()
+                run_mods.append(o_mod)
+            except Exception as ex:
+                if self.conf.debug:
+                    self.logs.message_debug = f"{ex}"
+        return [com_mods, run_mods, dispatch]
+
+    def __stop_subsystem(
+        self, com_mods: List, run_mods: List, dispatch: Dispatcher
+    ) -> None:
+        """"""
+        # stopping & joining running modules
+        for mod in run_mods:
+            mod.stop()
+            while mod.is_stopped != True:
+                mod.join()
+                time.sleep(0.1)
+
+        for mod in com_mods:
+            mod.stop()
+            while mod.is_stopped != True:
+                mod.join()
+                time.sleep(0.1)
+
+        # dispatcher processor
+        dispatch.stop()
+        while dispatch.is_stopped != True:
+            dispatch.join()
+            time.sleep(0.1)
+
+        # logger processor
+        self.logs_processor.stop()
+        time.sleep(2.0)
+        while self.logs_processor.is_stopped != True:
+            self.logs_processor.join()
+            time.sleep(0.1)
+
+    def run2(self) -> None:
+        """"""
+        [com_mods, run_mods, dispatch] = self.__start_subsystem()
+
+        # main loop
+        self.logs.message_info = "entering to the main loop"
+        while self.loop:
+            if self.hup:
+                # reload configuration and restart subsystems
+                self.__stop_subsystem(com_mods, run_mods, dispatch)
+                self.hup = False
+                if not self.conf.load():
+                    # critical message
+                    self.logs.message_critical = "cannot reload config file"
+                    self.loop = False
+                [com_mods, run_mods, dispatch] = self.__start_subsystem()
+            time.sleep(0.5)
+
+        self.__stop_subsystem(com_mods, run_mods, dispatch)
+
+        sys.exit(0)
+
     def run(self) -> None:
         """Start project."""
         self.logs.message_info = "starting..."
