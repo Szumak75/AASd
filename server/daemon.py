@@ -10,6 +10,7 @@ import signal
 import sys
 import time
 import gc
+import setproctitle
 
 from inspect import currentframe
 from typing import Dict, List
@@ -110,6 +111,7 @@ class AASd(BProjectClass, BImporter):
         signal.signal(signal.SIGINT, self.__sig_exit)
 
         # others
+        setproctitle.setproctitle(self.conf.app_name)
         gc.enable()
 
     def run(self) -> None:
