@@ -130,10 +130,10 @@ class _Database(BDebug, BLogs):
             for dialect in ("pymysql", "mysqlconnector"):
                 url = URL(
                     f"mysql+{dialect}",
-                    username="lms3",
-                    password=f"{SimpleCrypto.multiple_decrypt(salt, '//4AAHAAAABMAAAAagAAAEkAAAA1AAAAZAAAADcAAAB6AAAAbgAAAGcAAABtAAAANQAAAE0AAABlAAAASgAAAHUAAAA=')}",
+                    username=self._data[_Keys.SQL_USER],
+                    password=self._data[_Keys.SQL_PASS],
                     host=ip,
-                    database="lmsv3",
+                    database=self._data[_Keys.SQL_DATABASE],
                     port=3306,
                     query={
                         "charset": "utf8mb4",
