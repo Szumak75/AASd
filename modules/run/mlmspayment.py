@@ -85,6 +85,10 @@ class _Keys(object, metaclass=ReadOnlyClass):
     CONTACT_IM_FACEBOOK = 4096
     CONTACT_DISABLED = 16384
     CONTACT_DOCUMENTS = 32768
+    # diagnostic
+    DDEBT = "__debt__"
+    DCONT = "__cont__"
+    DTARIFF = "__tariff__"
 
 
 class _Database(BDebug, BLogs):
@@ -314,6 +318,17 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         # communication queue
         self.qcom = qcom
 
+        # init internal buffer
+        self._data[_Keys.DDEBT] = []
+        self._data[_Keys.DCONT] = []
+        self._data[_Keys.DTARIFF] = []
+
+    def __clean_diagnostic(self) -> None:
+        """Initialize diagnostic data buffer."""
+        self._data[_Keys.DDEBT].clear()
+        self._data[_Keys.DCONT].clear()
+        self._data[_Keys.DTARIFF].clear()
+
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
         try:
@@ -364,9 +379,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled = _Keys.CONTACT_DISABLED
 
-        out_debt = []
-        out_contact = []
-        out_tariff = []
+        # reset buffer
+        self.__clean_diagnostic()
 
         session = dbh.session
         if session is None:
@@ -405,7 +419,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     )
                     > MDateTime.elapsed_time_from_seconds(60 * 60 * 24 * 30)
                 ):
-                    out_debt.append(deepcopy(customer))
+                    self.__add_debt(customer)
                 # build contact list
                 if customer.tariffs and customer.has_active_node is not None:
                     test = False
@@ -420,11 +434,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                         ):
                             test = True
                     if not test:
-                        out_contact.append(deepcopy(customer))
+                        self.__add_contact(customer)
                 elif not customer.tariffs:
-                    out_tariff.append(deepcopy(customer))
+                    self.__add_tariff(customer)
 
-        self.__send_diagnostic(channel, [out_debt, out_contact, out_tariff])
+        self.__send_diagnostic(channel)
 
     def __get_indebted_customers_list(
         self, dbh: _Database, channel: int
@@ -478,13 +492,88 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     ):
                         out.append(customer)
 
-    def __send_diagnostic(self, channel: int, data: List) -> None:
-        """Make email notification for diagnostic channel."""
-        debt_check, contact_check, tariff_check = data
+    def __add_debt(self, customer: mlms.MCustomer) -> None:
+        """"""
         nemail = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         email = _Keys.CONTACT_EMAIL
         mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled = _Keys.CONTACT_DISABLED
+        template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td><td>{info}</td></tr>"
+        info = ""
+        count = len(self._data[_Keys.DDEBT]) + 1
+        # uwagi
+        has_email = False
+        has_nemail = False
+        for item2 in customer.contacts:
+            contact: mlms.MCustomerContact = item2
+            if (
+                contact.type & email == email
+                and contact.type & disabled == 0
+            ):
+                has_email = True
+            if (
+                contact.type & nemail == nemail
+                and contact.type & disabled == 0
+            ):
+                has_nemail = True
+        if not has_email:
+            info += "brak email, "
+        elif not has_nemail:
+            info += "brak zgody email, "
+        if not customer.has_active_node:
+            info += "blokada, "
+        if not customer.tariffs:
+            info += "brak taryf, "
+        info = info.strip()[:-1]
+
+        self._data[_Keys.DDEBT].append(
+            template.format(
+                nr=count,
+                cid=customer.id,
+                nazwa=f"{customer.name} {customer.lastname}",
+                bilans=customer.balance,
+                od=f"{MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).days} dni, {MDateTime.elapsed_time_from_seconds(MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).seconds)}",
+                info=info,
+            )
+        )
+
+    def __add_contact(self, customer: mlms.MCustomer) -> None:
+        """"""
+        template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
+        count = len(self._data[_Keys.DCONT]) + 1
+        info = ""
+        self._data[_Keys.DCONT].append(
+            template.format(
+                nr=count,
+                cid=customer.id,
+                nazwa=f"{customer.name} {customer.lastname}",
+                info=info,
+            )
+        )
+
+    def __add_tariff(self, customer: mlms.MCustomer) -> None:
+        """"""
+        template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
+        count = len(self._data[_Keys.DTARIFF]) + 1
+        # uwagi
+        info = ""
+        if (
+            customer.has_active_node is not None
+            and customer.has_active_node == True
+        ):
+            info += "aktywna usługa, "
+        info = info.strip()[:-1]
+        self._data[_Keys.DTARIFF].append(
+            template.format(
+                nr=count,
+                cid=customer.id,
+                nazwa=f"{customer.name} {customer.lastname}",
+                info=info,
+            )
+        )
+
+    def __send_diagnostic(self, channel: int) -> None:
+        """Make email notification for diagnostic channel."""
         style = """<style>
 body { font-size: 8pt; font-family: Tahoma, Verdana, Arial, Helvetica; background-color: #EBE4D6; margin: 0; padding: 0; vertical-align: middle; }
 h1 { font-size: 14pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
@@ -505,8 +594,7 @@ div.centered { text-align: center; }
 div.centered table { margin: 0 auto; text-align: left; }
 </style>"""
         # debt
-        if debt_check:
-            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td><td>{info}</td></tr>"
+        if self._data[_Keys.DDEBT]:
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci zadłużeni powyżej 30 dni."
@@ -522,46 +610,8 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<table>",
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>bilans:</th><th>od:</th><th>uwagi:</th></tr>",
             ]
-            count = 0
-            for item in debt_check:
-                info = ""
-                count += 1
-                customer: mlms.MCustomer = item
-                # uwagi
-                has_email = False
-                has_nemail = False
-                for item2 in customer.contacts:
-                    contact: mlms.MCustomerContact = item2
-                    if (
-                        contact.type & email == email
-                        and contact.type & disabled == 0
-                    ):
-                        has_email = True
-                    if (
-                        contact.type & nemail == nemail
-                        and contact.type & disabled == 0
-                    ):
-                        has_nemail = True
-                if not has_email:
-                    info += "brak email, "
-                elif not has_nemail:
-                    info += "brak zgody email, "
-                if not customer.has_active_node:
-                    info += "blokada, "
-                if not customer.tariffs:
-                    info += "brak taryf, "
-                info = info.strip()[:-1]
-
-                mes.mmessages[Multipart.HTML].append(
-                    template.format(
-                        nr=count,
-                        cid=customer.id,
-                        nazwa=f"{customer.name} {customer.lastname}",
-                        bilans=customer.balance,
-                        od=f"{MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).days} dni, {MDateTime.elapsed_time_from_seconds(MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).seconds)}",
-                        info=info,
-                    )
-                )
+            for item in self._data[_Keys.DDEBT]:
+                mes.mmessages[Multipart.HTML].append(item)
             # foot
             mes.mmessages[Multipart.HTML].extend(
                 [
@@ -576,8 +626,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             self.qcom.put(mes)
 
         # contacts
-        if contact_check:
-            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
+        if self._data[_Keys.DCONT]:
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez zgody na kontakt."
@@ -593,19 +642,8 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<table>",
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
             ]
-            count = 0
-            info = ""
-            for item in contact_check:
-                count += 1
-                customer: mlms.MCustomer = item
-                mes.mmessages[Multipart.HTML].append(
-                    template.format(
-                        nr=count,
-                        cid=customer.id,
-                        nazwa=f"{customer.name} {customer.lastname}",
-                        info=info,
-                    )
-                )
+            for item in self._data[_Keys.DCONT]:
+                mes.mmessages[Multipart.HTML].append(item)
             # foot
             mes.mmessages[Multipart.HTML].extend(
                 [
@@ -620,8 +658,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             self.qcom.put(mes)
 
         # tariff
-        if tariff_check:
-            template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
+        if self._data[_Keys.DTARIFF]:
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez taryf."
@@ -637,26 +674,8 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<table>",
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
             ]
-            count = 0
-            for item in tariff_check:
-                count += 1
-                customer: mlms.MCustomer = item
-                # uwagi
-                info = ""
-                if (
-                    customer.has_active_node is not None
-                    and customer.has_active_node == True
-                ):
-                    info += "aktywna usługa, "
-                info = info.strip()[:-1]
-                mes.mmessages[Multipart.HTML].append(
-                    template.format(
-                        nr=count,
-                        cid=customer.id,
-                        nazwa=f"{customer.name} {customer.lastname}",
-                        info=info,
-                    )
-                )
+            for item in self._data[_Keys.DTARIFF]:
+                mes.mmessages[Multipart.HTML].append(item)
             # foot
             mes.mmessages[Multipart.HTML].extend(
                 [
@@ -669,6 +688,8 @@ div.centered table { margin: 0 auto; text-align: left; }
             )
             # put message to communication queue
             self.qcom.put(mes)
+        # clean buffer
+        self.__clean_diagnostic()
 
     def run(self) -> None:
         """Main loop."""
