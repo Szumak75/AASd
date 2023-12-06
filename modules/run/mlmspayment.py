@@ -484,21 +484,21 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled = _Keys.CONTACT_DISABLED
         style = """<style>
-BODY { font-size: 8pt; font-family: Tahoma, Verdana, Arial, Helvetica; background-color: #EBE4D6; margin: 0; padding: 0; vertical-align: middle; }
-H1 { font-size: 14pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
-H2 { font-size: 12pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
-H3 { font-size: 10pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
-TABLE { border-collapse: collapse; border-color: #000000 }
-TD { font-size: 8pt; font-family: Tahoma, Verdana, Arial, Helvetica; vertical-align: middle; border-color: black; }
+body { font-size: 8pt; font-family: Tahoma, Verdana, Arial, Helvetica; background-color: #EBE4D6; margin: 0; padding: 0; vertical-align: middle; }
+h1 { font-size: 14pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
+h2 { font-size: 12pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
+h3 { font-size: 10pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
+table { border-collapse: collapse; border-color: #000000 }
+td { font-size: 8pt; font-family: Tahoma, Verdana, Arial, Helvetica; vertical-align: middle; border-color: black; }
 th { background-color: black; color: white; }
 th, td { text-align: left; padding: 2px; }
 tr:nth-child(even){background-color: #DFD5BD}
-A { text-decoration: none; vertical-align: baseline; }
-A:link { color: #800000; }
-A:active { color: #336600; }
-A:visited { color: #800000; }
-A.blend { color: #888888; }
-A:hover { text-decoration: underline; color: #336600; }
+a { text-decoration: none; vertical-align: baseline; }
+a:link { color: #800000; }
+a:active { color: #336600; }
+a:visited { color: #800000; }
+a.blend { color: #888888; }
+a:hover { text-decoration: underline; color: #336600; }
 div.centered { text-align: center; }
 div.centered table { margin: 0 auto; text-align: left; }
 </style>"""
