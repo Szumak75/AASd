@@ -12,8 +12,9 @@ from inspect import currentframe
 from typing import Dict, List, Optional, Tuple, Any
 from threading import Thread, Event
 from queue import Queue
+from copy import deepcopy
 
-from sqlalchemy import create_engine, or_, text
+from sqlalchemy import create_engine, and_, text, func
 from sqlalchemy.orm import (
     Session,
     DeclarativeBase,
@@ -23,6 +24,7 @@ from sqlalchemy.orm import (
 )
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.engine.base import Engine
+from sqlalchemy.engine import URL, engine_from_config
 
 from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
@@ -111,42 +113,40 @@ class _Database(BDebug, BLogs):
 
     def create_connections(self) -> bool:
         """Create connections pool."""
-        # mysql+mysqlconnector://<user>:<password>@<host>[:<port>]/<dbname>
-        # mysql+pymysql://<username>:<password>@<host>/<dbname>[?<options>]
-        # mysql+mysqldb://<user>:<password>@<host>[:<port>]/<dbname>
+        config = {
+            "db.url": None,
+            "db.echo": False,
+            "db.poolclass": QueuePool,
+            "db.pool_pre_ping": True,
+            "db.pool_size": 5,
+            "db.pool_recycle": 120,
+            "db.pool_use_lifo": True,
+            "db.echo_pool": True,
+            "db.query_cache_size": 10,
+            # "db.connect_timeout": 5,
+        }
         for ip in self._data[_Keys.SQL_SERVER]:
             ipo = Address(ip)
-            for backend, options in [
-                ("pymysql", "?charset=utf8mb4"),
-                ("mysqlconnector", ""),
-                ("mysqldb", ""),
-            ]:
-                cstr = "mysql+{}://{}:{}@{}:{}/{}{}".format(
-                    backend,
-                    self._data[_Keys.SQL_USER],
-                    self._data[_Keys.SQL_PASS],
-                    str(ipo),
-                    "3306",
-                    self._data[_Keys.SQL_DATABASE],
-                    options,
+            for dialect in ("pymysql", "mysqlconnector"):
+                url = URL(
+                    f"mysql+{dialect}",
+                    username="lms3",
+                    password=f"{SimpleCrypto.multiple_decrypt(salt, '//4AAHAAAABMAAAAagAAAEkAAAA1AAAAZAAAADcAAAB6AAAAbgAAAGcAAABtAAAANQAAAE0AAABlAAAASgAAAHUAAAA=')}",
+                    host=ip,
+                    database="lmsv3",
+                    port=3306,
+                    query={
+                        "charset": "utf8mb4",
+                    },
                 )
                 try:
-                    engine = create_engine(
-                        cstr,
-                        poolclass=QueuePool,
-                        pool_size=10,
-                        max_overflow=10,
-                        pool_pre_ping=True,
-                        connect_args={
-                            "connect_timeout": 2,
-                        },
-                    )
+                    config["db.url"] = url
+                    engine = engine_from_config(config, prefix="db.")
                     with engine.connect() as connection:
                         connection.execute(text("SELECT 1"))
-                    if engine is not None:
-                        if self._debug:
-                            self.logs.message_debug = f"add connection to server: {ipo} with backend: {backend}"
-                        self._data[_Keys.DPOOL].append(engine)
+                    if self._debug:
+                        self.logs.message_debug = f"add connection to server: {ipo} with backend: {backend}"
+                    self._data[_Keys.DPOOL].append(engine)
                     break
                 except Exception as ex:
                     if self._debug:
@@ -163,14 +163,12 @@ class _Database(BDebug, BLogs):
         for item in self._data[_Keys.DPOOL]:
             engine: Engine = item
             try:
-                with engine.connect() as connection:
-                    connection.execute(text("SELECT 1"))
+                session = Session(engine)
+                if session is not None:
                     if self._debug:
                         self.logs.message_debug = (
                             f"create session for {engine}"
                         )
-                session = Session(engine)
-                if session is not None:
                     return session
             except:
                 continue
@@ -359,9 +357,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         return True
 
     def __get_customers_for_verification(
-        self, dbh: _Database
-    ) -> List[mlms.MCustomer]:
-        """Returns a list of Customes to verification."""
+        self, dbh: _Database, channel: int
+    ) -> None:
+        """Get list of Customes to verification."""
         email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled = _Keys.CONTACT_DISABLED
@@ -370,63 +368,68 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         out_contact = []
         out_tariff = []
 
-        if dbh.create_connections():
-            session = dbh.session
-            if session is None:
-                self.logs.message_critical = (
-                    "cannot make database operations"
-                )
-                return [out_debt, out_contact]
-        else:
-            self.logs.message_critical = "cannot connect to the database"
-            return [out_debt, out_contact]
+        session = dbh.session
+        if session is None:
+            self.logs.message_critical = "cannot make database operations"
+            return
 
+        # get customer max id
+        maxid: int = session.query(func.max(mlms.MCustomer.id)).first()[0]
+        cfrom = 0
+        cto = 100
         # customers query
-        customers: mlms.MCustomer = (
-            session.query(mlms.MCustomer)
-            .filter(
-                mlms.MCustomer.deleted == 0,
-            )
-            .order_by(mlms.MCustomer.id)
-            .all()
-        )
-
-        # analysis
-        for item1 in customers:
-            customer: mlms.MCustomer = item1
-            # build debt list
-            if (
-                customer.balance < 0
-                and MDateTime.elapsed_time_from_timestamp(
-                    customer.dept_timestamp
+        while cfrom < maxid:
+            customers: List[mlms.MCustomer] = (
+                session.query(mlms.MCustomer)
+                .filter(
+                    mlms.MCustomer.deleted == 0,
+                    and_(
+                        mlms.MCustomer.id >= cfrom, mlms.MCustomer.id < cto
+                    ),
                 )
-                > MDateTime.elapsed_time_from_seconds(60 * 60 * 24 * 30)
-            ):
-                out_debt.append(customer)
-            # build contact list
-            if customer.tariffs and customer.has_active_node is not None:
-                test = False
-                for item2 in customer.contacts:
-                    contact: mlms.CustomerContact = item2
-                    if (
-                        contact.type & email == email
-                        and contact.type & disabled == 0
-                    ) or (
-                        contact.type & mobile == mobile
-                        and contact.type & disabled == 0
-                    ):
-                        test = True
-                if not test:
-                    out_contact.append(customer)
-            elif not customer.tariffs:
-                out_tariff.append(customer)
+                .order_by(mlms.MCustomer.id)
+                .all()
+            )
+            # increment search range
+            cfrom = cto
+            cto += 100
 
-        return [out_debt, out_contact, out_tariff]
+            # analysis
+            for item1 in customers:
+                customer: mlms.MCustomer = item1
+                # build debt list
+                if (
+                    customer.balance < 0
+                    and MDateTime.elapsed_time_from_timestamp(
+                        customer.dept_timestamp
+                    )
+                    > MDateTime.elapsed_time_from_seconds(60 * 60 * 24 * 30)
+                ):
+                    out_debt.append(deepcopy(customer))
+                # build contact list
+                if customer.tariffs and customer.has_active_node is not None:
+                    test = False
+                    for item2 in customer.contacts:
+                        contact: mlms.CustomerContact = item2
+                        if (
+                            contact.type & email == email
+                            and contact.type & disabled == 0
+                        ) or (
+                            contact.type & mobile == mobile
+                            and contact.type & disabled == 0
+                        ):
+                            test = True
+                    if not test:
+                        out_contact.append(deepcopy(customer))
+                elif not customer.tariffs:
+                    out_tariff.append(deepcopy(customer))
+
+        self.__send_diagnostic(channel, [out_debt, out_contact, out_tariff])
 
     def __get_indebted_customers_list(
-        self, dbh: _Database
-    ) -> List[mlms.MCustomer]:
-        """Returns a list of Customers for sending notifications."""
+        self, dbh: _Database, channel: int
+    ) -> None:
+        """Gets a list of Customers for sending notifications."""
         out = []
         email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
@@ -474,7 +477,6 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                         and test
                     ):
                         out.append(customer)
-        return out
 
     def __send_diagnostic(self, channel: int, data: List) -> None:
         """Make email notification for diagnostic channel."""
@@ -706,6 +708,14 @@ div.centered table { margin: 0 auto; text-align: left; }
             verbose=self._verbose,
             debug=self._debug,
         )
+        # set up connections
+        if dbh.create_connections():
+            self.logs.message_notice = "connected to database"
+        else:
+            self.logs.message_critical = (
+                "connection to database error, cannot continue"
+            )
+            self.stop()
 
         if self.debug:
             self.logs.message_debug = "configuration processing complete"
@@ -724,10 +734,13 @@ div.centered table { margin: 0 auto; text-align: left; }
                         self.module_conf.diagnostic_channel
                         and chan in self.module_conf.diagnostic_channel
                     ):
-                        self.__send_diagnostic(
-                            int(chan),
-                            self.__get_customers_for_verification(dbh),
-                        )
+                        self.__get_customers_for_verification(
+                            dbh, int(chan)
+                        ),
+                        # self.__send_diagnostic(
+                        # int(chan),
+                        # self.__get_customers_for_verification(dbh),
+                        # )
 
                     # message channel
                     if (
