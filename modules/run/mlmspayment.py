@@ -145,7 +145,7 @@ class _Database(BDebug, BLogs):
                     with engine.connect() as connection:
                         connection.execute(text("SELECT 1"))
                     if self._debug:
-                        self.logs.message_debug = f"add connection to server: {ipo} with backend: {backend}"
+                        self.logs.message_debug = f"add connection to server: {ipo} with backend: {dialect}"
                     self._data[_Keys.DPOOL].append(engine)
                     break
                 except Exception as ex:
