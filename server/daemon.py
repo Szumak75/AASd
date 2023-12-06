@@ -9,6 +9,7 @@
 import signal
 import sys
 import time
+import gc
 
 from inspect import currentframe
 from typing import Dict, List
@@ -104,6 +105,9 @@ class AASd(BProjectClass, BImporter):
         signal.signal(signal.SIGHUP, self.__sig_hup)
         # interrupt [ctrl-c]
         signal.signal(signal.SIGINT, self.__sig_exit)
+
+        # others
+        gc.enable()
 
     def run(self) -> None:
         """Start project."""
