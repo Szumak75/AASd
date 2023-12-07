@@ -194,6 +194,21 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                     self.logs.message_debug = (
                         f"add default configuration for section: [{name}]"
                     )
+            else:
+                for item in config[name]:
+                    tci: TemplateConfigItem = item
+                    if tci.varname and not self._cfh.has_varname(
+                        name, tci.varname
+                    ):
+                        test = True
+                        self._cfh.set(
+                            name,
+                            varname=tci.varname,
+                            value=tci.value,
+                            desc=tci.desc,
+                        )
+                        if self.debug:
+                            self.logs.message_debug = f"add default new variable '{tci.varname}' to section: [{name}]"
 
         return test
 

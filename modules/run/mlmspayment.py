@@ -12,16 +12,9 @@ from inspect import currentframe
 from typing import Dict, List, Optional, Tuple, Any
 from threading import Thread, Event
 from queue import Queue
-from copy import deepcopy
 
-from sqlalchemy import create_engine, and_, text, func
-from sqlalchemy.orm import (
-    Session,
-    DeclarativeBase,
-    Mapped,
-    mapped_column,
-    relationship,
-)
+from sqlalchemy import and_, text, func
+from sqlalchemy.orm import Session
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine import URL, engine_from_config
@@ -60,6 +53,9 @@ class _Keys(object, metaclass=ReadOnlyClass):
     AT_CHANNEL = "at_channel"
     DCHANNEL = "diagnostic_channel"
     MCHANNEL = "message_channel"
+    MNOTIFY = "payment_message"
+    LMS_URL = "lms_url"
+    USER_URL = "user_url"
     SLEEP_PERIOD = "sleep_period"
     SQL_SERVER = "sql_server"
     SQL_DATABASE = "sql_database"
@@ -127,7 +123,6 @@ class _Database(BDebug, BLogs):
             "db.pool_use_lifo": True,
             "db.echo_pool": True,
             "db.query_cache_size": 10,
-            # "db.connect_timeout": 5,
         }
         for ip in self._data[_Keys.SQL_SERVER]:
             ipo = Address(ip)
@@ -213,9 +208,48 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
+    def lms_url(self) -> Optional[str]:
+        """Return message channel list."""
+        var = self._get(varname=_Keys.LMS_URL)
+        if var is not None and not isinstance(var, str):
+            raise Raise.error(
+                "Expected string type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
+    def user_url(self) -> Optional[str]:
+        """Return message channel list."""
+        var = self._get(varname=_Keys.USER_URL)
+        if var is not None and not isinstance(var, str):
+            raise Raise.error(
+                "Expected string type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
     def message_channel(self) -> Optional[List[str]]:
         """Return message channel list."""
         var = self._get(varname=_Keys.MCHANNEL)
+        if var is not None and not isinstance(var, List):
+            raise Raise.error(
+                "Expected list type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
+    def payment_message(self) -> Optional[List[str]]:
+        """Return message channel list."""
+        var = self._get(varname=_Keys.MNOTIFY)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -246,7 +280,10 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         var = self._get(varname=_Keys.SQL_SERVER)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
-                "Expected list type", TypeError, self._c_name, currentframe()
+                "Expected list type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
             )
         return var
 
@@ -256,7 +293,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         var = self._get(varname=_Keys.SQL_DATABASE)
         if var is not None and not isinstance(var, str):
             raise Raise.error(
-                "Expected str type", self._c_name, currentframe()
+                "Expected str type.", TypeError, self._c_name, currentframe()
             )
         return var
 
@@ -266,7 +303,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         var = self._get(varname=_Keys.SQL_USER)
         if var is not None and not isinstance(var, str):
             raise Raise.error(
-                "Expected str type", self._c_name, currentframe()
+                "Expected str type.", TypeError, self._c_name, currentframe()
             )
         return var
 
@@ -276,7 +313,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         var = self._get(varname=_Keys.SQL_PASS)
         if var is not None and not isinstance(var, str):
             raise Raise.error(
-                "Expected str type", self._c_name, currentframe()
+                "Expected str type", TypeError, self._c_name, currentframe()
             )
         return var
 
@@ -334,6 +371,15 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         try:
             if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
+            if not self.module_conf.lms_url:
+                self.logs.message_critical = f"'{_Keys.LMS_URL}' not set"
+                self.stop()
+            if not self.module_conf.user_url:
+                self.logs.message_critical = f"'{_Keys.USER_URL}' not set"
+                self.stop()
+            if not self.module_conf.payment_message:
+                self.logs.message_critical = f"'{_Keys.MNOTIFY}' not set"
+                self.stop()
             if not self.module_conf.at_channel:
                 self.logs.message_critical = (
                     f"'{_Keys.AT_CHANNEL}' not configured"
@@ -498,7 +544,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         email = _Keys.CONTACT_EMAIL
         mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled = _Keys.CONTACT_DISABLED
-        template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td><td>{info}</td></tr>"
+        template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td><td>{info}</td></tr>"
         info = ""
         count = len(self._data[_Keys.DDEBT]) + 1
         # uwagi
@@ -534,12 +580,13 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 bilans=customer.balance,
                 od=f"{MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).days} dni, {MDateTime.elapsed_time_from_seconds(MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).seconds)}",
                 info=info,
+                url=self.module_conf.lms_url,
             )
         )
 
     def __add_contact(self, customer: mlms.MCustomer) -> None:
         """"""
-        template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
+        template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
         count = len(self._data[_Keys.DCONT]) + 1
         info = ""
         self._data[_Keys.DCONT].append(
@@ -548,12 +595,13 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 cid=customer.id,
                 nazwa=f"{customer.name} {customer.lastname}",
                 info=info,
+                url=self.module_conf.lms_url,
             )
         )
 
     def __add_tariff(self, customer: mlms.MCustomer) -> None:
         """"""
-        template = "<tr><td>{nr}</td><td><a href='https://lms3.air-net.gda.pl/?m=customerinfo&id={cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
+        template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
         count = len(self._data[_Keys.DTARIFF]) + 1
         # uwagi
         info = ""
@@ -569,6 +617,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 cid=customer.id,
                 nazwa=f"{customer.name} {customer.lastname}",
                 info=info,
+                url=self.module_conf.lms_url,
             )
         )
 
@@ -758,11 +807,6 @@ div.centered table { margin: 0 auto; text-align: left; }
                         self.__get_customers_for_verification(
                             dbh, int(chan)
                         ),
-                        # self.__send_diagnostic(
-                        # int(chan),
-                        # self.__get_customers_for_verification(dbh),
-                        # )
-
                     # message channel
                     if (
                         self.module_conf.message_channel
@@ -882,12 +926,44 @@ div.centered table { margin: 0 auto; text-align: left; }
         )
         out.append(
             TemplateConfigItem(
+                desc=f"'{_Keys.MNOTIFY}' [list] - list of days from the payment expiration"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="in which notifications are to be sent to the customer."
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc=f"'{_Keys.LMS_URL}' [str] - URL to customer information panel,"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="usually: 'https://domain_name/?m=customerinfo&id='"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc=f"'{_Keys.USER_URL}' [str] - URL to individual customer panel,"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
                 varname=_Keys.AT_CHANNEL,
                 value=["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"],
             )
         )
         out.append(TemplateConfigItem(varname=_Keys.DCHANNEL, value=[]))
         out.append(TemplateConfigItem(varname=_Keys.MCHANNEL, value=[1]))
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.MNOTIFY,
+                value=[],
+                desc="days of sending the notification after the due date",
+            )
+        )
         out.append(
             TemplateConfigItem(
                 varname=_Keys.SQL_SERVER,
@@ -912,6 +988,8 @@ div.centered table { margin: 0 auto; text-align: left; }
                 value=None,
             )
         )
+        out.append(TemplateConfigItem(varname=_Keys.LMS_URL, value=""))
+        out.append(TemplateConfigItem(varname=_Keys.USER_URL, value=""))
         return out
 
 
