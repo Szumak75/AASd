@@ -54,6 +54,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
     DCHANNEL = "diagnostic_channel"
     MCHANNEL = "message_channel"
     MNOTIFY = "payment_message"
+    DPAYTIME = "default_paytime"
+    CUTOFF = "cutoff_time"
     LMS_URL = "lms_url"
     USER_URL = "user_url"
     SLEEP_PERIOD = "sleep_period"
@@ -191,6 +193,26 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
                 TypeError,
                 self._c_name,
                 currentframe(),
+            )
+        return var
+
+    @property
+    def cutoff_time(self) -> Optional[int]:
+        """Returns cutoff time in days number."""
+        var = self._get(varname=_Keys.CUTOFF)
+        if var is not None and not isinstance(var, int):
+            raise Raise.error(
+                "Expected int type.", TypeError, self._c_name, currentframe()
+            )
+        return var
+
+    @property
+    def default_paytime(self) -> Optional[int]:
+        """Returns default pay time in days number."""
+        var = self._get(varname=_Keys.DPAYTIME)
+        if var is not None and not isinstance(var, int):
+            raise Raise.error(
+                "Expected int type.", TypeError, self._c_name, currentframe()
             )
         return var
 
@@ -380,6 +402,12 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             if not self.module_conf.payment_message:
                 self.logs.message_critical = f"'{_Keys.MNOTIFY}' not set"
                 self.stop()
+            if not self.module_conf.default_paytime:
+                self.logs.message_critical = f"'{_Keys.DPAYTIME}' not set"
+                self.stop()
+            if not self.module_conf.cutoff_time:
+                self.logs.message_critical = f"'{_Keys.CUTOFF}' not set"
+                self.stop()
             if not self.module_conf.at_channel:
                 self.logs.message_critical = (
                     f"'{_Keys.AT_CHANNEL}' not configured"
@@ -465,7 +493,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     )
                     > MDateTime.elapsed_time_from_seconds(60 * 60 * 24 * 30)
                 ):
-                    self.__add_debt(customer)
+                    self.__add_diagnostic_debt(customer)
                 # build contact list
                 if customer.tariffs and customer.has_active_node is not None:
                     test = False
@@ -480,69 +508,137 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                         ):
                             test = True
                     if not test:
-                        self.__add_contact(customer)
+                        self.__add_diagnostic_contact(customer)
                 elif not customer.tariffs:
-                    self.__add_tariff(customer)
+                    self.__add_diagnostic_tariff(customer)
 
         self.__send_diagnostic(channel)
 
-    def __get_indebted_customers_list(
-        self, dbh: _Database, channel: int
-    ) -> None:
+    def __get_indebted_customers(self, dbh: _Database, channel: int) -> None:
         """Gets a list of Customers for sending notifications."""
-        out = []
-        email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
-        mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
-        disabled = _Keys.CONTACT_DISABLED
         # create session
-        if dbh.create_connections():
-            session = dbh.session
-            if session is None:
-                self.logs.message_critical = (
-                    "cannot make database operations"
-                )
-                self.stop()
-        else:
-            self.logs.message_critical = "cannot connect to the database"
-            self.stop()
+        session = dbh.session
+        if session is None:
+            self.logs.message_critical = "cannot make database operations"
+            return
 
-        if session:
-            customers: mlms.MCustomer = (
+        maxid: int = session.query(func.max(mlms.MCustomer.id)).first()[0]
+        cfrom = 0
+        cto = 100
+        # customer query
+        while cfrom < maxid:
+            customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .filter(
                     mlms.MCustomer.deleted == 0,
                     mlms.MCustomer.mailingnotice == 1,
-                    # mlms.MCustomer.id < 1000,
+                    and_(
+                        mlms.MCustomer.id >= cfrom, mlms.MCustomer.id < cto
+                    ),
                 )
+                .order_by(mlms.MCustomer.id)
                 .all()
             )
+            # increment search range
+            cfrom = cto
+            cto += 100
+            # analysis
             for item1 in customers:
                 customer: mlms.MCustomer = item1
-                if customer.balance < 0:
-                    test = False
+                if customer.balance >= 0:
+                    # positive balance, skip
+                    continue
+                # cutt off time
+                # self.module_conf.cutoff_time
+                dept_td = MDateTime.elapsed_time_from_timestamp(
+                    customer.dept_timestamp
+                )
+                # deadline - nr days to payment overdue
+                deadline = (
+                    customer.paytime
+                    if customer.paytime > -1
+                    else self.module_conf.default_paytime
+                )
+                if dept_td < MDateTime.elapsed_time_from_seconds(
+                    deadline * 24 * 60 * 60
+                ) or dept_td > MDateTime.elapsed_time_from_seconds(
+                    self.module_conf.cutoff_time * 24 * 60 * 60
+                ):
+                    # dept over range, skip
+                    continue
+                # compare to payment_message
+                pm = []
+                for item in self.module_conf.payment_message:
+                    pm.append(int(item))
+                if dept_td.days in pm:
+                    # send message
+                    self.__customer_message(customer, channel)
 
-                    for item2 in customer.contacts:
-                        contact: mlms.MCustomerContact = item2
-                        if (
-                            contact.type & email == email
-                            and contact.type & disabled == 0
-                        ) or (
-                            contact.type & mobile == mobile
-                            and contact.type & disabled == 0
-                        ):
-                            test = True
-                    if (
-                        customer.tariffs
-                        and customer.has_active_node is not None
-                        and test
-                    ):
-                        out.append(customer)
+    def __customer_message(
+        self, customer: mlms.MCustomer, channel: int
+    ) -> None:
+        """Prepare to send message."""
+        email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
+        # mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
+        disabled = _Keys.CONTACT_DISABLED
+        list_email = []
+        # list_sms = []
 
-    def __add_debt(self, customer: mlms.MCustomer) -> None:
+        # skip customer on some reason
+        if not customer.tariffs:
+            return
+        if customer.has_active_node is None:
+            return
+
+        # build contacts lists
+        for item in customer.contacts:
+            contact: mlms.MCustomerContact = item
+            if (
+                contact.type & email == email
+                and contact.type & disabled == 0
+            ):
+                list_email.append(contact)
+            # elif (
+            # contact.type & mobile == mobile
+            # and contact.type & disabled == 0
+            # ):
+            # list_sms.append(contact)
+
+        # send emails
+        if list_email:
+            self.__send_customer_email(customer, list_email, channel)
+
+        # # send sms on last notify window only
+        # dept_td = MDateTime.elapsed_time_from_timestamp(
+        # customer.dept_timestamp
+        # )
+
+        # if list_sms and dept_td.days == int(
+        # max(self.module_conf.payment_message)
+        # ):
+        # self.__send_customer_sms(customer, list_sms, channel)
+
+    def __send_customer_email(
+        self,
+        customer: mlms.MCustomer,
+        contacts: List[mlms.CustomerContact],
+        channel: int,
+    ) -> None:
+        """Prepare customer email and put it to communication queue."""
+
+    # def __send_customer_sms(
+    # self,
+    # customer: mlms.MCustomer,
+    # contacts: List[mlms.CustomerContact],
+    # channel: int,
+    # ) -> None:
+    # """Prepare customer text message and put it to communication queue."""
+
+    def __add_diagnostic_debt(self, customer: mlms.MCustomer) -> None:
         """"""
         nemail = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         email = _Keys.CONTACT_EMAIL
-        mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
+        # mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled = _Keys.CONTACT_DISABLED
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td><td>{info}</td></tr>"
         info = ""
@@ -584,7 +680,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
 
-    def __add_contact(self, customer: mlms.MCustomer) -> None:
+    def __add_diagnostic_contact(self, customer: mlms.MCustomer) -> None:
         """"""
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
         count = len(self._data[_Keys.DCONT]) + 1
@@ -599,7 +695,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
 
-    def __add_tariff(self, customer: mlms.MCustomer) -> None:
+    def __add_diagnostic_tariff(self, customer: mlms.MCustomer) -> None:
         """"""
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
         count = len(self._data[_Keys.DTARIFF]) + 1
@@ -962,6 +1058,20 @@ div.centered table { margin: 0 auto; text-align: left; }
                 varname=_Keys.MNOTIFY,
                 value=[],
                 desc="days of sending the notification after the due date",
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.DPAYTIME,
+                value=7,
+                desc="[int] - default payment date as the number of days from invoice issuance",
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.CUTOFF,
+                value=14,
+                desc="[int] - number of deys until the serice is disabled",
             )
         )
         out.append(
