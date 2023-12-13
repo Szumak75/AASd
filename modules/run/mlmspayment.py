@@ -270,10 +270,10 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def message_footer(self) -> Optional[str]:
-        """Return message channel list."""
+    def message_footer(self) -> Optional[List[str]]:
+        """Return message footer list."""
         var = self._get(varname=_Keys.MFOOTER)
-        if var is not None and not isinstance(var, str):
+        if var is not None and not isinstance(var, (list, str)):
             raise Raise.error(
                 "Expected string type.",
                 TypeError,
@@ -700,7 +700,9 @@ PIN: {customer_pin}
             customer_name=f"{customer.name}",
             customer_id=customer.id,
             customer_pin=customer.pin,
-            footer=self.module_conf.message_footer
+            footer="\n".join(self.module_conf.message_footer)
+            if isinstance(self.module_conf.message_footer, list)
+            else self.module_conf.message_footer
             if self.module_conf.message_footer
             else "",
         )
@@ -1188,8 +1190,8 @@ div.centered table { margin: 0 auto; text-align: left; }
         out.append(
             TemplateConfigItem(
                 varname=_Keys.MFOOTER,
-                value="",
-                desc="[str] - personal footer added to the email.",
+                value=[],
+                desc="List[str] - personal footer added to the email.",
             )
         )
         return out

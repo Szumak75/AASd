@@ -353,7 +353,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                     f"the message format cannot be recognize"
                 )
                 return out
-            self.logs.message_debug = tmp
+            # self.logs.message_debug = tmp
             msg.set_content(tmp, subtype="plain", charset="utf-8")
 
         # try to init connection
