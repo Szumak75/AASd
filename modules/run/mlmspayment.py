@@ -987,7 +987,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                         self.module_conf.message_channel
                         and chan in self.module_conf.message_channel
                     ):
-                        pass
+                        self.__get_indebted_customers(dbh, int(chan))
             self.sleep()
 
         # exiting from loop
