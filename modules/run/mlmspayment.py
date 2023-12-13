@@ -469,6 +469,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled = _Keys.CONTACT_DISABLED
 
+        if self.debug:
+            self.logs.message_debug = "get customers for verification"
+
         # reset buffer
         self.__clean_diagnostic()
 
@@ -532,6 +535,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
     def __get_indebted_customers(self, dbh: _Database, channel: int) -> None:
         """Gets a list of Customers for sending notifications."""
+
+        if self.debug:
+            self.logs.message_debug = "get indebted customers list"
+
         # create session
         session = dbh.session
         if session is None:
