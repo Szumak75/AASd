@@ -704,7 +704,7 @@ PIN: {customer_pin}
             customer_pin=customer.pin,
             footer="\n".join(self.module_conf.message_footer)
             if isinstance(self.module_conf.message_footer, list)
-            else self.module_conf.message_footer
+            else str(self.module_conf.message_footer).replace("<br>", "\n")
             if self.module_conf.message_footer
             else "",
         )
