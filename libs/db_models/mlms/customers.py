@@ -53,7 +53,7 @@ class MCustomer(Customer):
         return balance
 
     @property
-    def dept_timestamp(self) -> int:
+    def debt_timestamp(self) -> int:
         """Returns time of debt creation."""
         return self.__debt_time
 

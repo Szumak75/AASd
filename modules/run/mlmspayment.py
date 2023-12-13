@@ -53,6 +53,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     AT_CHANNEL = "at_channel"
     DCHANNEL = "diagnostic_channel"
     MCHANNEL = "message_channel"
+    MFOOTER = "message_footer"
     MNOTIFY = "payment_message"
     DPAYTIME = "default_paytime"
     CUTOFF = "cutoff_time"
@@ -269,6 +270,19 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
+    def message_footer(self) -> Optional[str]:
+        """Return message channel list."""
+        var = self._get(varname=_Keys.MFOOTER)
+        if var is not None and not isinstance(var, str):
+            raise Raise.error(
+                "Expected string type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
     def payment_message(self) -> Optional[List[str]]:
         """Return message channel list."""
         var = self._get(varname=_Keys.MNOTIFY)
@@ -420,6 +434,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 self.stop()
             if not self.module_conf.diagnostic_channel:
                 self.logs.message_warning = f"'{_Keys.DCHANNEL}' not configured, maybe it's not an error, but check..."
+            if not self.module_conf.message_footer:
+                self.logs.message_warning = f"'{_Keys.MFOOTER}' not configured, maybe it's not error, but check..."
             if not self.module_conf.sql_server:
                 self.logs.message_critical = (
                     f"'{_Keys.SQL_SERVER}' not configured"
@@ -489,7 +505,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 if (
                     customer.balance < 0
                     and MDateTime.elapsed_time_from_timestamp(
-                        customer.dept_timestamp
+                        customer.debt_timestamp
                     )
                     > MDateTime.elapsed_time_from_seconds(60 * 60 * 24 * 30)
                 ):
@@ -550,8 +566,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     continue
                 # cutt off time
                 # self.module_conf.cutoff_time
-                dept_td = MDateTime.elapsed_time_from_timestamp(
-                    customer.dept_timestamp
+                debt_td = MDateTime.elapsed_time_from_timestamp(
+                    customer.debt_timestamp
                 )
                 # deadline - nr days to payment overdue
                 deadline = (
@@ -559,18 +575,18 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     if customer.paytime > -1
                     else self.module_conf.default_paytime
                 )
-                if dept_td < MDateTime.elapsed_time_from_seconds(
+                if debt_td < MDateTime.elapsed_time_from_seconds(
                     deadline * 24 * 60 * 60
-                ) or dept_td > MDateTime.elapsed_time_from_seconds(
+                ) or debt_td > MDateTime.elapsed_time_from_seconds(
                     self.module_conf.cutoff_time * 24 * 60 * 60
                 ):
-                    # dept over range, skip
+                    # debt over range, skip
                     continue
                 # compare to payment_message
                 pm = []
                 for item in self.module_conf.payment_message:
                     pm.append(int(item))
-                if dept_td.days in pm:
+                if debt_td.days in pm:
                     # send message
                     self.__customer_message(customer, channel)
 
@@ -609,11 +625,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             self.__send_customer_email(customer, list_email, channel)
 
         # # send sms on last notify window only
-        # dept_td = MDateTime.elapsed_time_from_timestamp(
-        # customer.dept_timestamp
+        # debt_td = MDateTime.elapsed_time_from_timestamp(
+        # customer.debt_timestamp
         # )
 
-        # if list_sms and dept_td.days == int(
+        # if list_sms and debt_td.days == int(
         # max(self.module_conf.payment_message)
         # ):
         # self.__send_customer_sms(customer, list_sms, channel)
@@ -625,6 +641,69 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         channel: int,
     ) -> None:
         """Prepare customer email and put it to communication queue."""
+        template = """Szanowni Państwo,
+
+saldo na koncie na dzień {current_date} wynosi: {debt} PLN.
+Prosimy o pilną weryfikację salda oraz uregulowanie należności.
+
+Informujemy, że w przypadku nieuregulowania należności lub braku
+kontaktu z biurem obsługi klienta w sprawie przedłużenia terminu
+płatności, usługa dostępu do internetu zostanie zablokowana
+automatycznie za {cutoff} {cutoff_suffix}.
+
+Późniejsze odblokowani usługi będzie możliwe po zaksięgowaniu
+środków na naszym koncie bankowym.
+
+Adres panelu użytkownika:
+{user_url}
+
+Dane do zalogowania dla '{customer_name}':
+ID klienta: {customer_id}
+PIN: {customer_pin}
+
+{footer}
+"""
+        # local variable
+        cutoff_td = MDateTime.elapsed_time_from_seconds(
+            self.module_conf.cutoff_time * 24 * 60 * 60
+        )
+        debt_td = MDateTime.elapsed_time_from_timestamp(
+            customer.debt_timestamp
+        )
+        # deadline - nr days to payment overdue
+        deadline = (
+            customer.paytime
+            if customer.paytime > -1
+            else self.module_conf.default_paytime
+        )
+        dead_td = MDateTime.elapsed_time_from_seconds(
+            deadline * 24 * 60 * 60
+        )
+        cutoff = cutoff_td - (debt_td - dead_td)
+        # create message object
+        mes = Message()
+        mes.channel = channel
+        mes.subject = "[AIR-NET] Informacja o zaległej płatności."
+        mes.messages(
+            template.format(
+                current_date=MDateTime.datetimenow,
+                debt=customer.balance,
+                cutoff=cutoff.days,
+                cutoff_suffix="dzień" if cutoff.days == 1 else "dni",
+                user_url=self.module_conf.user_url,
+                customer_name=f"{customer.name}",
+                customer_id=customer.id,
+                customer_pin=customer.pin,
+                footer=self.module_conf.message_footer
+                if self.module_conf.message_footer
+                else "",
+            )
+        )
+        # add To addresses
+        # for item in contacts:
+        # pass
+        # put message to communication queue
+        self.qcom.put(mes)
 
     # def __send_customer_sms(
     # self,
@@ -674,7 +753,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 cid=customer.id,
                 nazwa=f"{customer.name} {customer.lastname}",
                 bilans=customer.balance,
-                od=f"{MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).days} dni, {MDateTime.elapsed_time_from_seconds(MDateTime.elapsed_time_from_timestamp(customer.dept_timestamp).seconds)}",
+                od=f"{MDateTime.elapsed_time_from_timestamp(customer.debt_timestamp).days} dni, {MDateTime.elapsed_time_from_seconds(MDateTime.elapsed_time_from_timestamp(customer.debt_timestamp).seconds)}",
                 info=info,
                 url=self.module_conf.lms_url,
             )
@@ -1100,6 +1179,13 @@ div.centered table { margin: 0 auto; text-align: left; }
         )
         out.append(TemplateConfigItem(varname=_Keys.LMS_URL, value=""))
         out.append(TemplateConfigItem(varname=_Keys.USER_URL, value=""))
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.MFOOTER,
+                value="",
+                desc="[str] - personal footer added to the email.",
+            )
+        )
         return out
 
 

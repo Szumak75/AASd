@@ -119,11 +119,11 @@ if session:
                 )
 
             print(customer.balance)
-            print(customer.dept_timestamp)
-            print(MDateTime.datetime_from_timestamp(customer.dept_timestamp))
+            print(customer.debt_timestamp)
+            print(MDateTime.datetime_from_timestamp(customer.debt_timestamp))
             print(
                 MDateTime.elapsed_time_from_timestamp(
-                    customer.dept_timestamp
+                    customer.debt_timestamp
                 )
             )
             print(
