@@ -691,21 +691,20 @@ PIN: {customer_pin}
         mes = Message()
         mes.channel = channel
         mes.subject = "[AIR-NET] Informacja o zaległej płatności."
-        mes.messages(
-            template.format(
-                current_date=MDateTime.datetimenow,
-                debt=customer.balance,
-                cutoff=cutoff.days,
-                cutoff_suffix="dzień" if cutoff.days == 1 else "dni",
-                user_url=self.module_conf.user_url,
-                customer_name=f"{customer.name}",
-                customer_id=customer.id,
-                customer_pin=customer.pin,
-                footer=self.module_conf.message_footer
-                if self.module_conf.message_footer
-                else "",
-            )
+        mes.messages = template.format(
+            current_date=MDateTime.datetimenow,
+            debt=customer.balance,
+            cutoff=cutoff.days,
+            cutoff_suffix="dzień" if cutoff.days == 1 else "dni",
+            user_url=self.module_conf.user_url,
+            customer_name=f"{customer.name}",
+            customer_id=customer.id,
+            customer_pin=customer.pin,
+            footer=self.module_conf.message_footer
+            if self.module_conf.message_footer
+            else "",
         )
+
         # add To addresses
         # for item in contacts:
         # pass
