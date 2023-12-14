@@ -713,6 +713,7 @@ PIN: {customer_pin}
         # for item in contacts:
         # pass
         # put message to communication queue
+        self.logs.message_notice = f"add message for customer: {customer.id} about balance: {customer.balance}"
         self.qcom.put(mes)
 
     # def __send_customer_sms(
