@@ -8,7 +8,7 @@
 
 import time
 from inspect import currentframe
-from typing import Dict, List, Optional, Any
+from typing import List, Optional, Any
 from threading import Thread, Event
 from queue import Queue
 
