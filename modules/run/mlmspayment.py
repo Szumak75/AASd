@@ -585,7 +585,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 if debt_td < MDateTime.elapsed_time_from_seconds(
                     deadline * 24 * 60 * 60
                 ) or debt_td > MDateTime.elapsed_time_from_seconds(
-                    self.module_conf.cutoff_time * 24 * 60 * 60
+                    (deadline + self.module_conf.cutoff_time) * 24 * 60 * 60
                 ):
                     # debt over range, skip
                     continue
@@ -671,9 +671,6 @@ PIN: {customer_pin}
 {footer}
 """
         # local variable
-        cutoff_td = MDateTime.elapsed_time_from_seconds(
-            self.module_conf.cutoff_time * 24 * 60 * 60
-        )
         debt_td = MDateTime.elapsed_time_from_timestamp(
             customer.debt_timestamp
         )
@@ -683,10 +680,13 @@ PIN: {customer_pin}
             if customer.pay_time > -1
             else self.module_conf.default_paytime
         )
-        dead_td = MDateTime.elapsed_time_from_seconds(
-            deadline * 24 * 60 * 60
+        # dead_td = MDateTime.elapsed_time_from_seconds(
+        # deadline * 24 * 60 * 60
+        # )
+        cutoff_td = MDateTime.elapsed_time_from_seconds(
+            (deadline + self.module_conf.cutoff_time) * 24 * 60 * 60
         )
-        cutoff = cutoff_td - (debt_td - dead_td)
+        cutoff = cutoff_td - debt_td
         # create message object
         mes = Message()
         mes.channel = channel
