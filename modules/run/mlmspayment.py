@@ -9,7 +9,7 @@
 
 import time
 from inspect import currentframe
-from typing import Dict, List, Optional, Tuple, Any
+from typing import Dict, List, Optional, Any
 from threading import Thread, Event
 from queue import Queue
 
