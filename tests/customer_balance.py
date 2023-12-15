@@ -49,7 +49,7 @@ cstr = "mysql+{}://{}:{}@{}:{}/{}{}".format(
     "pymysql",
     "lms3",
     f"{SimpleCrypto.multiple_decrypt(salt, '//4AAHAAAABMAAAAagAAAEkAAAA1AAAAZAAAADcAAAB6AAAAbgAAAGcAAABtAAAANQAAAE0AAABlAAAASgAAAHUAAAA=')}",
-    "10.5.00.37",
+    "10.5.0.37",
     "3306",
     "lmsv3",
     "?charset=utf8mb4",
@@ -84,7 +84,7 @@ if session:
         .filter(
             mlms.MCustomer.deleted == 0,
             # mlms.MCustomer.id == 1679,
-            mlms.MCustomer.paytime != "-1",
+            # mlms.MCustomer.paytime != "-1",
         )
         .all()
     )
@@ -94,10 +94,10 @@ if session:
         # print(customer.has_active_node)
         count += 1
         print(
-            f"{count}: CID: {customer.id} Termin płatności: {customer.paytime}"
+            f"{count}: CID: {customer.id} Termin płatności: {customer.pay_time}"
         )
-        if True:
-            continue
+        # if True:
+        # continue
         if customer.balance < 0:
             if customer.tariffs and customer.has_active_node is not None:
                 print(customer)
