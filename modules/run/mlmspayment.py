@@ -593,7 +593,13 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 pm = []
                 for item in self.module_conf.payment_message:
                     pm.append(int(item))
-                if debt_td.days in pm:
+                message_window_td = (
+                    debt_td
+                    - MDateTime.elapsed_time_from_seconds(
+                        deadline * 24 * 60 * 60
+                    )
+                )
+                if message_window_td.days in pm:
                     # send message
                     self.__customer_message(customer, channel)
 
