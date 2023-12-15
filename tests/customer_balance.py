@@ -105,7 +105,7 @@ if session:
             # print(customer.cash_operations)
             balance = 0
             for item2 in customer.cash_operations:
-                cash: mlms.Cash = item2
+                cash: mlms.MCash = item2
                 # print(cash)
                 balance += cash.value
                 print(

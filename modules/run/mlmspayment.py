@@ -578,8 +578,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 )
                 # deadline - nr days to payment overdue
                 deadline = (
-                    customer.paytime
-                    if customer.paytime > -1
+                    customer.pay_time
+                    if customer.pay_time > -1
                     else self.module_conf.default_paytime
                 )
                 if debt_td < MDateTime.elapsed_time_from_seconds(
@@ -679,8 +679,8 @@ PIN: {customer_pin}
         )
         # deadline - nr days to payment overdue
         deadline = (
-            customer.paytime
-            if customer.paytime > -1
+            customer.pay_time
+            if customer.pay_time > -1
             else self.module_conf.default_paytime
         )
         dead_td = MDateTime.elapsed_time_from_seconds(

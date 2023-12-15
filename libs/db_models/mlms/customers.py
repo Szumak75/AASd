@@ -20,6 +20,7 @@ from libs.db_models.mlms.tariffs import MTariff
 from libs.db_models.mlms.assignments import MAssignment
 from libs.db_models.mlms.customercontacts import MCustomerContact
 from libs.db_models.mlms.nodeassignments import MNodeAssignment
+from libs.db_models.mlms.documents import MDocument
 
 
 class MCustomer(Customer):
@@ -27,6 +28,7 @@ class MCustomer(Customer):
 
     # time of debt creation
     __debt_time: int = 0
+    __pay_time: int = 0
 
     contacts: Mapped[List["MCustomerContact"]] = relationship(
         "MCustomerContact"
@@ -45,8 +47,11 @@ class MCustomer(Customer):
             cash: MCash = item
             if cash.value < 0:
                 if cash.docid is not None:
+                    doc: MDocument = cash.doc
                     if balance >= 0:
-                        self.__debt_time = cash.time
+                        # self.__debt_time = cash.time
+                        self.__debt_time = doc.cdate
+                        self.__pay_time = doc.paytime
                     balance += cash.value
             else:
                 balance += cash.value
@@ -56,6 +61,13 @@ class MCustomer(Customer):
     def debt_timestamp(self) -> int:
         """Returns time of debt creation."""
         return self.__debt_time
+
+    @property
+    def pay_time(self) -> int:
+        """Returns pay time as number of deys."""
+        if self.__pay_time > 0:
+            return self.__pay_time
+        return self.paytime
 
     @hybrid_property
     def has_active_node(self) -> Optional[bool]:

@@ -125,8 +125,6 @@ for dialect in ("pymysql", "mysqlconnector"):
 session = get_session(engines)
 
 maxid = session.query(func.max(mlms.MCustomer.id)).first()[0]
-print(maxid)
-sys.exit(0)
 cfrom = 0
 cto = 100
 count = 0
@@ -146,6 +144,10 @@ while cfrom < maxid:
             print(
                 f"[{count}] CID: {customer.id}, Balance: {customer.balance}"
             )
+            for item2 in customer.cash_operations:
+                cash: mlms.MCash = item2
+                if cash.docid:
+                    print(cash.doc)
     cfrom = cto
     cto += 100
     # heap_results()
@@ -203,7 +205,7 @@ if session:
         session.query(mlms.MCustomer)
         .filter(
             mlms.MCustomer.deleted == 0,
-            # mlms.MCustomer.id == 1679,
+            mlms.MCustomer.id == 1679,
             mlms.MCustomer.paytime != "-1",
         )
         .all()
