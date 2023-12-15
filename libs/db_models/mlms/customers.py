@@ -52,9 +52,7 @@ class MCustomer(Customer):
                         # self.__debt_time = cash.time
                         self.__debt_time = doc.cdate
                         self.__pay_time = doc.paytime
-                    balance += cash.value
-            else:
-                balance += cash.value
+            balance += cash.value
         return balance
 
     @property

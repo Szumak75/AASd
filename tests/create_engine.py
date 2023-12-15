@@ -142,7 +142,7 @@ while cfrom < maxid:
         if customer.balance < 0:
             count += 1
             print(
-                f"[{count}] CID: {customer.id}, Balance: {customer.balance}"
+                f"[{count}] CID: {customer.id}, Balance: {customer.balance}, Pay Time: {customer.pay_time}"
             )
             for item2 in customer.cash_operations:
                 cash: mlms.MCash = item2
