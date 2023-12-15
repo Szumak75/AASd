@@ -412,7 +412,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         deffered_shift = 15 * 60  # 15 minutes
         deffered = deffered_shift + Timestamp.now
         deffered_count = 7 * 24 * 4  # 7 days every 15 minutes
-        deffered_queue = Queue(maxsize=500)
+        deffered_queue = Queue(maxsize=1500)
 
         self.logs.message_notice = "starting..."
 

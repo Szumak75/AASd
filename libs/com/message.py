@@ -525,7 +525,7 @@ class Dispatcher(Thread, ThBaseObject, BThProcessor):
             )
         if str(channel) not in self._data[_Keys.MCOMQUEUES]:
             self._data[_Keys.MCOMQUEUES][str(channel)] = []
-        queue = Queue(maxsize=1000)
+        queue = Queue(maxsize=3000)
         if self._debug:
             self.logs.message_debug = (
                 f"add queue for communication channel: {channel}"
