@@ -3,7 +3,7 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 07.11.2023
 
-  Purpose: Test
+  Purpose: for logs tests.
 """
 
 import time

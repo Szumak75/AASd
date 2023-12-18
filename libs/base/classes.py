@@ -3,7 +3,7 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 06.11.2023
 
-  Purpose:
+  Purpose: base classes for project.
 """
 
 import os
@@ -223,10 +223,7 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         if Keys.DEBUG not in self._data:
             self._data[Keys.DEBUG] = False
         if self._cfh and self._cfh.get(self._section, "debug") is not None:
-            return (
-                self._cfh.get(self._section, "debug")
-                or self._data[Keys.DEBUG]
-            )
+            return self._cfh.get(self._section, "debug") or self._data[Keys.DEBUG]
         return self._data[Keys.DEBUG]
 
     @_debug.setter
@@ -240,10 +237,7 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         if Keys.VERBOSE not in self._data:
             self._data[Keys.VERBOSE] = False
         if self._cfh and self._cfh.get(self._section, "verbose") is not None:
-            return (
-                self._cfh.get(self._section, "verbose")
-                or self._data[Keys.VERBOSE]
-            )
+            return self._cfh.get(self._section, "verbose") or self._data[Keys.VERBOSE]
         return self._data[Keys.VERBOSE]
 
     @_verbose.setter

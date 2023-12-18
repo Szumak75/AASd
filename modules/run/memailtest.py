@@ -3,7 +3,7 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 23.11.2023
 
-  Purpose:
+  Purpose: for email subsystem tests
 """
 
 import time
@@ -217,9 +217,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="Emailtest configuration module.")
-        )
+        out.append(TemplateConfigItem(desc="Emailtest configuration module."))
         out.append(
             TemplateConfigItem(
                 desc=f"'{_Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
@@ -236,14 +234,10 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(
-                desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']"
-            )
+            TemplateConfigItem(desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']")
         )
         out.append(
-            TemplateConfigItem(
-                desc="where 'delay' means the time between generating"
-            )
+            TemplateConfigItem(desc="where 'delay' means the time between generating")
         )
         out.append(
             TemplateConfigItem(
