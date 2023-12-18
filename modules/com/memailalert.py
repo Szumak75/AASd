@@ -380,8 +380,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             # logs notice
             notice = [msg.get("To")]
             if msg.get("Cc") is not None:
-                for item in msg.get("Cc"):
-                    notice.append(item)
+                notice.append(msg.get("Cc"))
             self.logs.message_notice = f"message was send to: {', '.join(notice)}"
             out = True
         except smtplib.SMTPAuthenticationError as ex:
