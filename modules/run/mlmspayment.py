@@ -3,8 +3,9 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 23.11.2023
 
-  Purpose: module for generating notifications for customers about the upcoming
-  payment date.
+  Purpose: a module for generating notifications for LMS customers about the upcoming payment date.
+
+  WWW: https://lms.org.pl/
 """
 
 import time
@@ -682,8 +683,8 @@ PIN: {customer_pin}
         )
 
         # add To addresses
-        # for item in contacts:
-        # pass
+        for item in contacts:
+            mes.to = item
         # put message to communication queue
         self.logs.message_notice = (
             f"add message for customer: {customer.id} about balance: {customer.balance}"
