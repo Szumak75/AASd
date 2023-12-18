@@ -194,9 +194,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 self.sleep_period = self.module_conf.sleep_period
             # channel
             if not self.module_conf.channel:
-                self.logs.message_critical = (
-                    f"'{_Keys.CHANNEL}' not set, exiting..."
-                )
+                self.logs.message_critical = f"'{_Keys.CHANNEL}' not set, exiting..."
                 self.stop()
             # smtp_server
             if not self.module_conf.smtp_server:
@@ -218,9 +216,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 self.stop()
             # address_to
             if not self.module_conf.address_to:
-                self.logs.message_critical = (
-                    f"'{_Keys.ADDRESS_TO}' not set, exiting..."
-                )
+                self.logs.message_critical = f"'{_Keys.ADDRESS_TO}' not set, exiting..."
                 self.stop()
 
         except Exception as ex:
@@ -253,14 +249,10 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 except smtplib.SMTPConnectError:
                     continue
                 except Exception as ex:
-                    self.logs.message_debug = (
-                        f"smtp ssl connection error: {ex}"
-                    )
+                    self.logs.message_debug = f"smtp ssl connection error: {ex}"
             else:
                 try:
-                    smtp = smtplib.SMTP(
-                        host=self.module_conf.smtp_server, port=port
-                    )
+                    smtp = smtplib.SMTP(host=self.module_conf.smtp_server, port=port)
                     self._data[_Keys.SMTP_PORT] = port
                     break
                 except ConnectionRefusedError:
@@ -310,7 +302,9 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 if cc:
                     msg.add_header("Cc", ", ".join(cc))
             else:
-                self.logs.message_critical = f'cannot build address to: "{self.module_conf.address_to}"'
+                self.logs.message_critical = (
+                    f'cannot build address to: "{self.module_conf.address_to}"'
+                )
                 return out
         msg.add_header("Message-Id", make_msgid())
         msg.add_header("Date", MDateTime.email_date)
@@ -349,9 +343,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 for line in message.messages:
                     tmp += f"{line}\n"
             else:
-                self.logs.message_critical = (
-                    f"the message format cannot be recognize"
-                )
+                self.logs.message_critical = f"the message format cannot be recognize"
                 return out
             # self.logs.message_debug = tmp
             msg.set_content(tmp, subtype="plain", charset="utf-8")
@@ -390,9 +382,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             if msg.get("Cc") is not None:
                 for item in msg.get("Cc"):
                     notice.append(item)
-            self.logs.message_notice = (
-                f"message was send to: {', '.join(notice)}"
-            )
+            self.logs.message_notice = f"message was send to: {', '.join(notice)}"
             out = True
         except smtplib.SMTPAuthenticationError as ex:
             self.logs.message_critical = f"authentication error: {ex}"
@@ -432,8 +422,6 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             self.logs.message_debug = "entering to the main loop"
         while not self.stopped:
             # read from deffered queue
-            if self.debug and self.verbose:
-                self.logs.message_debug = "check deffered queue"
             if deffered < Timestamp.now:
                 tmp = []
                 while not self.stopped:
@@ -442,9 +430,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                         if message is None:
                             break
                         if self.debug:
-                            self.logs.message_debug = (
-                                "found deffered message"
-                            )
+                            self.logs.message_debug = "found deffered message"
                         # try to send for deffered_count times
                         if (
                             not self.__send_message(message)
@@ -475,16 +461,12 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 message: Message = self.qcom.get(block=True, timeout=0.1)
                 if message is None:
                     if self.debug and self.verbose:
-                        self.logs.message_debug = (
-                            "comms queue timeout, continue"
-                        )
+                        self.logs.message_debug = "comms queue timeout, continue"
                 else:
                     # try to process message
                     self.qcom.task_done()
                     if self.debug:
-                        self.logs.message_debug = (
-                            "received message for sending"
-                        )
+                        self.logs.message_debug = "received message for sending"
                     try:
                         if not self.__send_message(message):
                             if self.debug:
@@ -494,19 +476,13 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                         else:
                             continue
                     except Exception as ex:
-                        self.logs.message_warning = (
-                            "error processing message"
-                        )
+                        self.logs.message_warning = "error processing message"
                         if self.debug:
-                            self.logs.message_debug = (
-                                f"[{self._f_name}] {ex}"
-                            )
+                            self.logs.message_debug = f"[{self._f_name}] {ex}"
             except Empty:
                 pass
             except Exception as ex:
-                self.logs.message_critical = (
-                    f'error while processing message: "{ex}"'
-                )
+                self.logs.message_critical = f'error while processing message: "{ex}"'
 
             self.sleep()
 
@@ -556,9 +532,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="Email alert configuration module.")
-        )
+        out.append(TemplateConfigItem(desc="Email alert configuration module."))
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
