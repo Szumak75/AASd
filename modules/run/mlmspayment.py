@@ -147,7 +147,9 @@ class _Database(BDebug, BLogs):
                     with engine.connect() as connection:
                         connection.execute(text("SELECT 1"))
                     if self._debug:
-                        self.logs.message_debug = f"add connection to server: {ipo} with backend: {dialect}"
+                        self.logs.message_debug = (
+                            f"add connection to server: {ipo} with backend: {dialect}"
+                        )
                     self._data[_Keys.DPOOL].append(engine)
                     break
                 except Exception as ex:
@@ -168,9 +170,7 @@ class _Database(BDebug, BLogs):
                 session = Session(engine)
                 if session is not None:
                     if self._debug:
-                        self.logs.message_debug = (
-                            f"create session for {engine}"
-                        )
+                        self.logs.message_debug = f"create session for {engine}"
                     return session
             except:
                 continue
@@ -423,47 +423,33 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 self.logs.message_critical = f"'{_Keys.CUTOFF}' not set"
                 self.stop()
             if not self.module_conf.at_channel:
-                self.logs.message_critical = (
-                    f"'{_Keys.AT_CHANNEL}' not configured"
-                )
+                self.logs.message_critical = f"'{_Keys.AT_CHANNEL}' not configured"
                 self.stop()
             if not self.module_conf.message_channel:
-                self.logs.message_critical = (
-                    f"'{_Keys.MCHANNEL}' not configured"
-                )
+                self.logs.message_critical = f"'{_Keys.MCHANNEL}' not configured"
                 self.stop()
             if not self.module_conf.diagnostic_channel:
                 self.logs.message_warning = f"'{_Keys.DCHANNEL}' not configured, maybe it's not an error, but check..."
             if not self.module_conf.message_footer:
                 self.logs.message_warning = f"'{_Keys.MFOOTER}' not configured, maybe it's not error, but check..."
             if not self.module_conf.sql_server:
-                self.logs.message_critical = (
-                    f"'{_Keys.SQL_SERVER}' not configured"
-                )
+                self.logs.message_critical = f"'{_Keys.SQL_SERVER}' not configured"
                 self.stop()
             if not self.module_conf.sql_database:
-                self.logs.message_critical = (
-                    f"'{_Keys.SQL_DATABASE}' not configured"
-                )
+                self.logs.message_critical = f"'{_Keys.SQL_DATABASE}' not configured"
                 self.stop()
             if not self.module_conf.sql_user:
-                self.logs.message_critical = (
-                    f"'{_Keys.SQL_USER}' not configured"
-                )
+                self.logs.message_critical = f"'{_Keys.SQL_USER}' not configured"
                 self.stop()
             if not self.module_conf.sql_pass:
-                self.logs.message_critical = (
-                    f"'{_Keys.SQL_PASS}' not configured"
-                )
+                self.logs.message_critical = f"'{_Keys.SQL_PASS}' not configured"
                 self.stop()
         except Exception as ex:
             self.logs.message_critical = f"{ex}"
             return False
         return True
 
-    def __get_customers_for_verification(
-        self, dbh: _Database, channel: int
-    ) -> None:
+    def __get_customers_for_verification(self, dbh: _Database, channel: int) -> None:
         """Get list of Customes to verification."""
         email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
@@ -490,9 +476,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 session.query(mlms.MCustomer)
                 .filter(
                     mlms.MCustomer.deleted == 0,
-                    and_(
-                        mlms.MCustomer.id >= cfrom, mlms.MCustomer.id < cto
-                    ),
+                    and_(mlms.MCustomer.id >= cfrom, mlms.MCustomer.id < cto),
                 )
                 .order_by(mlms.MCustomer.id)
                 .all()
@@ -505,13 +489,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             for item1 in customers:
                 customer: mlms.MCustomer = item1
                 # build debt list
-                if (
-                    customer.balance < 0
-                    and MDateTime.elapsed_time_from_timestamp(
-                        customer.debt_timestamp
-                    )
-                    > MDateTime.elapsed_time_from_seconds(60 * 60 * 24 * 30)
-                ):
+                if customer.balance < 0 and MDateTime.elapsed_time_from_timestamp(
+                    customer.debt_timestamp
+                ) > MDateTime.elapsed_time_from_seconds(60 * 60 * 24 * 30):
                     self.__add_diagnostic_debt(customer)
                 # build contact list
                 if customer.tariffs and customer.has_active_node is not None:
@@ -555,9 +535,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 .filter(
                     mlms.MCustomer.deleted == 0,
                     mlms.MCustomer.mailingnotice == 1,
-                    and_(
-                        mlms.MCustomer.id >= cfrom, mlms.MCustomer.id < cto
-                    ),
+                    and_(mlms.MCustomer.id >= cfrom, mlms.MCustomer.id < cto),
                 )
                 .order_by(mlms.MCustomer.id)
                 .all()
@@ -573,9 +551,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     continue
                 # cutt off time
                 # self.module_conf.cutoff_time
-                debt_td = MDateTime.elapsed_time_from_timestamp(
-                    customer.debt_timestamp
-                )
+                debt_td = MDateTime.elapsed_time_from_timestamp(customer.debt_timestamp)
                 # deadline - nr days to payment overdue
                 deadline = (
                     customer.pay_time
@@ -593,19 +569,14 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 pm = []
                 for item in self.module_conf.payment_message:
                     pm.append(int(item))
-                message_window_td = (
-                    debt_td
-                    - MDateTime.elapsed_time_from_seconds(
-                        deadline * 24 * 60 * 60
-                    )
+                message_window_td = debt_td - MDateTime.elapsed_time_from_seconds(
+                    deadline * 24 * 60 * 60
                 )
                 if message_window_td.days in pm:
                     # send message
                     self.__customer_message(customer, channel)
 
-    def __customer_message(
-        self, customer: mlms.MCustomer, channel: int
-    ) -> None:
+    def __customer_message(self, customer: mlms.MCustomer, channel: int) -> None:
         """Prepare to send message."""
         email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         # mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
@@ -622,10 +593,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         # build contacts lists
         for item in customer.contacts:
             contact: mlms.MCustomerContact = item
-            if (
-                contact.type & email == email
-                and contact.type & disabled == 0
-            ):
+            if contact.type & email == email and contact.type & disabled == 0:
                 list_email.append(contact)
             # elif (
             # contact.type & mobile == mobile
@@ -677,9 +645,7 @@ PIN: {customer_pin}
 {footer}
 """
         # local variable
-        debt_td = MDateTime.elapsed_time_from_timestamp(
-            customer.debt_timestamp
-        )
+        debt_td = MDateTime.elapsed_time_from_timestamp(customer.debt_timestamp)
         # deadline - nr days to payment overdue
         deadline = (
             customer.pay_time
@@ -719,7 +685,9 @@ PIN: {customer_pin}
         # for item in contacts:
         # pass
         # put message to communication queue
-        self.logs.message_notice = f"add message for customer: {customer.id} about balance: {customer.balance}"
+        self.logs.message_notice = (
+            f"add message for customer: {customer.id} about balance: {customer.balance}"
+        )
         self.qcom.put(mes)
 
     # def __send_customer_sms(
@@ -744,15 +712,9 @@ PIN: {customer_pin}
         has_nemail = False
         for item2 in customer.contacts:
             contact: mlms.MCustomerContact = item2
-            if (
-                contact.type & email == email
-                and contact.type & disabled == 0
-            ):
+            if contact.type & email == email and contact.type & disabled == 0:
                 has_email = True
-            if (
-                contact.type & nemail == nemail
-                and contact.type & disabled == 0
-            ):
+            if contact.type & nemail == nemail and contact.type & disabled == 0:
                 has_nemail = True
         if not has_email:
             info += "brak email, "
@@ -797,10 +759,7 @@ PIN: {customer_pin}
         count = len(self._data[_Keys.DTARIFF]) + 1
         # uwagi
         info = ""
-        if (
-            customer.has_active_node is not None
-            and customer.has_active_node == True
-        ):
+        if customer.has_active_node is not None and customer.has_active_node == True:
             info += "aktywna usługa, "
         info = info.strip()[:-1]
         self._data[_Keys.DTARIFF].append(
@@ -947,9 +906,7 @@ div.centered table { margin: 0 auto; text-align: left; }
 
         salt = self._cfh.get(self._cfh.main_section_name, "salt")
         if salt is not None:
-            password = SimpleCrypto.multiple_decrypt(
-                salt, self.module_conf.sql_pass
-            )
+            password = SimpleCrypto.multiple_decrypt(salt, self.module_conf.sql_pass)
         else:
             password = self.module_conf.sql_pass
 
@@ -974,9 +931,7 @@ div.centered table { margin: 0 auto; text-align: left; }
         if dbh.create_connections():
             self.logs.message_notice = "connected to database"
         else:
-            self.logs.message_critical = (
-                "connection to database error, cannot continue"
-            )
+            self.logs.message_critical = "connection to database error, cannot continue"
             self.stop()
 
         if self.debug:
@@ -996,9 +951,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                         self.module_conf.diagnostic_channel
                         and chan in self.module_conf.diagnostic_channel
                     ):
-                        self.__get_customers_for_verification(
-                            dbh, int(chan)
-                        ),
+                        self.__get_customers_for_verification(dbh, int(chan)),
                     # message channel
                     if (
                         self.module_conf.message_channel
@@ -1053,9 +1006,7 @@ div.centered table { margin: 0 auto; text-align: left; }
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="LMS payment notification module.")
-        )
+        out.append(TemplateConfigItem(desc="LMS payment notification module."))
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
@@ -1068,23 +1019,17 @@ div.centered table { margin: 0 auto; text-align: left; }
             )
         )
         out.append(
-            TemplateConfigItem(
-                desc=" 'at' format: semicolon-separated numeric list"
-            )
+            TemplateConfigItem(desc=" 'at' format: semicolon-separated numeric list")
         )
         out.append(
-            TemplateConfigItem(
-                desc=" format: 'minute;hour;day-month;month;day-week'"
-            )
+            TemplateConfigItem(desc=" format: 'minute;hour;day-month;month;day-week'")
         )
         out.append(
             TemplateConfigItem(
                 desc=" It is allowed to use '*' character, the '-' range separator and lists separated"
             )
         )
-        out.append(
-            TemplateConfigItem(desc=" by '|' character as field values.")
-        )
+        out.append(TemplateConfigItem(desc=" by '|' character as field values."))
         out.append(TemplateConfigItem(desc=" All fields must be defined."))
         out.append(
             TemplateConfigItem(
@@ -1167,7 +1112,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             TemplateConfigItem(
                 varname=_Keys.CUTOFF,
                 value=14,
-                desc="[int] - number of deys until the serice is disabled",
+                desc=f"[int] - number of days after {_Keys.DPAYTIME} after which the service will be disabled",
             )
         )
         out.append(

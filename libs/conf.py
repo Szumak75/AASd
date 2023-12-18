@@ -44,6 +44,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     VERSION = "__VERSION__"
     VERBOSE = "__VERBOSE__"
     MC_DEBUG = "debug"
+    MC_VERBOSE = "verbose"
     MC_MODULES = "modules"
     MC_SALT = "salt"
     PASSWORD = "__password__"
@@ -63,6 +64,11 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
     def debug(self) -> bool:
         """Return debug var."""
         return self._get(_Keys.MC_DEBUG)
+
+    @property
+    def verbose(self) -> bool:
+        """Return verbose var."""
+        return self._get(_Keys.MC_VERBOSE)
 
     @property
     def modules(self) -> List[str]:
@@ -143,9 +149,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             # check module updates
             if self.__check_module_config_updates():
                 if self.debug:
-                    self.logs.message_debug = (
-                        "found new module configuration"
-                    )
+                    self.logs.message_debug = "found new module configuration"
                 if not self._cfh.save():
                     self.logs.message_critical = "cannot update config file."
             return out
@@ -197,9 +201,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             else:
                 for item in config[name]:
                     tci: TemplateConfigItem = item
-                    if tci.varname and not self._cfh.has_varname(
-                        name, tci.varname
-                    ):
+                    if tci.varname and not self._cfh.has_varname(name, tci.varname):
                         test = True
                         self._cfh.set(
                             name,
@@ -231,9 +233,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 for mod_item in mod.template_module_variables():
                     config[item].append(mod_item)
             else:
-                self.logs.message_error = (
-                    f"Cannot load module: modules.com.'{item}'"
-                )
+                self.logs.message_error = f"Cannot load module: modules.com.'{item}'"
         for item in run_mods:
             config[item] = []
             mod: IRunModule = self.import_module("modules.run", item)
@@ -241,9 +241,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 for mod_item in mod.template_module_variables():
                     config[item].append(mod_item)
             else:
-                self.logs.message_error = (
-                    f"Cannot load module: modules.run.'{item}'"
-                )
+                self.logs.message_error = f"Cannot load module: modules.run.'{item}'"
         return com_mods, run_mods, config
 
     def __create_config_file(self) -> bool:
@@ -251,9 +249,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         # main section
         (com_mods, run_mods, config) = self.__get_modules_config()
         # set header file
-        self._cfh.set(
-            self._section, desc=f"{self._section} configuration file"
-        )
+        self._cfh.set(self._section, desc=f"{self._section} configuration file")
         # generate description for communication modules
         self._cfh.set(self._section, desc="[ communication modules ]:")
         for item in com_mods:
@@ -273,6 +269,8 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         )
         # add debug variable
         self._cfh.set(self._section, varname=_Keys.MC_DEBUG, value=False)
+        # add verbose variable
+        self._cfh.set(self._section, varname=_Keys.MC_VERBOSE, value=False)
         # add salt variable
         self._cfh.set(
             self._section,
@@ -284,9 +282,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         # modules section
         # comunication modules
         if self.debug:
-            self.logs.message_debug = (
-                f"Found communication modules list: {com_mods}"
-            )
+            self.logs.message_debug = f"Found communication modules list: {com_mods}"
         if com_mods:
             for name in com_mods:
                 if name not in config:
@@ -305,9 +301,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
 
         # running modules
         if self.debug:
-            self.logs.message_debug = (
-                f"Found running modules list: {run_mods}"
-            )
+            self.logs.message_debug = f"Found running modules list: {run_mods}"
         if run_mods:
             for name in run_mods:
                 if name not in config:
@@ -394,7 +388,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if _Keys.DEBUG not in self.__main:
             self.__main[_Keys.DEBUG] = False
         if self._cfh:
-            if self._cfh.get(self._section, "debug"):
+            if self._cfh.get(self._section, _Keys.MC_DEBUG):
                 return True
         return self.__main[_Keys.DEBUG]
 
@@ -410,9 +404,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             )
         self.__main[_Keys.DEBUG] = value
 
-    def __get_modules_list(
-        self, package: str
-    ) -> List[Union[IComModule, IRunModule]]:
+    def __get_modules_list(self, package: str) -> List[Union[IComModule, IRunModule]]:
         """Get configured modules list."""
         out = []
         if self.module_conf.modules:
@@ -421,9 +413,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             if self.debug:
                 self.logs.message_debug = f"found module list: {name_list}"
             # make dictionary
-            tmp = dict(
-                zip(self.module_conf.modules, self.module_conf.modules)
-            )
+            tmp = dict(zip(self.module_conf.modules, self.module_conf.modules))
             # find name in tmp dict
             for name in name_list:
                 if name in tmp:
@@ -535,6 +525,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         """Return verbose flag."""
         if _Keys.VERBOSE not in self.__main:
             self.__main[_Keys.VERBOSE] = False
+        if self._cfh:
+            if self._cfh.get(self._section, _Keys.MC_VERBOSE):
+                return True
         return self.__main[_Keys.VERBOSE]
 
     @verbose.setter
