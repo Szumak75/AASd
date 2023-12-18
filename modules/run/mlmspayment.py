@@ -456,7 +456,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled = _Keys.CONTACT_DISABLED
 
-        if self.debug:
+        if self.debug or self.verbose:
             self.logs.message_debug = "get customers for verification"
 
         # reset buffer
@@ -517,7 +517,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
     def __get_indebted_customers(self, dbh: _Database, channel: int) -> None:
         """Gets a list of Customers for sending notifications."""
 
-        if self.debug:
+        if self.debug or self.verbose:
             self.logs.message_debug = "get indebted customers list"
 
         # create session
@@ -870,7 +870,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<head></head>",
                 "<body>",
                 style,
-                "<div class='centered'><h1>Wykaz klientów do bez przypisanych taryf.</h1></div>",
+                "<div class='centered'><h1>Wykaz klientów bez przypisanych taryf.</h1></div>",
                 "<div class='centered'>",
                 "<table>",
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
@@ -937,8 +937,6 @@ div.centered table { margin: 0 auto; text-align: left; }
 
         if self.debug:
             self.logs.message_debug = "configuration processing complete"
-
-        if self.debug:
             self.logs.message_debug = "entering to the main loop"
 
         # starting module loop
