@@ -40,7 +40,7 @@ from libs.base.classes import BProjectClass, BImporter
 from libs.interfaces.modules import IRunModule, IComModule
 from libs.keys import Keys
 from libs.conf import Config
-from libs.com.message import Dispatcher
+from libs.com.message import ThDispatcher
 
 
 class AASd(BProjectClass, BImporter):
@@ -123,7 +123,7 @@ class AASd(BProjectClass, BImporter):
         qcom = Queue()
 
         # dispatcher processor
-        dispatch = Dispatcher(
+        dispatch = ThDispatcher(
             qlog=self.logs.logs_queue,
             qcom=qcom,
             verbose=self.conf.verbose,
@@ -147,9 +147,7 @@ class AASd(BProjectClass, BImporter):
                     self.conf.verbose,
                     self.conf.debug,
                 )
-                o_mod.qcom = dispatch.register_queue(
-                    o_mod.module_conf.channel
-                )
+                o_mod.qcom = dispatch.register_queue(o_mod.module_conf.channel)
                 o_mod.start()
                 com_mods.append(o_mod)
             except Exception as ex:
@@ -176,7 +174,7 @@ class AASd(BProjectClass, BImporter):
         return [com_mods, run_mods, dispatch]
 
     def __stop_subsystem(
-        self, com_mods: List, run_mods: List, dispatch: Dispatcher
+        self, com_mods: List, run_mods: List, dispatch: ThDispatcher
     ) -> None:
         """Stop subsystems."""
         # stopping & joining running modules
@@ -253,9 +251,7 @@ class AASd(BProjectClass, BImporter):
                 tmp = f"-{command_conf[item]['short']}|--{item} "
             else:
                 tmp = f"--{item}    "
-            desc_opts.append(
-                f" {tmp:<{max_len}}- {command_conf[item]['description']}"
-            )
+            desc_opts.append(f" {tmp:<{max_len}}- {command_conf[item]['description']}")
             command_opts += tmp
         # stage 3
         for item in sorted(opt_value):
@@ -264,9 +260,7 @@ class AASd(BProjectClass, BImporter):
                 tmp = f"-{command_conf[item]['short']}|--{item}"
             else:
                 tmp = f"--{item}   "
-            desc_opts.append(
-                f" {tmp:<{max_len}}- {command_conf[item]['description']}"
-            )
+            desc_opts.append(f" {tmp:<{max_len}}- {command_conf[item]['description']}")
             command_opts += tmp
             if command_conf[item]["example"]:
                 command_opts += f"{command_conf[item]['example']}"
@@ -287,9 +281,7 @@ class AASd(BProjectClass, BImporter):
         parser.configure_argument("h", "help", "this information")
         parser.configure_argument("v", "verbose", "verbose logging level")
         parser.configure_argument("d", "debug", "debug logging level")
-        parser.configure_argument(
-            "U", "updateconf", "update configuration file"
-        )
+        parser.configure_argument("U", "updateconf", "update configuration file")
         parser.configure_argument(
             "f",
             "file",
