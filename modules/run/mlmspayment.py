@@ -683,8 +683,8 @@ PIN: {customer_pin}
         )
 
         # add To addresses
-        for item in contacts:
-            mes.to = item
+        # for item in contacts:
+        # mes.to = item
         # put message to communication queue
         self.logs.message_notice = (
             f"add message for customer: {customer.id} about balance: {customer.balance}"
