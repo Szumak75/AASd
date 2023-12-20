@@ -28,21 +28,13 @@ class NumberPlan(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `template` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    template: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    template: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `period` smallint(6) NOT NULL DEFAULT '0',
-    period: Mapped[int] = mapped_column(
-        SMALLINT(6), nullable=False, default=0
-    )
+    period: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `doctype` int(11) NOT NULL DEFAULT '0',
-    doctype: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    doctype: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `isdefault` tinyint(1) NOT NULL DEFAULT '0',
-    isdefault: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    isdefault: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # PRIMARY KEY (`id`)
 
     def __repr__(self):

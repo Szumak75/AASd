@@ -28,13 +28,9 @@ class RtAttachment(LmsBase):
     # `messageid` int(11) NOT NULL,
     messageid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `filename` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    filename: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    filename: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `contenttype` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    contenttype: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    contenttype: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # KEY `messageid` (`messageid`),
     # CONSTRAINT `rtattachments_ibfk_1` FOREIGN KEY (`messageid`) REFERENCES `rtmessages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 

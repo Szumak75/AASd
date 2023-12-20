@@ -32,9 +32,7 @@ class RtRight(LmsBase):
     # `queueid` int(11) NOT NULL,
     queueid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `rights` int(11) NOT NULL DEFAULT '0',
-    rights: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    rights: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # PRIMARY KEY (`id`),
     # UNIQUE KEY `userid` (`userid`,`queueid`),
     # KEY `queueid` (`queueid`),

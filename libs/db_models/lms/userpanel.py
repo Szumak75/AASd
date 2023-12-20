@@ -30,25 +30,15 @@ class UpCustomer(LmsBase):
     # `customerid` int(11) DEFAULT NULL,
     customerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `lastlogindate` int(11) NOT NULL DEFAULT '0',
-    lastlogindate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    lastlogindate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `lastloginip` varchar(16) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    lastloginip: Mapped[str] = mapped_column(
-        VARCHAR(16), nullable=False, default=""
-    )
+    lastloginip: Mapped[str] = mapped_column(VARCHAR(16), nullable=False, default="")
     # `failedlogindate` int(11) NOT NULL DEFAULT '0',
-    failedlogindate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    failedlogindate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `failedloginip` varchar(16) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    failedloginip: Mapped[str] = mapped_column(
-        VARCHAR(11), nullable=False, default=""
-    )
+    failedloginip: Mapped[str] = mapped_column(VARCHAR(11), nullable=False, default="")
     # `enabled` int(10) NOT NULL DEFAULT '0',
-    enabled: Mapped[int] = mapped_column(
-        INTEGER(10), nullable=False, default=0
-    )
+    enabled: Mapped[int] = mapped_column(INTEGER(10), nullable=False, default=0)
 
     def __repr__(self):
         return (

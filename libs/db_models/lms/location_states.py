@@ -30,9 +30,7 @@ class LocationState(LmsBase):
     # `ident` varchar(8) COLLATE utf8_polish_ci NOT NULL,
     ident: Mapped[str] = mapped_column(VARCHAR(8), nullable=False)
     # `name` varchar(64) COLLATE utf8_polish_ci NOT NULL,
-    name: Mapped[str] = mapped_column(
-        VARCHAR(64), unique=True, nullable=False
-    )
+    name: Mapped[str] = mapped_column(VARCHAR(64), unique=True, nullable=False)
     # PRIMARY KEY (`id`),
     # UNIQUE KEY `name` (`name`)
 

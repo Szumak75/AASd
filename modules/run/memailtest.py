@@ -33,9 +33,9 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
+    MESSAGE_CHANNEL = "message_channel"
     MODCONF = "__MODULE_CONF__"
     SLEEP_PERIOD = "sleep_period"
-    MESSAGE_CHANNEL = "message_channel"
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):

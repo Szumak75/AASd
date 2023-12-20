@@ -36,18 +36,14 @@ class LocationStreet(LmsBase):
     # `ident` varchar(8) COLLATE utf8_polish_ci NOT NULL,
     ident: Mapped[str] = mapped_column(VARCHAR(8), nullable=False)
     # `typeid` int(11) DEFAULT NULL,
-    typeid: Mapped[int] = mapped_column(
-        ForeignKey("location_street_types.id")
-    )
+    typeid: Mapped[int] = mapped_column(ForeignKey("location_street_types.id"))
     # `cityid` int(11) NOT NULL,
     cityid: Mapped[int] = mapped_column(ForeignKey("location_cities.id"))
     # PRIMARY KEY (`id`),
     # UNIQUE KEY `cityid` (`cityid`,`name`,`ident`),
     # KEY `typeid` (`typeid`),
     # CONSTRAINT `location_streets_ibfk_1` FOREIGN KEY (`typeid`) REFERENCES `location_street_types` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-    street_type: Mapped["LocationStreetType"] = relationship(
-        "LocationStreetType"
-    )
+    street_type: Mapped["LocationStreetType"] = relationship("LocationStreetType")
     # CONSTRAINT `location_streets_ibfk_2` FOREIGN KEY (`cityid`) REFERENCES `location_cities` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
     city: Mapped["LocationCity"] = relationship("LocationCity")
 

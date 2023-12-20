@@ -36,14 +36,14 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    MODCONF = "__MODULE_CONF__"
-    SLEEP_PERIOD = "sleep_period"
-    MESSAGE_CHANEL = "message_channel"
+    CHANGE = "__change__"
     HOSTS = "hosts"
     IP = "__ip__"
-    LASTUP = "__up__"
     LASTDOWN = "__down__"
-    CHANGE = "__change__"
+    LASTUP = "__up__"
+    MESSAGE_CHANEL = "message_channel"
+    MODCONF = "__MODULE_CONF__"
+    SLEEP_PERIOD = "sleep_period"
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -288,9 +288,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 for key in tmp.keys():
                     message = Message()
                     message.channel = int(key)
-                    message.subject = (
-                        f"[{self._c_name}] host reachability report"
-                    )
+                    message.subject = f"[{self._c_name}] host reachability report"
                     for item in tmp[key]:
                         tmp2: Message = item
                         for item2 in tmp2.messages:
@@ -364,14 +362,10 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(
-                desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']"
-            )
+            TemplateConfigItem(desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']")
         )
         out.append(
-            TemplateConfigItem(
-                desc="where 'delay' means the time between generating"
-            )
+            TemplateConfigItem(desc="where 'delay' means the time between generating")
         )
         out.append(
             TemplateConfigItem(
@@ -389,9 +383,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(
-                varname=_Keys.SLEEP_PERIOD, value=15, desc="[second]"
-            )
+            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=15, desc="[second]")
         )
         out.append(
             TemplateConfigItem(

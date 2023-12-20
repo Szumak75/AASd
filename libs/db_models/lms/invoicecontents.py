@@ -48,17 +48,11 @@ class InvoiceContent(LmsBase):
     # `taxid` int(11) NOT NULL,
     taxid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `prodid` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    prodid: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    prodid: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `content` varchar(16) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    content: Mapped[str] = mapped_column(
-        VARCHAR(16), nullable=False, default=""
-    )
+    content: Mapped[str] = mapped_column(VARCHAR(16), nullable=False, default="")
     # `count` decimal(9,2) NOT NULL DEFAULT '0.00',
-    count: Mapped[float] = mapped_column(
-        DECIMAL(9, 2), nullable=False, default=0.00
-    )
+    count: Mapped[float] = mapped_column(DECIMAL(9, 2), nullable=False, default=0.00)
     # `description` text COLLATE utf8_polish_ci NOT NULL,
     description: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `tariffid` int(11) DEFAULT NULL,

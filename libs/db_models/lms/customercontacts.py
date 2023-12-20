@@ -24,13 +24,9 @@ class CustomerContact(LmsBase):
     # `customerid` int(11) NOT NULL,
     # customerid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `name` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    name: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    name: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `contact` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    contact: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    contact: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `type` int(11) DEFAULT NULL,
     type: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # PRIMARY KEY (`id`),

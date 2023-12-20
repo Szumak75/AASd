@@ -28,13 +28,9 @@ class RtQueue(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `name` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    name: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    name: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `email` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    email: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    email: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `description` text COLLATE utf8_polish_ci NOT NULL,
     description: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `newticketsubject` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
@@ -56,13 +52,9 @@ class RtQueue(LmsBase):
     # `resolveticketbody` text COLLATE utf8_polish_ci NOT NULL,
     resolveticketbody: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `deleted` tinyint(1) NOT NULL DEFAULT '0',
-    deleted: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    deleted: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `deltime` int(11) NOT NULL DEFAULT '0',
-    deltime: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    deltime: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `deluserid` int(11) DEFAULT NULL,
     deluserid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # PRIMARY KEY (`id`),

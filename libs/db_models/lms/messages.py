@@ -28,15 +28,11 @@ class Message(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `subject` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    subject: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    subject: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `body` text COLLATE utf8_polish_ci NOT NULL,
     body: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `cdate` int(11) NOT NULL DEFAULT '0',
-    cdate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    cdate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `type` smallint(6) NOT NULL DEFAULT '0',
     type: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `userid` int(11) DEFAULT NULL,

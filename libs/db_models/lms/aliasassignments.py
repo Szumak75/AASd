@@ -32,9 +32,7 @@ class AliasAssignment(LmsBase):
     # `accountid` int(11) DEFAULT NULL,
     accountid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `mail_forward` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    mail_forward: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    mail_forward: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # PRIMARY KEY (`id`),
     # UNIQUE KEY `aliasid` (`aliasid`,`accountid`,`mail_forward`),
     # KEY `aliasassignments_accountid_fkey` (`accountid`),

@@ -30,9 +30,7 @@ class RtTicket(LmsBase):
     # `queueid` int(11) NOT NULL,
     queueid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `requestor` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    requestor: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    requestor: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `requestor_mail` varchar(255) COLLATE utf8_polish_ci DEFAULT NULL,
     requestor_mail: Mapped[str] = mapped_column(VARCHAR(255), default=None)
     # `requestor_phone` varchar(32) COLLATE utf8_polish_ci DEFAULT NULL,
@@ -40,9 +38,7 @@ class RtTicket(LmsBase):
     # `requestor_userid` int(11) DEFAULT NULL,
     requestor_userid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `subject` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    subject: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    subject: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `state` tinyint(4) NOT NULL DEFAULT '0',
     state: Mapped[int] = mapped_column(TINYINT(4), nullable=False, default=0)
     # `cause` tinyint(4) NOT NULL DEFAULT '0',
@@ -54,29 +50,17 @@ class RtTicket(LmsBase):
     # `creatorid` int(11) DEFAULT NULL,
     creatorid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `createtime` int(11) NOT NULL DEFAULT '0',
-    createtime: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    createtime: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `resolvetime` int(11) NOT NULL DEFAULT '0',
-    resolvetime: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    resolvetime: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `source` tinyint(4) NOT NULL DEFAULT '0',
-    source: Mapped[int] = mapped_column(
-        TINYINT(4), nullable=False, default=0
-    )
+    source: Mapped[int] = mapped_column(TINYINT(4), nullable=False, default=0)
     # `priority` tinyint(4) NOT NULL DEFAULT '0',
-    priority: Mapped[int] = mapped_column(
-        TINYINT(4), nullable=False, default=0
-    )
+    priority: Mapped[int] = mapped_column(TINYINT(4), nullable=False, default=0)
     # `deleted` tinyint(1) NOT NULL DEFAULT '0',
-    deleted: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    deleted: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `deltime` int(11) NOT NULL DEFAULT '0',
-    deltime: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    deltime: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `deluserid` int(11) DEFAULT NULL,
     deluserid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `address_id` int(11) DEFAULT NULL,

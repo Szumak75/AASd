@@ -39,9 +39,7 @@ class NodeSession(LmsBase):
     # `mac` varchar(17) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
     mac: Mapped[str] = mapped_column(VARCHAR(17), nullable=False, default="")
     # `start` int(11) NOT NULL DEFAULT '0',
-    start: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    start: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `stop` int(11) NOT NULL DEFAULT '0',
     stop: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `download` bigint(20) DEFAULT '0',
@@ -51,9 +49,7 @@ class NodeSession(LmsBase):
     # `tag` varchar(32) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
     tag: Mapped[str] = mapped_column(VARCHAR(32), nullable=False, default="")
     # `terminatecause` varchar(32) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    terminatecause: Mapped[str] = mapped_column(
-        VARCHAR(32), nullable=False, default=""
-    )
+    terminatecause: Mapped[str] = mapped_column(VARCHAR(32), nullable=False, default="")
     # `type` smallint(6) NOT NULL DEFAULT '0',
     type: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # PRIMARY KEY (`id`),

@@ -28,61 +28,35 @@ class User(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `login` varchar(32) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    login: Mapped[str] = mapped_column(
-        VARCHAR(32), nullable=False, default=""
-    )
+    login: Mapped[str] = mapped_column(VARCHAR(32), nullable=False, default="")
     # `firstname` varchar(64) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    firstname: Mapped[str] = mapped_column(
-        VARCHAR(64), nullable=False, default=""
-    )
+    firstname: Mapped[str] = mapped_column(VARCHAR(64), nullable=False, default="")
     # `lastname` varchar(64) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    lastname: Mapped[str] = mapped_column(
-        VARCHAR(64), nullable=False, default=""
-    )
+    lastname: Mapped[str] = mapped_column(VARCHAR(64), nullable=False, default="")
     # `email` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    email: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    email: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `phone` varchar(32) COLLATE utf8_polish_ci DEFAULT NULL,
-    phone: Mapped[str] = mapped_column(
-        VARCHAR(32), nullable=False, default=""
-    )
+    phone: Mapped[str] = mapped_column(VARCHAR(32), nullable=False, default="")
     # `position` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    position: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    position: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `rights` text COLLATE utf8_polish_ci NOT NULL,
     rights: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `hosts` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    hosts: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    hosts: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `passwd` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    passwd: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    passwd: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `ntype` smallint(6) DEFAULT NULL,
     ntype: Mapped[int] = mapped_column(SMALLINT(6), default=None)
     # `lastlogindate` int(11) NOT NULL DEFAULT '0',
-    lastlogindate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    lastlogindate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `lastloginip` varchar(16) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    lastloginip: Mapped[str] = mapped_column(
-        VARCHAR(16), nullable=False, default=""
-    )
+    lastloginip: Mapped[str] = mapped_column(VARCHAR(16), nullable=False, default="")
     # `failedlogindate` int(11) NOT NULL DEFAULT '0',
-    failedlogindate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    failedlogindate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `failedloginip` varchar(16) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    failedloginip: Mapped[str] = mapped_column(
-        VARCHAR(16), nullable=False, default=""
-    )
+    failedloginip: Mapped[str] = mapped_column(VARCHAR(16), nullable=False, default="")
     # `deleted` tinyint(1) NOT NULL DEFAULT '0',
-    deleted: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    deleted: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `passwdexpiration` int(11) NOT NULL DEFAULT '0',
     passwdexpiration: Mapped[int] = mapped_column(
         INTEGER(11), nullable=False, default=0
@@ -92,23 +66,15 @@ class User(LmsBase):
         INTEGER(11), nullable=False, default=0
     )
     # `access` tinyint(1) NOT NULL DEFAULT '1',
-    access: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=1
-    )
+    access: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=1)
     # `accessfrom` int(11) NOT NULL DEFAULT '0',
-    accessfrom: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    accessfrom: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `accessto` int(11) NOT NULL DEFAULT '0',
-    accessto: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    accessto: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `settings` mediumtext COLLATE utf8_polish_ci NOT NULL,
     settings: Mapped[str] = mapped_column(MEDIUMTEXT(), nullable=False)
     # `persistentsettings` mediumtext COLLATE utf8_polish_ci NOT NULL,
-    persistentsettings: Mapped[str] = mapped_column(
-        MEDIUMTEXT(), nullable=False
-    )
+    persistentsettings: Mapped[str] = mapped_column(MEDIUMTEXT(), nullable=False)
     # PRIMARY KEY (`id`),
     # UNIQUE KEY `login` (`login`)
 

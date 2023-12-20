@@ -45,15 +45,15 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    MODCONF = "__MODULE_CONF__"
-    SLEEP_PERIOD = "sleep_period"
-    CHANNEL = "channel"
-    SMTP_SERVER = "smtp_server"
-    SMTP_PORT = "smtp_port"
-    SMTP_USER = "smtp_user"
-    SMTP_PASS = "smtp_pass"
     ADDRESS_FROM = "address_from"
     ADDRESS_TO = "address_to"
+    CHANNEL = "channel"
+    MODCONF = "__MODULE_CONF__"
+    SLEEP_PERIOD = "sleep_period"
+    SMTP_PASS = "smtp_pass"
+    SMTP_PORT = "smtp_port"
+    SMTP_SERVER = "smtp_server"
+    SMTP_USER = "smtp_user"
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
@@ -144,7 +144,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def address_to(self) -> Optional[Union[str]]:
+    def address_to(self) -> Optional[Union[List, str]]:
         """Return address_to var."""
         var = self._get(varname=_Keys.ADDRESS_TO)
         if var is not None and not isinstance(var, (str, List)):

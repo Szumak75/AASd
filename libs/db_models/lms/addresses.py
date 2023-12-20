@@ -70,9 +70,7 @@ class Address(LmsBase):
     # CONSTRAINT `addresses_state_id_fk` FOREIGN KEY (`state_id`) REFERENCES `location_states` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     location_state: Mapped["LocationState"] = relationship("LocationState")
     # CONSTRAINT `addresses_street_id_fk` FOREIGN KEY (`street_id`) REFERENCES `location_streets` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-    location_street: Mapped["LocationStreet"] = relationship(
-        "LocationStreet"
-    )
+    location_street: Mapped["LocationStreet"] = relationship("LocationStreet")
 
     @hybrid_property
     def terc(self) -> Optional[str]:

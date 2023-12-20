@@ -159,7 +159,7 @@ class BCom(BClasses):
         """Set communication queue."""
         if not isinstance(queue, Queue):
             raise Raise.error(
-                f"Expected Queue type, received: '{type(logs)}'.",
+                f"Expected Queue type, received: '{type(queue)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),

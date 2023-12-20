@@ -30,9 +30,7 @@ class CashImport(LmsBase):
     # `date` int(11) NOT NULL DEFAULT '0',
     date: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `value` decimal(9,2) NOT NULL DEFAULT '0.00',
-    value: Mapped[float] = mapped_column(
-        DECIMAL(9, 2), nullable=False, default=0.00
-    )
+    value: Mapped[float] = mapped_column(DECIMAL(9, 2), nullable=False, default=0.00)
     # `customer` text COLLATE utf8_polish_ci NOT NULL,
     customer: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `description` text COLLATE utf8_polish_ci NOT NULL,
@@ -40,13 +38,9 @@ class CashImport(LmsBase):
     # `customerid` int(11) DEFAULT NULL,
     customerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `hash` varchar(50) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    hash: Mapped[str] = mapped_column(
-        VARCHAR(50), nullable=False, default=""
-    )
+    hash: Mapped[str] = mapped_column(VARCHAR(50), nullable=False, default="")
     # `closed` tinyint(1) NOT NULL DEFAULT '0',
-    closed: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    closed: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `sourcefileid` int(11) DEFAULT NULL,
     sourcefileid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `sourceid` int(11) DEFAULT NULL,

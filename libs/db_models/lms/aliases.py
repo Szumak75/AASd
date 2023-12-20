@@ -28,9 +28,7 @@ class Alias(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `login` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    login: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    login: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `domainid` int(11) NOT NULL,
     domainid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # PRIMARY KEY (`id`),

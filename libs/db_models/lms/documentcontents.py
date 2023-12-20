@@ -30,13 +30,9 @@ class DocumentContent(LmsBase):
     # `title` text COLLATE utf8_polish_ci NOT NULL,
     title: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `fromdate` int(11) NOT NULL DEFAULT '0',
-    fromdate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    fromdate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `todate` int(11) NOT NULL DEFAULT '0',
-    todate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    todate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `description` text COLLATE utf8_polish_ci NOT NULL,
     description: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # UNIQUE KEY `docid` (`docid`),

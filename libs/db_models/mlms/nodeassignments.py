@@ -18,9 +18,7 @@ class MNodeAssignment(NodeAssignment):
 
     nodeid: Mapped[int] = mapped_column(ForeignKey("nodes.id"))
     assignmentid: Mapped[int] = mapped_column(ForeignKey("assignments.id"))
-    assignment: Mapped["MAssignment"] = relationship(
-        back_populates="nodeassignment"
-    )
+    assignment: Mapped["MAssignment"] = relationship(back_populates="nodeassignment")
 
 
 # #[EOF]#######################################################################

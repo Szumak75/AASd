@@ -38,7 +38,5 @@ class Mac(LmsBase):
 
     def __repr__(self):
         return (
-            f"Mac(id='{self.id}', "
-            f"mac='{self.mac}', "
-            f"nodeid='{self.nodeid}' ) "
+            f"Mac(id='{self.id}', " f"mac='{self.mac}', " f"nodeid='{self.nodeid}' ) "
         )

@@ -52,9 +52,7 @@ class NetNode(LmsBase):
     # `createtime` int(11) DEFAULT NULL,
     createtime: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `lastinspectiontime` int(11) DEFAULT NULL,
-    lastinspectiontime: Mapped[int] = mapped_column(
-        INTEGER(11), default=None
-    )
+    lastinspectiontime: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `admcontact` text COLLATE utf8_polish_ci,
     admcontact: Mapped[str] = mapped_column(TEXT())
     # `divisionid` int(11) DEFAULT NULL,

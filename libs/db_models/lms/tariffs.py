@@ -26,15 +26,11 @@ class Tariff(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `name` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    name: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    name: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `type` tinyint(4) NOT NULL DEFAULT '1',
     type: Mapped[int] = mapped_column(TINYINT(4), nullable=False, default=1)
     # `value` decimal(9,2) NOT NULL DEFAULT '0.00',
-    value: Mapped[float] = mapped_column(
-        DECIMAL(9, 2), nullable=False, default=0.00
-    )
+    value: Mapped[float] = mapped_column(DECIMAL(9, 2), nullable=False, default=0.00)
     # `taxid` int(11) NOT NULL,
     taxid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `numberplanid` int(11) DEFAULT NULL,
@@ -42,37 +38,21 @@ class Tariff(LmsBase):
     # `period` smallint(6) DEFAULT NULL,
     period: Mapped[int] = mapped_column(SMALLINT(6), default=None)
     # `prodid` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    prodid: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    prodid: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `uprate` int(11) NOT NULL DEFAULT '0',
-    uprate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    uprate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `upceil` int(11) NOT NULL DEFAULT '0',
-    upceil: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    upceil: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `downrate` int(11) NOT NULL DEFAULT '0',
-    downrate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    downrate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `downceil` int(11) NOT NULL DEFAULT '0',
-    downceil: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    downceil: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `climit` int(11) NOT NULL DEFAULT '0',
-    climit: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    climit: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `plimit` int(11) NOT NULL DEFAULT '0',
-    plimit: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    plimit: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `dlimit` int(11) NOT NULL DEFAULT '0',
-    dlimit: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    dlimit: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `uprate_n` int(11) DEFAULT NULL,
     uprate_n: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `upceil_n` int(11) DEFAULT NULL,
@@ -116,27 +96,17 @@ class Tariff(LmsBase):
     # `description` text COLLATE utf8_polish_ci NOT NULL,
     description: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `disabled` tinyint(4) NOT NULL DEFAULT '0',
-    disabled: Mapped[int] = mapped_column(
-        TINYINT(4), nullable=False, default=0
-    )
+    disabled: Mapped[int] = mapped_column(TINYINT(4), nullable=False, default=0)
     # `voip_tariff_id` int(11) DEFAULT NULL,
     voip_tariff_id: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `voip_tariff_rule_id` int(11) DEFAULT NULL,
-    voip_tariff_rule_id: Mapped[int] = mapped_column(
-        INTEGER(11), default=None
-    )
+    voip_tariff_rule_id: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `datefrom` int(11) NOT NULL DEFAULT '0',
-    datefrom: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    datefrom: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `dateto` int(11) NOT NULL DEFAULT '0',
-    dateto: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    dateto: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `authtype` tinyint(1) NOT NULL DEFAULT '0',
-    authtype: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    authtype: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # PRIMARY KEY (`id`),
     # UNIQUE KEY `name` (`name`,`value`,`period`),
     # KEY `type` (`type`),

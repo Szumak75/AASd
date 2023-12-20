@@ -32,6 +32,4 @@ class LocationStreetType(LmsBase):
     # PRIMARY KEY (`id`)
 
     def __repr__(self):
-        return (
-            f"LocationStreetType(id='{self.id}', " f"name='{self.name}' ) "
-        )
+        return f"LocationStreetType(id='{self.id}', " f"name='{self.name}' ) "

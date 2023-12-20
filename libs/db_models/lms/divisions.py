@@ -29,35 +29,21 @@ class Division(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `shortname` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    shortname: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    shortname: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `name` text COLLATE utf8_polish_ci NOT NULL,
     name: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `ten` varchar(16) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    ten: Mapped[str] = mapped_column(
-        VARCHAR(128), nullable=False, default=""
-    )
+    ten: Mapped[str] = mapped_column(VARCHAR(128), nullable=False, default="")
     # `regon` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    regon: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    regon: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `rbe` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    rbe: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    rbe: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `rbename` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    rbename: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    rbename: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `telecomnumber` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    telecomnumber: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    telecomnumber: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `account` varchar(48) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    account: Mapped[str] = mapped_column(
-        VARCHAR(48), nullable=False, default=""
-    )
+    account: Mapped[str] = mapped_column(VARCHAR(48), nullable=False, default="")
     # `inv_header` text COLLATE utf8_polish_ci NOT NULL,
     inv_header: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `inv_footer` text COLLATE utf8_polish_ci NOT NULL,
@@ -71,9 +57,7 @@ class Division(LmsBase):
     # `description` text COLLATE utf8_polish_ci NOT NULL,
     description: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `status` tinyint(1) NOT NULL DEFAULT '0',
-    status: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    status: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `tax_office_code` varchar(8) COLLATE utf8_polish_ci DEFAULT NULL,
     tax_office_code: Mapped[str] = mapped_column(VARCHAR(8), default=None)
     # `address_id` int(11) DEFAULT NULL,

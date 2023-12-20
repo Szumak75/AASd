@@ -28,55 +28,31 @@ class NetDevice(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `name` varchar(32) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    name: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    name: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `description` text COLLATE utf8_polish_ci NOT NULL,
     description: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `producer` varchar(64) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    producer: Mapped[str] = mapped_column(
-        VARCHAR(64), nullable=False, default=""
-    )
+    producer: Mapped[str] = mapped_column(VARCHAR(64), nullable=False, default="")
     # `model` varchar(32) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    model: Mapped[str] = mapped_column(
-        VARCHAR(32), nullable=False, default=""
-    )
+    model: Mapped[str] = mapped_column(VARCHAR(32), nullable=False, default="")
     # `serialnumber` varchar(32) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    serialnumber: Mapped[str] = mapped_column(
-        VARCHAR(32), nullable=False, default=""
-    )
+    serialnumber: Mapped[str] = mapped_column(VARCHAR(32), nullable=False, default="")
     # `ports` int(11) NOT NULL DEFAULT '0',
-    ports: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    ports: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `purchasetime` int(11) NOT NULL DEFAULT '0',
-    purchasetime: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    purchasetime: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `guaranteeperiod` tinyint(3) unsigned DEFAULT '0',
-    guaranteeperiod: Mapped[int] = mapped_column(
-        TINYINT(3), nullable=False, default=0
-    )
+    guaranteeperiod: Mapped[int] = mapped_column(TINYINT(3), nullable=False, default=0)
     # `shortname` varchar(32) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    shortname: Mapped[str] = mapped_column(
-        VARCHAR(32), nullable=False, default=""
-    )
+    shortname: Mapped[str] = mapped_column(VARCHAR(32), nullable=False, default="")
     # `nastype` int(11) NOT NULL DEFAULT '0',
-    nastype: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    nastype: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `clients` int(11) NOT NULL DEFAULT '0',
-    clients: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    clients: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `secret` varchar(60) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    secret: Mapped[str] = mapped_column(
-        VARCHAR(60), nullable=False, default=""
-    )
+    secret: Mapped[str] = mapped_column(VARCHAR(60), nullable=False, default="")
     # `community` varchar(50) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    community: Mapped[str] = mapped_column(
-        VARCHAR(50), nullable=False, default=""
-    )
+    community: Mapped[str] = mapped_column(VARCHAR(50), nullable=False, default="")
     # `channelid` int(11) DEFAULT NULL,
     channelid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `longitude` decimal(10,6) DEFAULT NULL,

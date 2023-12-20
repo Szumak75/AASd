@@ -32,13 +32,9 @@ class NodeLock(LmsBase):
     # `days` smallint(6) NOT NULL DEFAULT '0',
     days: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `fromsec` int(11) NOT NULL DEFAULT '0',
-    fromsec: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    fromsec: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `tosec` int(11) NOT NULL DEFAULT '0',
-    tosec: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    tosec: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # PRIMARY KEY (`id`),
     # KEY `nodeid` (`nodeid`),
     # CONSTRAINT `nodelocks_ibfk_1` FOREIGN KEY (`nodeid`) REFERENCES `nodes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE

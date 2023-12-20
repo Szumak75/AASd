@@ -26,12 +26,12 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    TIMEOUT = "__timeout__"
-    COMMANDS = "__commands__"
-    COMMAND = "__command_found__"
     CMD = "cmd"
-    OPTS = "opts"
+    COMMAND = "__command_found__"
+    COMMANDS = "__commands__"
     MULTIPLIER = "multip"
+    OPTS = "opts"
+    TIMEOUT = "__timeout__"
 
 
 class Pinger(BClasses):
@@ -93,10 +93,7 @@ class Pinger(BClasses):
         if (
             os.system(
                 self._data[_Keys.COMMAND].format(
-                    int(
-                        self._data[_Keys.TIMEOUT]
-                        * self._data[_Keys.MULTIPLIER]
-                    ),
+                    int(self._data[_Keys.TIMEOUT] * self._data[_Keys.MULTIPLIER]),
                     str(Address(ip)),
                 )
             )

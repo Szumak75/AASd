@@ -28,9 +28,7 @@ class CustomerGroup(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `name` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    name: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    name: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `description` text COLLATE utf8_polish_ci NOT NULL,
     description: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # PRIMARY KEY (`id`),

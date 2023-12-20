@@ -52,42 +52,42 @@ class _Keys(object, metaclass=ReadOnlyClass):
     MODCONF = "__MODULE_CONF__"
     # for configuration
     AT_CHANNEL = "at_channel"
+    CUTOFF = "cutoff_time"
     DCHANNEL = "diagnostic_channel"
+    DPAYTIME = "default_paytime"
+    LMS_URL = "lms_url"
     MCHANNEL = "message_channel"
     MFOOTER = "message_footer"
     MNOTIFY = "payment_message"
-    DPAYTIME = "default_paytime"
-    CUTOFF = "cutoff_time"
-    LMS_URL = "lms_url"
-    USER_URL = "user_url"
     SLEEP_PERIOD = "sleep_period"
-    SQL_SERVER = "sql_server"
     SQL_DATABASE = "sql_database"
-    SQL_USER = "sql_user"
     SQL_PASS = "sql_password"
+    SQL_SERVER = "sql_server"
+    SQL_USER = "sql_user"
+    USER_URL = "user_url"
     # contact types
     # email notification: 8|32=40, type&40==40 and type&16384==0
     # mobile notification: 1|32=33, type&33==33 and type&16384==0
     # type&16384|8|32==40 - True
-    CONTACT_MOBILE = 1
-    CONTACT_FAX = 2
-    CONTACT_LANDLINE = 4
-    CONTACT_EMAIL = 8
-    CONTACT_INVOICES = 16
-    CONTACT_NOTIFICATIONS = 32
     CONTACT_BANKACCOUNT = 64
-    CONTACT_TECHNICAL = 128
-    CONTACT_URL = 256
-    CONTACT_IM = 7680
-    CONTACT_IM_GG = 512
-    CONTACT_IM_YAHOO = 1024
-    CONTACT_IM_SKYPE = 2048
-    CONTACT_IM_FACEBOOK = 4096
     CONTACT_DISABLED = 16384
     CONTACT_DOCUMENTS = 32768
+    CONTACT_EMAIL = 8
+    CONTACT_FAX = 2
+    CONTACT_IM = 7680
+    CONTACT_IM_FACEBOOK = 4096
+    CONTACT_IM_GG = 512
+    CONTACT_IM_SKYPE = 2048
+    CONTACT_IM_YAHOO = 1024
+    CONTACT_INVOICES = 16
+    CONTACT_LANDLINE = 4
+    CONTACT_MOBILE = 1
+    CONTACT_NOTIFICATIONS = 32
+    CONTACT_TECHNICAL = 128
+    CONTACT_URL = 256
     # diagnostic
-    DDEBT = "__debt__"
     DCONT = "__cont__"
+    DDEBT = "__debt__"
     DTARIFF = "__tariff__"
 
 

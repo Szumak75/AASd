@@ -34,21 +34,13 @@ class NetLink(LmsBase):
     # `type` tinyint(1) NOT NULL DEFAULT '0',
     type: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `speed` int(11) NOT NULL DEFAULT '100000',
-    speed: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=100000
-    )
+    speed: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=100000)
     # `technology` int(11) NOT NULL DEFAULT '0',
-    technology: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    technology: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `srcport` smallint(6) NOT NULL DEFAULT '0',
-    srcport: Mapped[int] = mapped_column(
-        SMALLINT(6), nullable=False, default=0
-    )
+    srcport: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `dstport` smallint(6) NOT NULL DEFAULT '0',
-    dstport: Mapped[int] = mapped_column(
-        SMALLINT(6), nullable=False, default=0
-    )
+    dstport: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `srcradiosector` int(11) DEFAULT NULL,
     srcradiosector: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `dstradiosector` int(11) DEFAULT NULL,

@@ -28,27 +28,17 @@ class Tax(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `value` decimal(4,2) NOT NULL DEFAULT '0.00',
-    value: Mapped[float] = mapped_column(
-        DECIMAL(9, 2), nullable=False, default=0.00
-    )
+    value: Mapped[float] = mapped_column(DECIMAL(9, 2), nullable=False, default=0.00)
     # `taxed` tinyint(4) NOT NULL DEFAULT '0',
     taxed: Mapped[int] = mapped_column(TINYINT(4), nullable=False, default=0)
     # `label` varchar(16) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    label: Mapped[str] = mapped_column(
-        VARCHAR(16), nullable=False, default=""
-    )
+    label: Mapped[str] = mapped_column(VARCHAR(16), nullable=False, default="")
     # `validfrom` int(11) NOT NULL DEFAULT '0',
-    validfrom: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    validfrom: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `validto` int(11) NOT NULL DEFAULT '0',
-    validto: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    validto: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `reversecharge` tinyint(1) NOT NULL DEFAULT '0',
-    reversecharge: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    reversecharge: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # PRIMARY KEY (`id`)
 
     def __repr__(self):

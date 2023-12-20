@@ -32,27 +32,17 @@ class MessageItem(LmsBase):
     # `customerid` int(11) DEFAULT NULL,
     customerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `destination` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    destination: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    destination: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `lastdate` int(11) NOT NULL DEFAULT '0',
-    lastdate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    lastdate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `status` smallint(6) NOT NULL DEFAULT '0',
-    status: Mapped[int] = mapped_column(
-        SMALLINT(6), nullable=False, default=0
-    )
+    status: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `error` text COLLATE utf8_polish_ci,
     error: Mapped[str] = mapped_column(TEXT())
     # `lastreaddate` int(11) NOT NULL DEFAULT '0',
-    lastreaddate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    lastreaddate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `externalmsgid` int(6) NOT NULL DEFAULT '0',
-    externalmsgid: Mapped[int] = mapped_column(
-        INTEGER(6), nullable=False, default=0
-    )
+    externalmsgid: Mapped[int] = mapped_column(INTEGER(6), nullable=False, default=0)
     # PRIMARY KEY (`id`),
     # KEY `messageid` (`messageid`),
     # KEY `customerid` (`customerid`),

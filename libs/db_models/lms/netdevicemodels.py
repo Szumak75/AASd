@@ -28,9 +28,7 @@ class NetDeviceModel(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `netdeviceproducerid` int(11) NOT NULL,
-    netdeviceproducerid: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False
-    )
+    netdeviceproducerid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `name` varchar(255) COLLATE utf8_polish_ci NOT NULL,
     name: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     # `alternative_name` varchar(255) COLLATE utf8_polish_ci DEFAULT NULL,

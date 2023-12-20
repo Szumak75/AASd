@@ -25,21 +25,13 @@ class Customer(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `extid` varchar(32) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    extid: Mapped[str] = mapped_column(
-        VARCHAR(32), nullable=False, default=""
-    )
+    extid: Mapped[str] = mapped_column(VARCHAR(32), nullable=False, default="")
     # `lastname` varchar(128) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    lastname: Mapped[str] = mapped_column(
-        VARCHAR(128), nullable=False, default=""
-    )
+    lastname: Mapped[str] = mapped_column(VARCHAR(128), nullable=False, default="")
     # `name` varchar(128) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    name: Mapped[str] = mapped_column(
-        VARCHAR(128), nullable=False, default=""
-    )
+    name: Mapped[str] = mapped_column(VARCHAR(128), nullable=False, default="")
     # `status` smallint(6) NOT NULL DEFAULT '0',
-    status: Mapped[int] = mapped_column(
-        SMALLINT(6), nullable=False, default=0
-    )
+    status: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `type` smallint(6) NOT NULL DEFAULT '0',
     type: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `ten` varchar(16) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
@@ -47,31 +39,19 @@ class Customer(LmsBase):
     # `ssn` varchar(11) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
     ssn: Mapped[str] = mapped_column(VARCHAR(11), nullable=False, default="")
     # `regon` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    regon: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    regon: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `rbe` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    rbe: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    rbe: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `icn` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    icn: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    icn: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `rbename` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    rbename: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    rbename: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `info` text COLLATE utf8_polish_ci NOT NULL,
     info: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `creationdate` int(11) NOT NULL DEFAULT '0',
-    creationdate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    creationdate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `moddate` int(11) NOT NULL DEFAULT '0',
-    moddate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    moddate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `notes` text COLLATE utf8_polish_ci NOT NULL,
     notes: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `creatorid` int(11) DEFAULT NULL,
@@ -79,23 +59,15 @@ class Customer(LmsBase):
     # `modid` int(11) DEFAULT NULL,
     modid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `deleted` tinyint(1) NOT NULL DEFAULT '0',
-    deleted: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    deleted: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `message` text COLLATE utf8_polish_ci NOT NULL,
     message: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `cutoffstop` int(11) NOT NULL DEFAULT '0',
-    cutoffstop: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    cutoffstop: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `consentdate` int(11) NOT NULL DEFAULT '0',
-    consentdate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    consentdate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `pin` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '0',
-    pin: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default="0"
-    )
+    pin: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="0")
     # `invoicenotice` tinyint(1) DEFAULT NULL,
     invoicenotice: Mapped[int] = mapped_column(TINYINT(1), default=None)
     # `einvoice` tinyint(1) DEFAULT NULL,
@@ -107,9 +79,7 @@ class Customer(LmsBase):
     # `paytype` smallint(6) DEFAULT NULL,
     paytype: Mapped[int] = mapped_column(SMALLINT(6), default=None)
     # `paytime` smallint(6) NOT NULL DEFAULT '-1',
-    paytime: Mapped[int] = mapped_column(
-        SMALLINT(6), nullable=False, default="-1"
-    )
+    paytime: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default="-1")
     # PRIMARY KEY (`id`),
     # KEY `name` (`lastname`,`name`),
     # KEY `customers_creatorid_fkey` (`creatorid`),

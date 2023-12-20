@@ -27,31 +27,19 @@ class Node(LmsBase):
         INTEGER(11), primary_key=True, nullable=False, autoincrement=True
     )
     # `name` varchar(32) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    name: Mapped[str] = mapped_column(
-        VARCHAR(32), nullable=False, default=""
-    )
+    name: Mapped[str] = mapped_column(VARCHAR(32), nullable=False, default="")
     # `ipaddr` int(16) unsigned NOT NULL DEFAULT '0',
-    ipaddr: Mapped[int] = mapped_column(
-        INTEGER(16), nullable=False, default=0
-    )
+    ipaddr: Mapped[int] = mapped_column(INTEGER(16), nullable=False, default=0)
     # `ipaddr_pub` int(16) unsigned NOT NULL DEFAULT '0',
-    ipaddr_pub: Mapped[int] = mapped_column(
-        INTEGER(16), nullable=False, default=0
-    )
+    ipaddr_pub: Mapped[int] = mapped_column(INTEGER(16), nullable=False, default=0)
     # `passwd` varchar(32) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    passwd: Mapped[str] = mapped_column(
-        VARCHAR(32), nullable=False, default=""
-    )
+    passwd: Mapped[str] = mapped_column(VARCHAR(32), nullable=False, default="")
     # `ownerid` int(11) DEFAULT NULL,
     # ownerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `creationdate` int(11) NOT NULL DEFAULT '0',
-    creationdate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    creationdate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `moddate` int(11) NOT NULL DEFAULT '0',
-    moddate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    moddate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `creatorid` int(11) DEFAULT NULL,
     creatorid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `modid` int(11) DEFAULT NULL,
@@ -59,45 +47,27 @@ class Node(LmsBase):
     # `netdev` int(11) DEFAULT NULL,
     netdev: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `linktype` tinyint(1) NOT NULL DEFAULT '0',
-    linktype: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    linktype: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `linkradiosector` int(11) DEFAULT NULL,
     linkradiosector: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `linkspeed` int(11) NOT NULL DEFAULT '100000',
-    linkspeed: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=100000
-    )
+    linkspeed: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=100000)
     # `linktechnology` int(11) NOT NULL DEFAULT '0',
-    linktechnology: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    linktechnology: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `port` smallint(6) NOT NULL DEFAULT '0',
     port: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `access` tinyint(1) NOT NULL DEFAULT '1',
-    access: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=1
-    )
+    access: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=1)
     # `warning` tinyint(1) NOT NULL DEFAULT '0',
-    warning: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    warning: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `authtype` tinyint(1) NOT NULL DEFAULT '0',
-    authtype: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    authtype: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `chkmac` tinyint(1) NOT NULL DEFAULT '1',
-    chkmac: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=1
-    )
+    chkmac: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=1)
     # `halfduplex` tinyint(1) NOT NULL DEFAULT '0',
-    halfduplex: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    halfduplex: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `lastonline` int(11) NOT NULL DEFAULT '0',
-    lastonline: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    lastonline: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `info` text COLLATE utf8_polish_ci NOT NULL,
     info: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `nas` tinyint(1) NOT NULL DEFAULT '0',
@@ -107,9 +77,7 @@ class Node(LmsBase):
     # `latitude` decimal(10,6) DEFAULT NULL,
     latitude: Mapped[float] = mapped_column(DECIMAL(10, 6), default=None)
     # `netid` int(11) NOT NULL DEFAULT '0',
-    netid: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    netid: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `invprojectid` int(11) DEFAULT NULL,
     invprojectid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `address_id` int(11) DEFAULT NULL,

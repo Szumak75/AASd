@@ -30,12 +30,8 @@ class MCustomer(Customer):
     __debt_time: int = 0
     __pay_time: int = 0
 
-    contacts: Mapped[List["MCustomerContact"]] = relationship(
-        "MCustomerContact"
-    )
-    cash_operations: Mapped[List["MCash"]] = relationship(
-        "MCash", order_by=MCash.time
-    )
+    contacts: Mapped[List["MCustomerContact"]] = relationship("MCustomerContact")
+    cash_operations: Mapped[List["MCash"]] = relationship("MCash", order_by=MCash.time)
     nodes: Mapped[List["MNode"]] = relationship("MNode")
     assignments: Mapped[List["MAssignment"]] = relationship("MAssignment")
 

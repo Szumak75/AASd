@@ -30,27 +30,17 @@ class NetRadioSector(LmsBase):
     # `name` varchar(64) COLLATE utf8_polish_ci NOT NULL,
     name: Mapped[str] = mapped_column(VARCHAR(255), nullable=False)
     # `azimuth` decimal(9,2) NOT NULL DEFAULT '0.00',
-    azimuth: Mapped[float] = mapped_column(
-        DECIMAL(9, 2), nullable=False, default=0.00
-    )
+    azimuth: Mapped[float] = mapped_column(DECIMAL(9, 2), nullable=False, default=0.00)
     # `width` decimal(9,2) NOT NULL DEFAULT '0.00',
-    width: Mapped[float] = mapped_column(
-        DECIMAL(9, 2), nullable=False, default=0.00
-    )
+    width: Mapped[float] = mapped_column(DECIMAL(9, 2), nullable=False, default=0.00)
     # `altitude` smallint(6) NOT NULL DEFAULT '0',
-    altitude: Mapped[int] = mapped_column(
-        SMALLINT(6), nullable=False, default=0
-    )
+    altitude: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `rsrange` int(11) NOT NULL DEFAULT '0',
-    rsrange: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    rsrange: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `license` varchar(64) COLLATE utf8_polish_ci DEFAULT NULL,
     license: Mapped[str] = mapped_column(VARCHAR(64), default=None)
     # `technology` int(11) NOT NULL DEFAULT '0',
-    technology: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    technology: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `frequency` decimal(9,5) DEFAULT NULL,
     frequency: Mapped[float] = mapped_column(DECIMAL(9, 5), default=None)
     # `frequency2` decimal(9,5) DEFAULT NULL,

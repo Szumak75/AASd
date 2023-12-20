@@ -11,15 +11,13 @@ from typing import List
 from sqlalchemy.orm import Mapped, relationship
 from libs.db_models.lms.tariffs import Tariff
 
-# from libs.db_models.mlms.assignments import MAssignment
+from libs.db_models.mlms.assignments import MAssignment
 
 
 class MTariff(Tariff):
     """LMS tariffs table."""
 
-    assignments: Mapped[List["MAssignment"]] = relationship(
-        back_populates="tariff"
-    )
+    assignments: Mapped[List["MAssignment"]] = relationship(back_populates="tariff")
 
 
 # #[EOF]#######################################################################

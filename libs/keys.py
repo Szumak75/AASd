@@ -3,7 +3,7 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 06.11.2023
 
-  Purpose:
+  Purpose: Public keys container class definition.
 """
 
 from jsktoolbox.attribtool import ReadOnlyClass

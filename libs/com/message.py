@@ -33,17 +33,17 @@ class _Keys(object, metaclass=ReadOnlyClass):
     ATMINUTE = "minute"
     ATMONTH = "month"
     CHANNELS = "__channels__"
-    MMESS = "__message__"
-    MMULTIPART = "__mmessage__"
     MCHANNEL = "__channel__"
-    MTO = "__to__"
-    MSUBJECT = "__subject__"
     MCOMQUEUES = "__comq__"
     MCOUNTER = "__counter__"
-    MSENDER = "__sender__"
+    MMESS = "__message__"
+    MMULTIPART = "__mmessage__"
     MREPLY = "__reply__"
-    PNEXT = "__next__"
+    MSENDER = "__sender__"
+    MSUBJECT = "__subject__"
+    MTO = "__to__"
     PINT = "__interval__"
+    PNEXT = "__next__"
 
 
 class AtChannel(BClasses):

@@ -32,31 +32,19 @@ class Assignment(LmsBase):
     # `customerid` int(11) NOT NULL,
     # customerid: Mapped[int] = mapped_column(INTEGER(11), nullable=False)
     # `period` smallint(6) NOT NULL DEFAULT '0',
-    period: Mapped[int] = mapped_column(
-        SMALLINT(6), nullable=False, default=0
-    )
+    period: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `at` int(11) NOT NULL DEFAULT '0',
     at: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `datefrom` int(11) NOT NULL DEFAULT '0',
-    datefrom: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    datefrom: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `dateto` int(11) NOT NULL DEFAULT '0',
-    dateto: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    dateto: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `invoice` tinyint(1) NOT NULL DEFAULT '0',
-    invoice: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    invoice: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `suspended` tinyint(1) NOT NULL DEFAULT '0',
-    suspended: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    suspended: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `settlement` tinyint(1) NOT NULL DEFAULT '0',
-    settlement: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    settlement: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `pdiscount` decimal(4,2) NOT NULL DEFAULT '0.00',
     pdiscount: Mapped[float] = mapped_column(
         DECIMAL(4, 2), nullable=False, default=0.00
@@ -72,19 +60,13 @@ class Assignment(LmsBase):
     # `attribute` varchar(255) COLLATE utf8_polish_ci DEFAULT NULL,
     attribute: Mapped[str] = mapped_column(VARCHAR(255), default=None)
     # `recipient_address_id` int(11) DEFAULT NULL,
-    recipient_address_id: Mapped[int] = mapped_column(
-        INTEGER(11), default=None
-    )
+    recipient_address_id: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `docid` int(11) DEFAULT NULL,
     docid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `commited` tinyint(1) NOT NULL DEFAULT '1',
-    commited: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=1
-    )
+    commited: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=1)
     # `separatedocument` tinyint(1) NOT NULL DEFAULT '0',
-    separatedocument: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    separatedocument: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # PRIMARY KEY (`id`),
     # KEY `tariffid` (`tariffid`),
     # KEY `customerid` (`customerid`),

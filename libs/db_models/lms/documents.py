@@ -30,23 +30,15 @@ class Document(LmsBase):
     # `type` tinyint(4) NOT NULL DEFAULT '0',
     type: Mapped[int] = mapped_column(TINYINT(4), nullable=False, default=0)
     # `number` int(11) NOT NULL DEFAULT '0',
-    number: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    number: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `numberplanid` int(11) DEFAULT NULL,
     numberplanid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `extnumber` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    extnumber: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    extnumber: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `cdate` int(11) NOT NULL DEFAULT '0',
-    cdate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    cdate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `sdate` int(11) NOT NULL DEFAULT '0',
-    sdate: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    sdate: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `customerid` int(11) DEFAULT NULL,
     customerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `userid` int(11) DEFAULT NULL,
@@ -54,13 +46,9 @@ class Document(LmsBase):
     # `divisionid` int(11) DEFAULT NULL,
     divisionid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `name` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    name: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    name: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `address` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    address: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    address: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `zip` varchar(10) COLLATE utf8_polish_ci DEFAULT NULL,
     zip: Mapped[str] = mapped_column(VARCHAR(10), default=None)
     # `city` varchar(32) COLLATE utf8_polish_ci DEFAULT NULL,
@@ -72,51 +60,33 @@ class Document(LmsBase):
     # `ssn` varchar(11) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
     ssn: Mapped[str] = mapped_column(VARCHAR(11), nullable=False, default="")
     # `paytime` smallint(6) NOT NULL DEFAULT '0',
-    paytime: Mapped[int] = mapped_column(
-        SMALLINT(6), nullable=False, default=0
-    )
+    paytime: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `paytype` smallint(6) DEFAULT NULL,
     paytype: Mapped[int] = mapped_column(SMALLINT(6), default=None)
     # `closed` tinyint(1) NOT NULL DEFAULT '0',
-    closed: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    closed: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `reference` int(11) DEFAULT NULL,
     reference: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `reason` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    reason: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    reason: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `div_name` text COLLATE utf8_polish_ci NOT NULL,
     div_name: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `div_shortname` text COLLATE utf8_polish_ci NOT NULL,
     div_shortname: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `div_address` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    div_address: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    div_address: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `div_city` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    div_city: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    div_city: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `div_zip` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    div_zip: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    div_zip: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `div_countryid` int(11) DEFAULT NULL,
     div_countryid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `div_ten` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    div_ten: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    div_ten: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `div_regon` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    div_regon: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    div_regon: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `div_account` varchar(48) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    div_account: Mapped[str] = mapped_column(
-        VARCHAR(48), nullable=False, default=""
-    )
+    div_account: Mapped[str] = mapped_column(VARCHAR(48), nullable=False, default="")
     # `div_inv_header` text COLLATE utf8_polish_ci NOT NULL,
     div_inv_header: Mapped[str] = mapped_column(TEXT(), nullable=False)
     # `div_inv_footer` text COLLATE utf8_polish_ci NOT NULL,
@@ -128,27 +98,19 @@ class Document(LmsBase):
     # `fullnumber` varchar(50) COLLATE utf8_polish_ci DEFAULT NULL,
     fullnumber: Mapped[str] = mapped_column(VARCHAR(50), default=None)
     # `cancelled` smallint(6) NOT NULL DEFAULT '0',
-    cancelled: Mapped[int] = mapped_column(
-        SMALLINT(6), nullable=False, default=0
-    )
+    cancelled: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `published` tinyint(1) NOT NULL DEFAULT '0',
-    published: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    published: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `cuserid` int(11) DEFAULT NULL,
     cuserid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `recipient_address_id` int(11) DEFAULT NULL,
-    recipient_address_id: Mapped[int] = mapped_column(
-        INTEGER(11), default=None
-    )
+    recipient_address_id: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `post_address_id` int(11) DEFAULT NULL,
     post_address_id: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `template` varchar(255) COLLATE utf8_polish_ci DEFAULT NULL,
     template: Mapped[str] = mapped_column(VARCHAR(255), default=None)
     # `commitflags` tinyint(1) NOT NULL DEFAULT '0',
-    commitflags: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    commitflags: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # PRIMARY KEY (`id`),
     # KEY `cdate` (`cdate`),
     # KEY `numberplanid` (`numberplanid`),

@@ -33,9 +33,7 @@ class LocationBorough(LmsBase):
     # `ident` varchar(8) COLLATE utf8_polish_ci NOT NULL,
     ident: Mapped[str] = mapped_column(VARCHAR(8), nullable=False)
     # `districtid` int(11) NOT NULL,
-    districtid: Mapped[int] = mapped_column(
-        ForeignKey("location_districts.id")
-    )
+    districtid: Mapped[int] = mapped_column(ForeignKey("location_districts.id"))
     # `type` smallint(6) NOT NULL,
     type: Mapped[int] = mapped_column(SMALLINT(6), nullable=False)
     # PRIMARY KEY (`id`),

@@ -33,13 +33,9 @@ class LocationCity(LmsBase):
     # `name` varchar(64) COLLATE utf8_polish_ci NOT NULL,
     name: Mapped[str] = mapped_column(VARCHAR(64), nullable=False)
     # `cityid` int(11) DEFAULT NULL,
-    cityid: Mapped[int] = mapped_column(
-        INTEGER(11), index=True, default=None
-    )
+    cityid: Mapped[int] = mapped_column(INTEGER(11), index=True, default=None)
     # `boroughid` int(11) DEFAULT NULL,
-    boroughid: Mapped[int] = mapped_column(
-        ForeignKey("location_boroughs.id")
-    )
+    boroughid: Mapped[int] = mapped_column(ForeignKey("location_boroughs.id"))
     # PRIMARY KEY (`id`),
     # KEY `cityid` (`cityid`),
     # KEY `boroughid` (`boroughid`,`name`),

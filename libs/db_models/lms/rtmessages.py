@@ -34,21 +34,13 @@ class RtMessage(LmsBase):
     # `customerid` int(11) DEFAULT NULL,
     customerid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `phonefrom` varchar(20) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    phonefrom: Mapped[str] = mapped_column(
-        VARCHAR(20), nullable=False, default=""
-    )
+    phonefrom: Mapped[str] = mapped_column(VARCHAR(20), nullable=False, default="")
     # `mailfrom` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    mailfrom: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    mailfrom: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `subject` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    subject: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    subject: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `messageid` varchar(255) COLLATE utf8_polish_ci NOT NULL DEFAULT '',
-    messageid: Mapped[str] = mapped_column(
-        VARCHAR(255), nullable=False, default=""
-    )
+    messageid: Mapped[str] = mapped_column(VARCHAR(255), nullable=False, default="")
     # `inreplyto` int(11) DEFAULT NULL,
     inreplyto: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # `replyto` text COLLATE utf8_polish_ci NOT NULL,
@@ -58,19 +50,13 @@ class RtMessage(LmsBase):
     # `body` mediumtext COLLATE utf8_polish_ci NOT NULL,
     body: Mapped[str] = mapped_column(MEDIUMTEXT(), nullable=False)
     # `createtime` int(11) NOT NULL DEFAULT '0',
-    createtime: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    createtime: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `type` smallint(6) NOT NULL DEFAULT '0',
     type: Mapped[int] = mapped_column(SMALLINT(6), nullable=False, default=0)
     # `deleted` tinyint(1) NOT NULL DEFAULT '0',
-    deleted: Mapped[int] = mapped_column(
-        TINYINT(1), nullable=False, default=0
-    )
+    deleted: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # `deltime` int(11) NOT NULL DEFAULT '0',
-    deltime: Mapped[int] = mapped_column(
-        INTEGER(11), nullable=False, default=0
-    )
+    deltime: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # `deluserid` int(11) DEFAULT NULL,
     deluserid: Mapped[int] = mapped_column(INTEGER(11), default=None)
     # PRIMARY KEY (`id`),
