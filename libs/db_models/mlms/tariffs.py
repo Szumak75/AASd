@@ -3,7 +3,7 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 01.12.2023
 
-  Purpose:
+  Purpose: Redefine the lms Tariff class.
 """
 
 from typing import List

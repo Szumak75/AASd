@@ -14,15 +14,11 @@ from queue import Queue
 
 from jsktoolbox.attribtool import NoDynamicAttributes
 from jsktoolbox.raisetool import Raise
-from jsktoolbox.libs.base_data import BData
+from jsktoolbox.libs.base_data import BData as BClasses
 from jsktoolbox.logstool.logs import LoggerClient
 from jsktoolbox.configtool.main import Config as ConfigTool
 
 from libs.keys import Keys
-
-
-class BClasses(BData, NoDynamicAttributes):
-    """Base class for project."""
 
 
 class BConfigHandler(BClasses):
@@ -96,7 +92,7 @@ class BImporter(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        dirname = os.path.join("./", *package.split("."))
+        dirname: str = os.path.join("./", *package.split("."))
         with os.scandir(dirname) as itr:
             for entry in itr:
                 if (
@@ -197,7 +193,7 @@ class BConfig(BClasses):
 class BProjectClass(BLogs, BConfig):
     """Base Project class.
 
-    Propertys:
+    Properties:
     - _c_name: str
     - _f_name: str
     - conf: Optional[Config]
@@ -208,7 +204,7 @@ class BProjectClass(BLogs, BConfig):
 class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
     """Base class for module classes.
 
-    Propertys:
+    Properties:
     - _c_name: str
     - _f_name: str
     - _cfh: ConfigTool

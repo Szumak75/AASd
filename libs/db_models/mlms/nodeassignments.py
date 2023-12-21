@@ -3,7 +3,7 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 01.12.2023
 
-  Purpose:
+  Purpose: Redefine the lms NodeAssignment class.
 """
 
 from sqlalchemy import ForeignKey

@@ -428,13 +428,13 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         return out
 
     @property
-    def get_com_modules(self) -> List:
+    def get_com_modules(self) -> List[IComModule]:
         """Get configured communication modules list."""
         import_from = "modules.com"
         return self.__get_modules_list(import_from)
 
     @property
-    def get_run_modules(self) -> List:
+    def get_run_modules(self) -> List[IRunModule]:
         """Get configured running modules list."""
         import_from = "modules.run"
         return self.__get_modules_list(import_from)

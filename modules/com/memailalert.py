@@ -230,7 +230,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         """Try to connect."""
         smtp = None
         if self._data[_Keys.SMTP_PORT] is None:
-            ports = [587, 465, 25]
+            ports: List[int] = [587, 465, 25]
         else:
             ports = [self._data[_Keys.SMTP_PORT]]
 
@@ -278,7 +278,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             msg.add_header("Reply-To", message.reply_to)
         if message.to:
             test = False
-            cc = []
+            cc: List[str] = []
             for item in message.to:
                 if test:
                     cc.append(item)
@@ -292,7 +292,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 msg.add_header("To", self.module_conf.address_to)
             elif isinstance(self.module_conf.address_to, (tuple, list)):
                 test = False
-                cc = []
+                cc: List[str] = []
                 for item in self.module_conf.address_to:
                     if test:
                         cc.append(item)
@@ -365,11 +365,11 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             if self._data[_Keys.SMTP_PORT] != 25:
                 salt = self._cfh.get(self._cfh.main_section_name, "salt")
                 if salt is not None:
-                    password = SimpleCrypto.multiple_decrypt(
+                    password: str = SimpleCrypto.multiple_decrypt(
                         salt, self.module_conf.smtp_pass
                     )
                 else:
-                    password = self.module_conf.smtp_pass
+                    password: Optional[str] = self.module_conf.smtp_pass
                 smtp.ehlo()
                 smtp.login(
                     self.module_conf.smtp_user,
@@ -378,7 +378,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             smtp.send_message(msg)
 
             # logs notice
-            notice = [msg.get("To")]
+            notice: list[Any | None] = [msg.get("To")]
             if msg.get("Cc") is not None:
                 notice.append(msg.get("Cc"))
             self.logs.message_notice = f"message was send to: {', '.join(notice)}"
@@ -405,7 +405,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         """Main loop."""
         # initialize local vars
         deffered_shift = 15 * 60  # 15 minutes
-        deffered = deffered_shift + Timestamp.now
+        deffered: int = deffered_shift + Timestamp.now
         deffered_count = 7 * 24 * 4  # 7 days every 15 minutes
         deffered_queue = Queue(maxsize=1500)
 
@@ -490,7 +490,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sbreak = Timestamp.now + self.sleep_period
+        sbreak: float = Timestamp.now + self.sleep_period
         while not self.stopped and sbreak > Timestamp.now:
             time.sleep(0.2)
 
@@ -526,9 +526,9 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         return cls.__name__.lower()
 
     @classmethod
-    def template_module_variables(cls) -> List:
+    def template_module_variables(cls) -> List[TemplateConfigItem]:
         """Return configuration variables template."""
-        out = []
+        out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()
         out.append(TemplateConfigItem(desc="Email alert configuration module."))

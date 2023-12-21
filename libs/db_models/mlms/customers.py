@@ -3,7 +3,7 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 01.12.2023
 
-  Purpose: extension for Custumer class
+  Purpose: extension for Customer class
 """
 
 

@@ -9,6 +9,7 @@
 """
 
 import time
+from datetime import timedelta
 from inspect import currentframe
 from typing import Dict, List, Optional, Any
 from threading import Thread, Event
@@ -100,7 +101,7 @@ class _Database(BDebug, BLogs):
         config: Dict,
         verbose: bool = False,
         debug: bool = False,
-    ):
+    ) -> None:
         """Constructor."""
         self.logs = LoggerClient(queue=qlog, name=self._c_name)
         self._debug = debug
@@ -144,7 +145,7 @@ class _Database(BDebug, BLogs):
                 )
                 try:
                     config["db.url"] = url
-                    engine = engine_from_config(config, prefix="db.")
+                    engine: Engine = engine_from_config(config, prefix="db.")
                     with engine.connect() as connection:
                         connection.execute(text("SELECT 1"))
                     if self._debug:
@@ -462,7 +463,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         # reset buffer
         self.__clean_diagnostic()
 
-        session = dbh.session
+        session: Optional[Session] = dbh.session
         if session is None:
             self.logs.message_critical = "cannot make database operations"
             return
@@ -483,7 +484,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 .all()
             )
             # increment search range
-            cfrom = cto
+            cfrom: int = cto
             cto += 100
 
             # analysis
@@ -521,7 +522,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             self.logs.message_debug = "get indebted customers list"
 
         # create session
-        session = dbh.session
+        session: Optional[Session] = dbh.session
         if session is None:
             self.logs.message_critical = "cannot make database operations"
             return
@@ -542,7 +543,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 .all()
             )
             # increment search range
-            cfrom = cto
+            cfrom: int = cto
             cto += 100
             # analysis
             for item1 in customers:
@@ -552,9 +553,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     continue
                 # cutt off time
                 # self.module_conf.cutoff_time
-                debt_td = MDateTime.elapsed_time_from_timestamp(customer.debt_timestamp)
+                debt_td: timedelta = MDateTime.elapsed_time_from_timestamp(
+                    customer.debt_timestamp
+                )
                 # deadline - nr days to payment overdue
-                deadline = (
+                deadline: int = (
                     customer.pay_time
                     if customer.pay_time > -1
                     else self.module_conf.default_paytime
@@ -570,8 +573,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 pm = []
                 for item in self.module_conf.payment_message:
                     pm.append(int(item))
-                message_window_td = debt_td - MDateTime.elapsed_time_from_seconds(
-                    deadline * 24 * 60 * 60
+                message_window_td: timedelta = (
+                    debt_td
+                    - MDateTime.elapsed_time_from_seconds(deadline * 24 * 60 * 60)
                 )
                 if message_window_td.days in pm:
                     # send message
@@ -646,9 +650,11 @@ PIN: {customer_pin}
 {footer}
 """
         # local variable
-        debt_td = MDateTime.elapsed_time_from_timestamp(customer.debt_timestamp)
+        debt_td: timedelta = MDateTime.elapsed_time_from_timestamp(
+            customer.debt_timestamp
+        )
         # deadline - nr days to payment overdue
-        deadline = (
+        deadline: int = (
             customer.pay_time
             if customer.pay_time > -1
             else self.module_conf.default_paytime
@@ -656,10 +662,10 @@ PIN: {customer_pin}
         # dead_td = MDateTime.elapsed_time_from_seconds(
         # deadline * 24 * 60 * 60
         # )
-        cutoff_td = MDateTime.elapsed_time_from_seconds(
+        cutoff_td: timedelta = MDateTime.elapsed_time_from_seconds(
             (deadline + self.module_conf.cutoff_time) * 24 * 60 * 60
         )
-        cutoff = cutoff_td - debt_td
+        cutoff: timedelta = cutoff_td - debt_td
         # create message object
         mes = Message()
         mes.channel = channel
@@ -701,13 +707,13 @@ PIN: {customer_pin}
 
     def __add_diagnostic_debt(self, customer: mlms.MCustomer) -> None:
         """"""
-        nemail = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
+        nemail: int = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         email = _Keys.CONTACT_EMAIL
         # mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled = _Keys.CONTACT_DISABLED
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td><td>{info}</td></tr>"
         info = ""
-        count = len(self._data[_Keys.DDEBT]) + 1
+        count: int = len(self._data[_Keys.DDEBT]) + 1
         # uwagi
         has_email = False
         has_nemail = False
@@ -725,7 +731,7 @@ PIN: {customer_pin}
             info += "blokada, "
         if not customer.tariffs:
             info += "brak taryf, "
-        info = info.strip()[:-1]
+        info: str = info.strip()[:-1]
 
         self._data[_Keys.DDEBT].append(
             template.format(
@@ -742,7 +748,7 @@ PIN: {customer_pin}
     def __add_diagnostic_contact(self, customer: mlms.MCustomer) -> None:
         """"""
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
-        count = len(self._data[_Keys.DCONT]) + 1
+        count: int = len(self._data[_Keys.DCONT]) + 1
         info = ""
         self._data[_Keys.DCONT].append(
             template.format(
@@ -757,12 +763,12 @@ PIN: {customer_pin}
     def __add_diagnostic_tariff(self, customer: mlms.MCustomer) -> None:
         """"""
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
-        count = len(self._data[_Keys.DTARIFF]) + 1
+        count: int = len(self._data[_Keys.DTARIFF]) + 1
         # uwagi
         info = ""
         if customer.has_active_node is not None and customer.has_active_node == True:
             info += "aktywna usługa, "
-        info = info.strip()[:-1]
+        info: str = info.strip()[:-1]
         self._data[_Keys.DTARIFF].append(
             template.format(
                 nr=count,
@@ -907,7 +913,9 @@ div.centered table { margin: 0 auto; text-align: left; }
 
         salt = self._cfh.get(self._cfh.main_section_name, "salt")
         if salt is not None:
-            password = SimpleCrypto.multiple_decrypt(salt, self.module_conf.sql_pass)
+            password: str = SimpleCrypto.multiple_decrypt(
+                salt, self.module_conf.sql_pass
+            )
         else:
             password = self.module_conf.sql_pass
 
@@ -964,7 +972,7 @@ div.centered table { margin: 0 auto; text-align: left; }
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sbreak = Timestamp.now + self.sleep_period
+        sbreak: float = Timestamp.now + self.sleep_period
         while not self.stopped and sbreak > Timestamp.now:
             time.sleep(0.2)
 
@@ -1000,9 +1008,9 @@ div.centered table { margin: 0 auto; text-align: left; }
         return cls.__name__.lower()
 
     @classmethod
-    def template_module_variables(cls) -> List:
+    def template_module_variables(cls) -> List[TemplateConfigItem]:
         """Return configuration variables template."""
-        out = []
+        out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()
         out.append(TemplateConfigItem(desc="LMS payment notification module."))

@@ -8,6 +8,7 @@
 
 
 import re
+from re import Pattern, Match
 
 from datetime import date, datetime, timedelta, timezone
 from typing import Dict
@@ -65,8 +66,8 @@ class MIntervals(BClasses):
 
     def __init__(self, module_name: str) -> None:
         """Constructor."""
-        self.__name = module_name
-        self.__re = re.compile(r"(\d+)\s*([wdhms])", re.IGNORECASE)
+        self.__name: str = module_name
+        self.__re: Pattern[str] = re.compile(r"(\d+)\s*([wdhms])", re.IGNORECASE)
 
     def convert(self, value: str) -> int:
         """Convert string value to seconds.
@@ -74,7 +75,7 @@ class MIntervals(BClasses):
         Arguments:
         value [str] - value to convert, format: (d)w: weeks, (d)d: days, (d)h: hours, (d)m: minutes, (d)s: seconds
         """
-        match = self.__re.match(value)
+        match: Match[str] | None = self.__re.match(value)
 
         if (match) is None:
             raise Raise.error(

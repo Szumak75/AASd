@@ -3,7 +3,7 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 08.11.2023
 
-  Purpose:
+  Purpose: Template class for configuration elements.
 """
 
 from inspect import currentframe

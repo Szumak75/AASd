@@ -6,6 +6,7 @@
   Purpose: communication subsystem classes.
 """
 
+from datetime import datetime
 from inspect import currentframe
 from typing import Optional, Union, Dict, List, Any
 from threading import Thread, Event
@@ -87,7 +88,7 @@ class AtChannel(BClasses):
                         currentframe(),
                     )
         elif form.find("-") > -1 and form.find("|") == -1:
-            tmp = form.split("-")
+            tmp: list[str] = form.split("-")
             if len(tmp) == 2:
                 try:
                     for i in range(int(tmp[0]), int(tmp[1]) + 1):
@@ -104,7 +105,7 @@ class AtChannel(BClasses):
             tmp = form.split("|")
             for item in tmp:
                 if item.find("-") > -1:
-                    tmp2 = item.split("-")
+                    tmp2: list[str] = item.split("-")
                     if len(tmp2) == 2:
                         try:
                             for i in range(int(tmp2[0]), int(tmp2[1]) + 1):
@@ -133,7 +134,7 @@ class AtChannel(BClasses):
     def __build_cron_data(self, cron: str) -> Dict:
         """Create dictionary for cron configuration."""
         out = dict()
-        tmp = cron.split(";")
+        tmp: list[str] = cron.split(";")
         if len(tmp) != 5:
             raise Raise.error(
                 f"String format error, check example in config file.",
@@ -179,7 +180,7 @@ class AtChannel(BClasses):
     @property
     def check(self) -> bool:
         """Returns True, if the time has come :)"""
-        date = MDateTime.now()
+        date: datetime = MDateTime.now()
         # "channel:minute;hour;day-of-month;month;day-of-week"
         # date.minute
         # date.hour
@@ -206,7 +207,7 @@ class AtChannel(BClasses):
     @property
     def get(self) -> List[str]:
         """Get a list of expired channels."""
-        date = MDateTime.now()
+        date: datetime = MDateTime.now()
         out = list()
         for channel in self.channels:
             for item in self._data[_Keys.CHANNELS][channel]:
@@ -289,7 +290,7 @@ class Channel(BClasses):
     @property
     def get(self) -> List[str]:
         """Get a list of expired channels."""
-        now = Timestamp.now
+        now: int = Timestamp.now
         out = []
         for item in self.channels:
             pdict: Dict = self._data[_Keys.CHANNELS][item]
@@ -428,7 +429,7 @@ class Message(BClasses):
         return self._data[_Keys.MSUBJECT]
 
     @subject.setter
-    def subject(self, value: str):
+    def subject(self, value: str) -> None:
         """Set optional title string."""
         if not isinstance(value, str):
             raise Raise.error(

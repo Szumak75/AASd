@@ -74,6 +74,7 @@ class AASd(BProjectClass, BImporter):
         self.conf = Config(qlog=lengine.logs_queue, app_name=self._c_name)
         self.conf.version = "1.0.DEV"
         self.conf.debug = False
+        # the default config file path can be overwritten with the command line argument '-f'.
         self.conf.config_file = (
             "/var/tmp/aasd.conf"
             if (self.conf.version and self.conf.version.find("DEV") > -1)
@@ -116,7 +117,10 @@ class AASd(BProjectClass, BImporter):
         gc.enable()
 
     def __start_subsystem(self) -> List:
-        """Start subsystems."""
+        """Start subsystems.
+
+        Returns: List[ List[comms_mods], List[running_mods], ThDispatcher ]
+        """
         self.logs.message_info = "starting..."
 
         # communication queue
@@ -137,9 +141,8 @@ class AASd(BProjectClass, BImporter):
         time.sleep(1)
 
         # start communication modules
-        com_mods = []
-        for item in self.conf.get_com_modules:
-            c_mod: IComModule = item
+        com_mods: List[IComModule] = []
+        for c_mod in self.conf.get_com_modules:
             try:
                 o_mod = c_mod(
                     self.conf.cf,
@@ -155,11 +158,10 @@ class AASd(BProjectClass, BImporter):
                     self.logs.message_debug = f"{ex}"
 
         # start running modules
-        run_mods = []
-        for item in self.conf.get_run_modules:
-            c_mod: IRunModule = item
+        run_mods: List[IRunModule] = []
+        for r_mod in self.conf.get_run_modules:
             try:
-                o_mod = c_mod(
+                o_mod = r_mod(
                     self.conf.cf,
                     self.logs.logs_queue,
                     qcom,
@@ -174,7 +176,10 @@ class AASd(BProjectClass, BImporter):
         return [com_mods, run_mods, dispatch]
 
     def __stop_subsystem(
-        self, com_mods: List, run_mods: List, dispatch: ThDispatcher
+        self,
+        com_mods: List[IComModule],
+        run_mods: List[IRunModule],
+        dispatch: ThDispatcher,
     ) -> None:
         """Stop subsystems."""
         # stopping & joining running modules
@@ -451,13 +456,13 @@ class AASd(BProjectClass, BImporter):
         else:
             print(f"Error updating config file.")
 
-    def __sig_exit(self, signum: int, frame):
+    def __sig_exit(self, signum: int, frame) -> None:
         """Received TERM|INT signal."""
         if self.conf.debug:
             self.logs.message_debug = "TERM or INT signal received."
         self.loop = False
 
-    def __sig_hup(self, signum: int, frame):
+    def __sig_hup(self, signum: int, frame) -> None:
         """Received HUP signal."""
         if self.conf.debug:
             self.logs.message_debug = "HUP signal received."

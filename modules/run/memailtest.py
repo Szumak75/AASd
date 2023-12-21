@@ -176,7 +176,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sbreak = Timestamp.now + self.sleep_period
+        sbreak: float = Timestamp.now + self.sleep_period
         while not self.stopped and sbreak > Timestamp.now:
             time.sleep(0.2)
 
@@ -212,9 +212,9 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         return cls.__name__.lower()
 
     @classmethod
-    def template_module_variables(cls) -> List:
+    def template_module_variables(cls) -> List[TemplateConfigItem]:
         """Return configuration variables template."""
-        out = []
+        out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()
         out.append(TemplateConfigItem(desc="Emailtest configuration module."))

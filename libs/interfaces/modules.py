@@ -3,11 +3,13 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 07.11.2023
 
-  Purpose:
+  Purpose: Interface classes for modules.
 """
 
 from abc import ABC, abstractmethod
 from typing import Optional, Any, List
+
+from libs.templates.modules import TemplateConfigItem
 
 
 class IRunModule(ABC):
@@ -51,7 +53,7 @@ class IRunModule(ABC):
 
     @classmethod
     @abstractmethod
-    def template_module_variables(cls) -> List:
+    def template_module_variables(cls) -> List[TemplateConfigItem]:
         """Return configuration variables template."""
 
     @property
@@ -101,7 +103,7 @@ class IComModule(ABC):
 
     @classmethod
     @abstractmethod
-    def template_module_variables(cls) -> List:
+    def template_module_variables(cls) -> List[TemplateConfigItem]:
         """Return configuration variables template."""
 
     @property
