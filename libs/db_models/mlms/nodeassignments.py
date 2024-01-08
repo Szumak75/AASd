@@ -10,7 +10,8 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from libs.db_models.lms.nodeassignments import NodeAssignment
-from libs.db_models.mlms.assignments import MAssignment
+
+# from libs.db_models.mlms.assignments import MAssignment
 
 
 class MNodeAssignment(NodeAssignment):
