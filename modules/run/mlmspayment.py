@@ -166,17 +166,20 @@ class _Database(BDebug, BLogs):
     @property
     def session(self) -> Optional[Session]:
         """Returns db session."""
+        session = None
         for item in self._data[_Keys.DPOOL]:
             engine: Engine = item
             try:
                 session = Session(engine)
                 if session is not None:
+                    session.query(func.max(mlms.MCustomer.id))
                     if self._debug:
                         self.logs.message_debug = f"create session for {engine}"
-                    return session
+
             except:
+                session = None
                 continue
-        return None
+        return session
 
 
 class _ModuleConf(IModuleConfig, BModuleConfig):
