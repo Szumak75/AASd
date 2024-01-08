@@ -577,7 +577,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     debt_td
                     - MDateTime.elapsed_time_from_seconds(deadline * 24 * 60 * 60)
                 )
-                if (message_window_td.days - 1) in pm:
+                if message_window_td.days - 1 in pm:
                     # send message
                     self.__customer_message(customer, channel)
 
