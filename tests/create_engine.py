@@ -13,7 +13,6 @@ from typing import Dict, List, Optional, Tuple, Any
 from threading import Thread, Event
 from queue import Queue
 
-from sqlalchemy.cyextension import immutabledict
 from sqlalchemy import create_engine, or_, and_, text, func
 from sqlalchemy.orm import (
     Session,
@@ -215,9 +214,7 @@ if session:
         customer: mlms.MCustomer = item1
         # print(customer.has_active_node)
         count += 1
-        print(
-            f"{count}: CID: {customer.id} Termin płatności: {customer.paytime}"
-        )
+        print(f"{count}: CID: {customer.id} Termin płatności: {customer.paytime}")
         if True:
             continue
         if customer.balance < 0:
@@ -243,11 +240,7 @@ if session:
             print(customer.balance)
             print(customer.debt_timestamp)
             print(MDateTime.datetime_from_timestamp(customer.debt_timestamp))
-            print(
-                MDateTime.elapsed_time_from_timestamp(
-                    customer.debt_timestamp
-                )
-            )
+            print(MDateTime.elapsed_time_from_timestamp(customer.debt_timestamp))
             print(
                 f"consent date: {MDateTime.datetime_from_timestamp(customer.consentdate)}"
             )
