@@ -64,14 +64,16 @@ def heap_results():
 
 def get_session(dblist: List) -> Session:
     """."""
+    session = None
     for dbh in dblist:
         try:
             session = Session(dbh)
-
-            if session:
-                return session
+            session.query(func.max(mlms.MCustomer.id))
         except:
+            session = None
             continue
+
+    return session
 
 
 print(f"Garbage: {gc.collect()}")
@@ -124,7 +126,7 @@ for dialect in ("pymysql", "mysqlconnector"):
 session = get_session(engines)
 
 maxid = session.query(func.max(mlms.MCustomer.id)).first()[0]
-cfrom = 0
+cfrom = 9000
 cto = 100
 count = 0
 while cfrom < maxid:
@@ -182,7 +184,7 @@ engine = create_engine(
     max_overflow=10,
     pool_pre_ping=True,
     connect_args={
-        "connect_timeout": 2,
+        "connect_timeout": 20,
     },
 )
 with engine.connect() as connection:

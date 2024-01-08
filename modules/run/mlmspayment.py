@@ -125,7 +125,7 @@ class _Database(BDebug, BLogs):
             "db.pool_pre_ping": True,
             "db.pool_size": 5,
             "db.pool_recycle": 120,
-            "db.pool_use_lifo": True,
+            # "db.pool_use_lifo": True,
             "db.echo_pool": True,
             "db.query_cache_size": 10,
         }
@@ -171,11 +171,9 @@ class _Database(BDebug, BLogs):
             engine: Engine = item
             try:
                 session = Session(engine)
-                if session is not None:
-                    session.query(func.max(mlms.MCustomer.id))
-                    if self._debug:
-                        self.logs.message_debug = f"create session for {engine}"
-
+                session.query(func.max(mlms.MCustomer.id))
+                if self._debug:
+                    self.logs.message_debug = f"create session for {engine}"
             except:
                 session = None
                 continue
