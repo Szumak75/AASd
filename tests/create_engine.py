@@ -127,7 +127,7 @@ session = get_session(engines)
 
 maxid = session.query(func.max(mlms.MCustomer.id)).first()[0]
 cfrom = 9000
-cto = 100
+cto = 9100
 count = 0
 while cfrom < maxid:
     customers: List[mlms.MCustomer] = (
@@ -145,10 +145,10 @@ while cfrom < maxid:
             print(
                 f"[{count}] CID: {customer.id}, Balance: {customer.balance}, Pay Time: {customer.pay_time}"
             )
-            for item2 in customer.cash_operations:
-                cash: mlms.MCash = item2
-                if cash.docid:
-                    print(cash.doc)
+            # for item2 in customer.cash_operations:
+            #     cash: mlms.MCash = item2
+            #     if cash.docid:
+            #         print(cash.doc)
     cfrom = cto
     cto += 100
     # heap_results()

@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Tuple, Any
 from threading import Thread, Event
 from queue import Queue
 
-from sqlalchemy import create_engine, or_, text
+from sqlalchemy import create_engine, or_, text, func
 from sqlalchemy.orm import (
     Session,
     DeclarativeBase,
@@ -61,7 +61,7 @@ engine = create_engine(
     max_overflow=10,
     pool_pre_ping=True,
     connect_args={
-        "connect_timeout": 2,
+        "connect_timeout": 20,
     },
 )
 with engine.connect() as connection:
@@ -72,8 +72,7 @@ try:
         connection.execute(text("SELECT 1"))
         print(f"create session for {engine}")
     session = Session(engine)
-    if session is None:
-        print("session is none")
+    session.query(func.max(mlms.MCustomer.id))
 except Exception as ex:
     print(f"Exception: '{ex}'")
 
@@ -124,11 +123,7 @@ if session:
             print(customer.balance)
             print(customer.debt_timestamp)
             print(MDateTime.datetime_from_timestamp(customer.debt_timestamp))
-            print(
-                MDateTime.elapsed_time_from_timestamp(
-                    customer.debt_timestamp
-                )
-            )
+            print(MDateTime.elapsed_time_from_timestamp(customer.debt_timestamp))
             print(
                 f"consent date: {MDateTime.datetime_from_timestamp(customer.consentdate)}"
             )
