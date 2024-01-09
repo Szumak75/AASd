@@ -40,7 +40,7 @@ class UpCustomer(LmsBase):
     # `enabled` int(10) NOT NULL DEFAULT '0',
     enabled: Mapped[int] = mapped_column(INTEGER(10), nullable=False, default=0)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"UpCustomer(id='{self.id}', "
             f"customerid='{self.customerid}', "

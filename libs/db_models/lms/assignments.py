@@ -81,12 +81,12 @@ class Assignment(LmsBase):
     # CONSTRAINT `assignments_recipient_address_id_fkey` FOREIGN KEY (`recipient_address_id`) REFERENCES `addresses` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `assignments_tariffid_fkey` FOREIGN KEY (`tariffid`) REFERENCES `tariffs` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Assignment(id='{self.id}', "
-            f"tariffid='{self.tariffid}', "
+            # f"tariffid='{self.tariffid}', "
             f"liabilityid='{self.liabilityid}', "
-            f"customerid='{self.customerid}', "
+            # f"customerid='{self.customerid}', "
             f"period='{self.period}', "
             f"at='{self.at}', "
             f"datefrom='{self.datefrom}', "

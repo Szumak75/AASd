@@ -25,7 +25,6 @@ from jsktoolbox.datetool import Timestamp
 from libs.base.classes import BModule
 from libs.interfaces.modules import IComModule
 from libs.base.classes import BModuleConfig
-from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart
 from libs.tools.datetool import MDateTime
@@ -42,12 +41,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
     CHANNEL = "channel"
 
 
-class _ModuleConf(IModuleConfig, BModuleConfig):
+class _ModuleConf(BModuleConfig):
     """Module Config private class."""
-
-    def _get(self, varname: str) -> Any:
-        """Get variable from config."""
-        return self._cfh.get(self._section, varname)
 
     @property
     def channel(self) -> int:
@@ -114,7 +109,9 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
                 self.sleep_period = self.module_conf.sleep_period
             # channel
             if not self.module_conf.channel:
-                self.logs.message_critical = f"required variable '{_Keys.CHANNEL}' not set, exiting..."
+                self.logs.message_critical = (
+                    f"required variable '{_Keys.CHANNEL}' not set, exiting..."
+                )
                 self.stop()
 
         except Exception as ex:
@@ -167,9 +164,7 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
             except Empty:
                 pass
             except Exception as ex:
-                self.logs.message_critical = (
-                    f'error while processing message: "{ex}"'
-                )
+                self.logs.message_critical = f'error while processing message: "{ex}"'
 
             # sleep time
             self.sleep()
@@ -220,9 +215,7 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         out = []
         # item format:
         # TemplateConfigItem()
-        out.append(
-            TemplateConfigItem(desc="Example alert configuration module.")
-        )
+        out.append(TemplateConfigItem(desc="Example alert configuration module."))
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(

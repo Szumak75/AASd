@@ -39,7 +39,7 @@ class Liability(LmsBase):
     # KEY `liabilities_taxid_fkey` (`taxid`),
     # CONSTRAINT `liabilities_taxid_fkey` FOREIGN KEY (`taxid`) REFERENCES `taxes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Liability(id='{self.id}', "
             f"value='{self.value}', "

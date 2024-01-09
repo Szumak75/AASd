@@ -85,7 +85,7 @@ class NetDevice(LmsBase):
     # CONSTRAINT `netdevices_ibfk_4` FOREIGN KEY (`netdevicemodelid`) REFERENCES `netdevicemodels` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `netdevices_ownerid_fkey` FOREIGN KEY (`ownerid`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"NetDevice(id='{self.id}', "
             f"name='{self.name}', "

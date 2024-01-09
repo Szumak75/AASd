@@ -38,7 +38,7 @@ class HistoryNode(LmsBase):
     # `messages` text COLLATE utf8_polish_ci NOT NULL
     messages: Mapped[str] = mapped_column(TEXT(), nullable=False)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"HistoryNode(id='{self.id}', "
             f"nodeid='{self.nodeid}', "

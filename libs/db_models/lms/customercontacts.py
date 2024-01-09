@@ -34,10 +34,10 @@ class CustomerContact(LmsBase):
     # KEY `contact` (`contact`),
     # CONSTRAINT `customercontacts_customerid_fkey` FOREIGN KEY (`customerid`) REFERENCES `customers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"CustomerContact(id='{self.id}', "
-            f"customerid='{self.customerid}', "
+            # f"customerid='{self.customerid}', "
             f"name='{self.name}', "
             f"contact='{self.contact}', "
             f"type='{self.type}' ) "

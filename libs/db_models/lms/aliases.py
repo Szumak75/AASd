@@ -36,7 +36,7 @@ class Alias(LmsBase):
     # KEY `aliases_domainid_fkey` (`domainid`),
     # CONSTRAINT `aliases_domainid_fkey` FOREIGN KEY (`domainid`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Alias(id='{self.id}', "
             f"login='{self.login}', "

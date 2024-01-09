@@ -39,7 +39,7 @@ class NodeLock(LmsBase):
     # KEY `nodeid` (`nodeid`),
     # CONSTRAINT `nodelocks_ibfk_1` FOREIGN KEY (`nodeid`) REFERENCES `nodes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"NodeLock(id='{self.id}', "
             f"nodeid='{self.nodeid}', "

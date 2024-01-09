@@ -71,7 +71,7 @@ class NetNode(LmsBase):
     # CONSTRAINT `netnodes_ibfk_2` FOREIGN KEY (`divisionid`) REFERENCES `divisions` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
     division: Mapped["Division"] = relationship("Division")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"NetNode(id='{self.id}', "
             f"name='{self.name}', "

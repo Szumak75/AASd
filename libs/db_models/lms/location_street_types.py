@@ -31,5 +31,5 @@ class LocationStreetType(LmsBase):
     name: Mapped[str] = mapped_column(VARCHAR(8), nullable=False)
     # PRIMARY KEY (`id`)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"LocationStreetType(id='{self.id}', " f"name='{self.name}' ) "

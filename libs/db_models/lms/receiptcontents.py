@@ -42,7 +42,7 @@ class ReceiptContent(LmsBase):
     # CONSTRAINT `receiptcontents_docid_fkey` FOREIGN KEY (`docid`) REFERENCES `documents` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     # CONSTRAINT `receiptcontents_regid_fkey` FOREIGN KEY (`regid`) REFERENCES `cashregs` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"ReceiptContent(docid='{self.docid}', "
             f"itemid='{self.itemid}', "

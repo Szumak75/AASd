@@ -37,7 +37,7 @@ class RtCategoryUser(LmsBase):
     # CONSTRAINT `rtcategoryusers_ibfk_1` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     # CONSTRAINT `rtcategoryusers_ibfk_2` FOREIGN KEY (`categoryid`) REFERENCES `rtcategories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"RtCategoryUser(id='{self.id}', "
             f"userid='{self.userid}', "

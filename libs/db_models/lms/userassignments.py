@@ -37,7 +37,7 @@ class UserAssignment(LmsBase):
     # CONSTRAINT `userassignments_ibfk_1` FOREIGN KEY (`usergroupid`) REFERENCES `usergroups` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     # CONSTRAINT `userassignments_ibfk_2` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"UserAssignment(id='{self.id}', "
             f"usergroupid='{self.usergroupid}', "

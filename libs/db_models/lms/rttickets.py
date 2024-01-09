@@ -88,7 +88,7 @@ class RtTicket(LmsBase):
     # CONSTRAINT `rttickets_queueid_fkey` FOREIGN KEY (`queueid`) REFERENCES `rtqueues` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     # CONSTRAINT `rttickets_requestor_userid_fkey` FOREIGN KEY (`requestor_userid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"RtTicket(id='{self.id}', "
             f"queueid='{self.queueid}', "

@@ -39,7 +39,7 @@ class CryptoKey(LmsBase):
     # KEY `domain_id` (`domain_id`),
     # CONSTRAINT `cryptokeys_domain_id_fkey` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"CryptoKey(id='{self.id}', "
             f"domain_id='{self.domain_id}', "

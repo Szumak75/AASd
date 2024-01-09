@@ -34,7 +34,7 @@ class DocNote(LmsBase):
     # UNIQUE KEY `docnote_id` (`id`),
     # KEY `docnote_docid` (`docid`)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"DocNote(id='{self.id}', "
             f"docid='{self.docid}', "

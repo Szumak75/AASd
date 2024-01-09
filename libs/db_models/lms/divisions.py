@@ -70,7 +70,7 @@ class Division(LmsBase):
     # CONSTRAINT `divisions_address_id_fk` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
     address: Mapped["Address"] = relationship("Address")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Division(id='{self.id}', "
             f"shortname='{self.shortname}', "

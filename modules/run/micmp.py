@@ -23,7 +23,6 @@ from jsktoolbox.datetool import Timestamp
 from libs.base.classes import BModule, BClasses
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
-from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Channel
 from libs.tools.icmp import Pinger
@@ -46,12 +45,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SLEEP_PERIOD = "sleep_period"
 
 
-class _ModuleConf(IModuleConfig, BModuleConfig):
+class _ModuleConf(BModuleConfig):
     """Module Config private class."""
-
-    def _get(self, varname: str) -> Any:
-        """Get variable from config."""
-        return self._cfh.get(self._section, varname)
 
     @property
     def hosts(self) -> Optional[List[str]]:
@@ -184,6 +179,9 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
 
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
+        if self.module_conf is None:
+            return False
+
         try:
             if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
@@ -196,6 +194,14 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         """Main loop."""
         self.logs.message_notice = "starting..."
 
+        if (
+            self.module_conf is None
+            or self.module_conf.message_channel is None
+            or self.module_conf.hosts is None
+            or self.qcom is None
+        ):
+            return None
+
         # initialization local variables
         ping = Pinger()
         hosts = []
@@ -207,8 +213,8 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             return
 
         # append tested IPs
-        for host in self.module_conf.hosts:
-            hosts.append(Ipv4Test(Address(host)))
+        for host_str in self.module_conf.hosts:
+            hosts.append(Ipv4Test(Address(host_str)))
 
         if self.debug:
             self.logs.message_debug = "configuration processing complete"
@@ -274,7 +280,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                             message.channel = int(chan)
                             message.messages = f"{host.address} is down since {MDateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
                             msg.append(message)
-                    self.logs.message_notice = f"{host.address} is down since {MDateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
+                        self.logs.message_notice = f"{host.address} is down since {MDateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
             # build and send message
             if msg:
                 # build channels dict
@@ -311,13 +317,16 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
     def stop(self) -> None:
         """Set stop event."""
         if self._debug:
-            self.logs.message_debug = "stop signal received."
-        self._stop_event.set()
+            self.logs.message_debug = "stop signal received"
+        if self._stop_event:
+            self._stop_event.set()
 
     @property
     def debug(self) -> bool:
         """Return debug flag."""
-        return self._debug
+        if self._debug is not None:
+            return self._debug
+        return False
 
     @property
     def verbose(self) -> bool:
@@ -327,7 +336,9 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
     @property
     def stopped(self) -> bool:
         """Return stop flag."""
-        return self._stop_event.is_set()
+        if self._stop_event:
+            return self._stop_event.is_set()
+        return True
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:

@@ -126,7 +126,7 @@ class Pinger(BClasses):
 class Tracert(BClasses):
     """Tracert class for testing route to IPv4 address."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Constructor."""
         self._data[_Keys.COMMANDS] = []
         self._data[_Keys.COMMANDS].append(

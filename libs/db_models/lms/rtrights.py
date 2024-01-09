@@ -39,7 +39,7 @@ class RtRight(LmsBase):
     # CONSTRAINT `rtrights_ibfk_1` FOREIGN KEY (`queueid`) REFERENCES `rtqueues` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     # CONSTRAINT `rtrights_userid_fkey` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"RtRight(id='{self.id}', "
             f"userid='{self.userid}', "

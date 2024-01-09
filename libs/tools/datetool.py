@@ -25,7 +25,7 @@ class MDateTime(DateTime):
 
     @classmethod
     @property
-    def datenow(self) -> str:
+    def datenow(cls) -> str:
         """Return current date as %Y-%m-%d format."""
         return f"{date.today().isoformat()}"
 

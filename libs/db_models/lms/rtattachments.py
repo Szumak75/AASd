@@ -34,7 +34,7 @@ class RtAttachment(LmsBase):
     # KEY `messageid` (`messageid`),
     # CONSTRAINT `rtattachments_ibfk_1` FOREIGN KEY (`messageid`) REFERENCES `rtmessages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"RtAttachment(messageid='{self.messageid}', "
             f"filename='{self.filename}', "

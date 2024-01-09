@@ -36,7 +36,7 @@ class Mac(LmsBase):
     # KEY `nodeid` (`nodeid`),
     # CONSTRAINT `macs_ibfk_1` FOREIGN KEY (`nodeid`) REFERENCES `nodes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Mac(id='{self.id}', " f"mac='{self.mac}', " f"nodeid='{self.nodeid}' ) "
         )

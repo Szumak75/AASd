@@ -36,7 +36,7 @@ class ZipCode(LmsBase):
     # KEY `stateid` (`stateid`),
     # CONSTRAINT `zipcodes_stateid_fkey` FOREIGN KEY (`stateid`) REFERENCES `states` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"ZipCode(id='{self.id}', "
             f"zip='{self.zip}', "

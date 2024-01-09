@@ -9,7 +9,7 @@
 import os
 
 from inspect import currentframe
-from typing import Optional, List
+from typing import Optional, List, Any
 from queue import Queue
 
 from jsktoolbox.attribtool import NoDynamicAttributes
@@ -32,9 +32,9 @@ class BConfigHandler(BClasses):
         return self._data[Keys.CFH]
 
     @_cfh.setter
-    def _cfh(self, config_handler: ConfigTool) -> None:
+    def _cfh(self, config_handler: Optional[ConfigTool]) -> None:
         """Set config handler."""
-        if not isinstance(config_handler, ConfigTool):
+        if config_handler is not None and not isinstance(config_handler, ConfigTool):
             raise Raise.error(
                 f"Expected ConfigTool type, received'{type(config_handler)}'.",
                 TypeError,
@@ -51,22 +51,30 @@ class BConfigSection(BClasses):
     def _section(self) -> Optional[str]:
         """Return section name."""
         if Keys.SECTION not in self._data:
-            self._data[Keys.SECTION] = None
+            self._section = None
         return self._data[Keys.SECTION]
 
     @_section.setter
-    def _section(self, section_name: str) -> None:
+    def _section(self, section_name: Optional[str]) -> None:
         """Set section name."""
+        if section_name is None:
+            self._data[Keys.SECTION] = None
         self._data[Keys.SECTION] = str(section_name).lower()
 
 
 class BModuleConfig(BConfigHandler, BConfigSection):
     """Base class for module config classes."""
 
-    def __init__(self, cfh: ConfigTool, section: str) -> None:
+    def __init__(self, cfh: ConfigTool, section: Optional[str]) -> None:
         """Constructor."""
         self._cfh = cfh
         self._section = section
+
+    def _get(self, varname: str) -> Any:
+        """Get variable from config."""
+        if self._cfh and self._section:
+            return self._cfh.get(self._section, varname)
+        return None
 
 
 class BImporter(BClasses):
@@ -121,10 +129,10 @@ class BLogs(BClasses):
     """Base class for LoggerClient property."""
 
     @property
-    def logs(self) -> Optional[LoggerClient]:
+    def logs(self) -> LoggerClient:
         """Return LoggerClient object or None."""
         if Keys.CLOG not in self._data:
-            self._data[Keys.CLOG] = None
+            self._data[Keys.CLOG] = LoggerClient()
         return self._data[Keys.CLOG]
 
     @logs.setter

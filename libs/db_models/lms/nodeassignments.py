@@ -31,9 +31,10 @@ class NodeAssignment(LmsBase):
     # CONSTRAINT `nodeassignments_ibfk_1` FOREIGN KEY (`nodeid`) REFERENCES `nodes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     # CONSTRAINT `nodeassignments_ibfk_2` FOREIGN KEY (`assignmentid`) REFERENCES `assignments` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"NodeAssignment(id='{self.id}', "
-            f"nodeid='{self.nodeid}', "
-            f"assignmentid='{self.assignmentid}' ) "
+            # f"nodeid='{self.nodeid}', "
+            # f"assignmentid='{self.assignmentid}'"
+            " ) "
         )

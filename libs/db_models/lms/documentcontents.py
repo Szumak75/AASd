@@ -40,7 +40,7 @@ class DocumentContent(LmsBase):
     # KEY `todate` (`todate`),
     # CONSTRAINT `documentcontents_ibfk_1` FOREIGN KEY (`docid`) REFERENCES `documents` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"DocumentContent(docid='{self.docid}', "
             f"title='{self.title}', "

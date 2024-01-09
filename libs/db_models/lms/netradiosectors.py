@@ -54,7 +54,7 @@ class NetRadioSector(LmsBase):
     # KEY `netdev` (`netdev`),
     # CONSTRAINT `netradiosectors_ibfk_1` FOREIGN KEY (`netdev`) REFERENCES `netdevices` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"NetRadioSector(id='{self.id}', "
             f"name='{self.name}', "

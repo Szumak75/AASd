@@ -42,7 +42,7 @@ class DocumentAttachment(LmsBase):
     # KEY `md5sum` (`md5sum`),
     # CONSTRAINT `documentattachments_ibfk_1` FOREIGN KEY (`docid`) REFERENCES `documents` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"DocumentAttachment(id='{self.id}', "
             f"docid='{self.docid}', "

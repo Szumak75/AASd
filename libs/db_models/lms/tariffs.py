@@ -119,7 +119,7 @@ class Tariff(LmsBase):
     # CONSTRAINT `tariffs_ibfk_3` FOREIGN KEY (`voip_tariff_rule_id`) REFERENCES `voip_rules` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `tariffs_taxid_fkey` FOREIGN KEY (`taxid`) REFERENCES `taxes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Tariff(id='{self.id}', "
             f"name='{self.name}', "

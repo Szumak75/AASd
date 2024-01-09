@@ -37,7 +37,7 @@ class CustomerAssignment(LmsBase):
     # CONSTRAINT `customerassignments_customergroupid_fkey` FOREIGN KEY (`customergroupid`) REFERENCES `customergroups` (`id`) ON DELETE CASCADE ON UPDATE CASCAD
     # CONSTRAINT `customerassignments_customerid_fkey` FOREIGN KEY (`customerid`) REFERENCES `customers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"CustomerAssignment(id='{self.id}', "
             f"customergroupid='{self.customergroupid}', "

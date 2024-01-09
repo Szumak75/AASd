@@ -29,7 +29,6 @@ from jsktoolbox.datetool import Timestamp
 from libs.base.classes import BModule
 from libs.interfaces.modules import IComModule
 from libs.base.classes import BModuleConfig
-from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart
 from libs.tools.datetool import MDateTime
@@ -56,12 +55,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SMTP_USER = "smtp_user"
 
 
-class _ModuleConf(IModuleConfig, BModuleConfig):
+class _ModuleConf(BModuleConfig):
     """Module Config private class."""
-
-    def _get(self, varname: str) -> Any:
-        """Get variable from config."""
-        return self._cfh.get(self._section, varname)
 
     @property
     def channel(self) -> Optional[int]:
@@ -189,6 +184,8 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
 
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
+        if self.module_conf is None:
+            return False
         try:
             if self.module_conf.sleep_period is not None:
                 self.sleep_period = self.module_conf.sleep_period
@@ -228,6 +225,8 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
 
     def __init_smtp(self) -> Optional[Union[smtplib.SMTP, smtplib.SMTP_SSL]]:
         """Try to connect."""
+        if self.module_conf is None or self.module_conf.smtp_server is None:
+            return None
         smtp = None
         if self._data[_Keys.SMTP_PORT] is None:
             ports: list[int] = [587, 465, 25]
@@ -265,6 +264,15 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
 
     def __send_message(self, message: Message) -> bool:
         """Try to send message."""
+        if (
+            self.module_conf is None
+            or self.module_conf.address_from is None
+            or self._cfh is None
+            or self._cfh.main_section_name is None
+            or self.module_conf.smtp_pass is None
+            or self.module_conf.smtp_user is None
+        ):
+            return False
         out = False
         # build email message
         msg = EmailMessage()
@@ -378,7 +386,9 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
             smtp.send_message(msg)
 
             # logs notice
-            notice = [msg.get("To")]
+            notice: List = []
+            if msg.get("To") is not None:
+                notice.append(msg.get("To"))
             if msg.get("Cc") is not None:
                 notice.append(msg.get("Cc"))
             self.logs.message_notice = f"message was send to: {', '.join(notice)}"
@@ -419,6 +429,10 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         # starting module loop
         if self._debug:
             self.logs.message_debug = "entering to the main loop"
+
+        if self.qcom is None:
+            return None
+
         while not self.stopped:
             # read from deffered queue
             if deffered < Timestamp.now:
@@ -498,12 +512,15 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         """Set stop event."""
         if self._debug:
             self.logs.message_debug = "stop signal received"
-        self._stop_event.set()
+        if self._stop_event:
+            self._stop_event.set()
 
     @property
     def debug(self) -> bool:
         """Return debug flag."""
-        return self._debug
+        if self._debug is not None:
+            return self._debug
+        return False
 
     @property
     def verbose(self) -> bool:
@@ -513,7 +530,9 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
     @property
     def stopped(self) -> bool:
         """Return stop flag."""
-        return self._stop_event.is_set()
+        if self._stop_event:
+            return self._stop_event.is_set()
+        return True
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:

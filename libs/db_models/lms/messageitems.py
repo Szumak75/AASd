@@ -49,7 +49,7 @@ class MessageItem(LmsBase):
     # CONSTRAINT `messageitems_customerid_fkey` FOREIGN KEY (`customerid`) REFERENCES `customers` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `messageitems_messageid_fkey` FOREIGN KEY (`messageid`) REFERENCES `messages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"MessageItem(id='{self.id}', "
             f"messageid='{self.messageid}', "

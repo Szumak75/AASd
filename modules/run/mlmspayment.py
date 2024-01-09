@@ -11,7 +11,7 @@
 import time
 from datetime import timedelta
 from inspect import currentframe
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 from threading import Thread, Event
 from queue import Queue
 
@@ -34,7 +34,6 @@ from jsktoolbox.datetool import Timestamp
 from libs.base.classes import BModule, BLogs, BDebug
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
-from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, AtChannel
 from libs.tools.datetool import MDateTime
@@ -183,12 +182,8 @@ class _Database(BDebug, BLogs):
         return session
 
 
-class _ModuleConf(IModuleConfig, BModuleConfig):
+class _ModuleConf(BModuleConfig):
     """Module Config private class."""
-
-    def _get(self, varname: str) -> Any:
-        """Get variable from config."""
-        return self._cfh.get(self._section, varname)
 
     @property
     def at_channel(self) -> Optional[List[str]]:
@@ -276,10 +271,10 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         return var
 
     @property
-    def message_footer(self) -> Optional[List[str]]:
+    def message_footer(self) -> Optional[Union[List[str], str]]:
         """Return message footer list."""
         var = self._get(varname=_Keys.MFOOTER)
-        if var is not None and not isinstance(var, (list, str)):
+        if var is not None and not isinstance(var, (List, str)):
             raise Raise.error(
                 "Expected string type.",
                 TypeError,
@@ -410,6 +405,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
+        if self.module_conf is None:
+            return False
         try:
             if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
@@ -473,7 +470,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             return
 
         # get customer max id
-        maxid: int = session.query(func.max(mlms.MCustomer.id)).first()[0]
+        row = session.query(func.max(mlms.MCustomer.id)).first()
+        maxid: int = row[0] if row is not None else 0
         cfrom = 0
         cto = 100
         # customers query
@@ -522,6 +520,14 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
     def __get_indebted_customers(self, dbh: _Database, channel: int) -> None:
         """Gets a list of Customers for sending notifications."""
 
+        if (
+            self.module_conf is None
+            or self.module_conf.default_paytime is None
+            or self.module_conf.cutoff_time is None
+            or self.module_conf.payment_message is None
+        ):
+            return None
+
         if self.debug or self.verbose:
             self.logs.message_debug = "get indebted customers list"
 
@@ -531,7 +537,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             self.logs.message_critical = "cannot make database operations"
             return
 
-        maxid: int = session.query(func.max(mlms.MCustomer.id)).first()[0]
+        row = session.query(func.max(mlms.MCustomer.id)).first()
+        maxid: int = row[0] if row is not None else 0
         cfrom = 0
         cto = 100
         # customer query
@@ -631,6 +638,16 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         channel: int,
     ) -> None:
         """Prepare customer email and put it to communication queue."""
+
+        if (
+            self.module_conf is None
+            or self.module_conf.default_paytime is None
+            or self.module_conf.cutoff_time is None
+            or self.module_conf.payment_message is None
+            or self.qcom is None
+        ):
+            return None
+
         template = """Szanowni Państwo,
 
 saldo na koncie na dzień {current_date} wynosi: {debt} PLN.
@@ -711,6 +728,10 @@ PIN: {customer_pin}
 
     def __add_diagnostic_debt(self, customer: mlms.MCustomer) -> None:
         """"""
+
+        if self.module_conf is None:
+            return None
+
         nemail: int = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         email = _Keys.CONTACT_EMAIL
         # mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
@@ -751,6 +772,10 @@ PIN: {customer_pin}
 
     def __add_diagnostic_contact(self, customer: mlms.MCustomer) -> None:
         """"""
+
+        if self.module_conf is None:
+            return None
+
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
         count: int = len(self._data[_Keys.DCONT]) + 1
         info = ""
@@ -766,6 +791,10 @@ PIN: {customer_pin}
 
     def __add_diagnostic_tariff(self, customer: mlms.MCustomer) -> None:
         """"""
+
+        if self.module_conf is None:
+            return None
+
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
         count: int = len(self._data[_Keys.DTARIFF]) + 1
         # uwagi
@@ -785,6 +814,10 @@ PIN: {customer_pin}
 
     def __send_diagnostic(self, channel: int) -> None:
         """Make email notification for diagnostic channel."""
+
+        if self.qcom is None:
+            return None
+
         style = """<style>
 body { font-size: 8pt; font-family: Tahoma, Verdana, Arial, Helvetica; background-color: #EBE4D6; margin: 0; padding: 0; vertical-align: middle; }
 h1 { font-size: 14pt; font-family: Tahoma, Verdana, Arial, Helvetica; }
@@ -810,8 +843,8 @@ div.centered table { margin: 0 auto; text-align: left; }
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci zadłużeni powyżej 30 dni."
             # head
-            mes.mmessages = {}
-            mes.mmessages[Multipart.HTML] = [
+            tmp = {}
+            tmp[Multipart.HTML] = [
                 "<html>",
                 "<head></head>",
                 "<body>",
@@ -822,9 +855,9 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>bilans:</th><th>od:</th><th>uwagi:</th></tr>",
             ]
             for item in self._data[_Keys.DDEBT]:
-                mes.mmessages[Multipart.HTML].append(item)
+                tmp[Multipart.HTML].append(item)
             # foot
-            mes.mmessages[Multipart.HTML].extend(
+            tmp[Multipart.HTML].extend(
                 [
                     "<tr><td colspan='6'><hr></td></tr>",
                     "</table>",
@@ -833,6 +866,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                     "</html>",
                 ]
             )
+            mes.mmessages = tmp
             # put message to communication queue
             self.qcom.put(mes)
 
@@ -842,8 +876,8 @@ div.centered table { margin: 0 auto; text-align: left; }
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez zgody na kontakt."
             # head
-            mes.mmessages = {}
-            mes.mmessages[Multipart.HTML] = [
+            tmp = {}
+            tmp[Multipart.HTML] = [
                 "<html>",
                 "<head></head>",
                 "<body>",
@@ -854,9 +888,9 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
             ]
             for item in self._data[_Keys.DCONT]:
-                mes.mmessages[Multipart.HTML].append(item)
+                tmp[Multipart.HTML].append(item)
             # foot
-            mes.mmessages[Multipart.HTML].extend(
+            tmp[Multipart.HTML].extend(
                 [
                     "<tr><td colspan='4'><hr></td></tr>",
                     "</table>",
@@ -865,6 +899,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                     "</html>",
                 ]
             )
+            mes.mmessages = tmp
             # put message to communication queue
             self.qcom.put(mes)
 
@@ -874,8 +909,8 @@ div.centered table { margin: 0 auto; text-align: left; }
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez taryf."
             # head
-            mes.mmessages = {}
-            mes.mmessages[Multipart.HTML] = [
+            tmp = {}
+            tmp[Multipart.HTML] = [
                 "<html>",
                 "<head></head>",
                 "<body>",
@@ -886,9 +921,9 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
             ]
             for item in self._data[_Keys.DTARIFF]:
-                mes.mmessages[Multipart.HTML].append(item)
+                tmp[Multipart.HTML].append(item)
             # foot
-            mes.mmessages[Multipart.HTML].extend(
+            tmp[Multipart.HTML].extend(
                 [
                     "<tr><td colspan='4'><hr></td></tr>",
                     "</table>",
@@ -897,6 +932,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                     "</html>",
                 ]
             )
+            mes.mmessages = tmp
             # put message to communication queue
             self.qcom.put(mes)
         # clean buffer
@@ -906,7 +942,18 @@ div.centered table { margin: 0 auto; text-align: left; }
         """Main loop."""
         self.logs.message_notice = "starting..."
 
+        if (
+            self.module_conf is None
+            or self.module_conf.at_channel is None
+            or self._cfh is None
+            or self._cfh.main_section_name is None
+            or self.logs is None
+            or self.logs.logs_queue is None
+        ):
+            return None
+
         # initialization local variables
+        channel = None
         try:
             channel = AtChannel(self.module_conf.at_channel)
         except Exception as ex:
@@ -938,7 +985,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                 _Keys.SQL_PASS: password,
             },
             verbose=self._verbose,
-            debug=self._debug,
+            debug=self.debug,
         )
         # set up connections
         if dbh.create_connections():
@@ -953,7 +1000,7 @@ div.centered table { margin: 0 auto; text-align: left; }
 
         # starting module loop
         while not self.stopped:
-            if channel.check:
+            if channel and channel.check:
                 if self.debug:
                     self.logs.message_debug = "expired channel found"
                 for chan in channel.get:
@@ -962,7 +1009,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                         self.module_conf.diagnostic_channel
                         and chan in self.module_conf.diagnostic_channel
                     ):
-                        self.__get_customers_for_verification(dbh, int(chan)),
+                        self.__get_customers_for_verification(dbh, int(chan))
                     # message channel
                     if (
                         self.module_conf.message_channel
@@ -983,13 +1030,16 @@ div.centered table { margin: 0 auto; text-align: left; }
     def stop(self) -> None:
         """Set stop event."""
         if self._debug:
-            self.logs.message_debug = "stop signal received."
-        self._stop_event.set()
+            self.logs.message_debug = "stop signal received"
+        if self._stop_event:
+            self._stop_event.set()
 
     @property
     def debug(self) -> bool:
         """Return debug flag."""
-        return self._debug
+        if self._debug is not None:
+            return self._debug
+        return False
 
     @property
     def verbose(self) -> bool:
@@ -999,7 +1049,9 @@ div.centered table { margin: 0 auto; text-align: left; }
     @property
     def stopped(self) -> bool:
         """Return stop flag."""
-        return self._stop_event.is_set()
+        if self._stop_event:
+            return self._stop_event.is_set()
+        return True
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:

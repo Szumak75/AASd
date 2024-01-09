@@ -39,7 +39,7 @@ class CustomerAddress(LmsBase):
     # CONSTRAINT `customer_addresses_address_id_fk` FOREIGN KEY (`address_id`) REFERENCES `addresses` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     # CONSTRAINT `customer_addresses_customer_id_fkey` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"CustomerAddress(id='{self.id}', "
             f"customer_id='{self.customer_id}', "

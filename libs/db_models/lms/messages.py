@@ -44,7 +44,7 @@ class Message(LmsBase):
     # KEY `userid` (`userid`),
     # CONSTRAINT `messages_userid_fkey` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Message(id='{self.id}', "
             f"subject='{self.subject}', "

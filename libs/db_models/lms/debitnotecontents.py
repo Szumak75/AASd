@@ -39,7 +39,7 @@ class DebitNoteContent(LmsBase):
     # UNIQUE KEY `docid` (`docid`,`itemid`),
     # CONSTRAINT `debitnotecontents_docid_fkey` FOREIGN KEY (`docid`) REFERENCES `documents` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"DebitNoteContent(id='{self.id}', "
             f"docid='{self.docid}', "

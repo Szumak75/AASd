@@ -128,10 +128,13 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
 
     def load(self) -> bool:
         """Try to load config file."""
+        if self.config_file is None or self._section is None:
+            return False
         if self._cfh is None:
-            self._cfh = ConfigTool(self.config_file, self._section)
-            self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
-            if not self._cfh.file_exists:
+            config = ConfigTool(self.config_file, self._section)
+            self._cfh = config
+            self._data[_Keys.MODCONF] = _ModuleConf(config, self._section)
+            if not config.file_exists:
                 self.logs.message_warning = (
                     f"config file '{self.config_file}' not exist"
                 )
@@ -184,6 +187,8 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     def __check_module_config_updates(self) -> bool:
         """Check module configs."""
         test = False
+        if self._cfh is None:
+            return False
         (com_mods, run_mods, config) = self.__get_modules_config()
         # check modules
         for name in com_mods + run_mods:
@@ -231,7 +236,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         # get config template
         for item in com_mods:
             config[item] = []
-            cmod: IComModule = self.import_module("modules.com", item)
+            cmod: IComModule = self.import_module("modules.com", item)  # type: ignore
             if cmod:
                 for mod_item in cmod.template_module_variables():
                     config[item].append(mod_item)
@@ -240,7 +245,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
 
         for item in run_mods:
             config[item] = []
-            rmod: IRunModule = self.import_module("modules.run", item)
+            rmod: IRunModule = self.import_module("modules.run", item)  # type: ignore
             if rmod:
                 for mod_item in rmod.template_module_variables():
                     config[item].append(mod_item)
@@ -250,6 +255,8 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
 
     def __create_config_file(self) -> bool:
         """Try to create config file."""
+        if self._cfh is None or self._section is None:
+            return False
         # main section
         (com_mods, run_mods, config) = self.__get_modules_config()
         # set header file
@@ -391,7 +398,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         """Return debug flag."""
         if _Keys.DEBUG not in self.__main:
             self.__main[_Keys.DEBUG] = False
-        if self._cfh:
+        if self._cfh and self._section:
             if self._cfh.get(self._section, _Keys.MC_DEBUG):
                 return True
         return self.__main[_Keys.DEBUG]
@@ -411,7 +418,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     def __get_modules_list(self, package: str) -> List:
         """Get configured modules list."""
         out = []
-        if self.module_conf.modules:
+        if self.module_conf and self.module_conf.modules:
             # try search importtable modules and compare it to config variable list
             name_list = self.import_name_list(package)
             if self.debug:
@@ -529,7 +536,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         """Return verbose flag."""
         if _Keys.VERBOSE not in self.__main:
             self.__main[_Keys.VERBOSE] = False
-        if self._cfh:
+        if self._cfh and self._section:
             if self._cfh.get(self._section, _Keys.MC_VERBOSE):
                 return True
         return self.__main[_Keys.VERBOSE]

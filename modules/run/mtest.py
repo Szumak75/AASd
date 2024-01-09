@@ -22,7 +22,6 @@ from jsktoolbox.datetool import Timestamp
 from libs.base.classes import BModule
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
-from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 
 
@@ -36,12 +35,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SLEEP_PERIOD = "sleep_period"
 
 
-class _ModuleConf(IModuleConfig, BModuleConfig):
+class _ModuleConf(BModuleConfig):
     """Module Config private class."""
-
-    def _get(self, varname: str) -> Any:
-        """Get variable from config."""
-        return self._cfh.get(self._section, varname)
 
     @property
     def sleep_period(self) -> float:

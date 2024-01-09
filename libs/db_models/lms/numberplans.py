@@ -37,7 +37,7 @@ class NumberPlan(LmsBase):
     isdefault: Mapped[int] = mapped_column(TINYINT(1), nullable=False, default=0)
     # PRIMARY KEY (`id`)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"NumberPlan(id='{self.id}', "
             f"template='{self.template}', "

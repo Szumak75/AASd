@@ -55,7 +55,7 @@ class NetLink(LmsBase):
     # CONSTRAINT `netlinks_ibfk_2` FOREIGN KEY (`dstradiosector`) REFERENCES `netradiosectors` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `netlinks_src_fkey` FOREIGN KEY (`src`) REFERENCES `netdevices` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"NetLink(id='{self.id}', "
             f"src='{self.src}', "

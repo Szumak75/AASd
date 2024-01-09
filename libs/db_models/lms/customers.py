@@ -89,7 +89,7 @@ class Customer(LmsBase):
     # CONSTRAINT `customers_divisionid_fkey` FOREIGN KEY (`divisionid`) REFERENCES `divisions` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `customers_modid_fkey` FOREIGN KEY (`modid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Customer(id='{self.id}', "
             f"extid='{self.extid}', "

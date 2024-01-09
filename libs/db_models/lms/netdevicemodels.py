@@ -38,7 +38,7 @@ class NetDeviceModel(LmsBase):
     # KEY `netdeviceproducerid` (`netdeviceproducerid`),
     # CONSTRAINT `netdevicemodels_ibfk_1` FOREIGN KEY (`netdeviceproducerid`) REFERENCES `netdeviceproducers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"NetDeviceModel(id='{self.id}', "
             f"netdeviceproducerid='{self.netdeviceproducerid}', "

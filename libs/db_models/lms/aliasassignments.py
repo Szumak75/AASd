@@ -39,7 +39,7 @@ class AliasAssignment(LmsBase):
     # CONSTRAINT `aliasassignments_accountid_fkey` FOREIGN KEY (`accountid`) REFERENCES `passwd` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     # CONSTRAINT `aliasassignments_aliasid_fkey` FOREIGN KEY (`aliasid`) REFERENCES `aliases` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"AliasAssignment(id='{self.id}', "
             f"aliasid='{self.aliasid}', "

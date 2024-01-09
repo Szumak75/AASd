@@ -42,7 +42,7 @@ class LocationCity(LmsBase):
     # CONSTRAINT `location_cities_ibfk_1` FOREIGN KEY (`boroughid`) REFERENCES `location_boroughs` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
     borough: Mapped["LocationBorough"] = relationship("LocationBorough")
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"LocationCity(id='{self.id}', "
             f"ident='{self.ident}', "

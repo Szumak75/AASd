@@ -37,7 +37,7 @@ class TariffAssignment(LmsBase):
     # CONSTRAINT `tariffassignments_tariffid_key` FOREIGN KEY (`tariffid`) REFERENCES `tariffs` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
     # CONSTRAINT `tariffassignments_tarifftagid_key` FOREIGN KEY (`tarifftagid`) REFERENCES `tarifftags` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"TariffAssignment(id='{self.id}', "
             f"tariffid='{self.tariffid}', "

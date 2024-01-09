@@ -41,7 +41,7 @@ class Tax(LmsBase):
     reversecharge: Mapped[int] = mapped_column(INTEGER(11), nullable=False, default=0)
     # PRIMARY KEY (`id`)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Tax(id='{self.id}', "
             f"value='{self.value}', "

@@ -62,7 +62,7 @@ class RtQueue(LmsBase):
     # KEY `rtqueues_deluserid_fkey` (`deluserid`),
     # CONSTRAINT `rtqueues_deluserid_fkey` FOREIGN KEY (`deluserid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"RtQueue(id='{self.id}', "
             f"name='{self.name}', "

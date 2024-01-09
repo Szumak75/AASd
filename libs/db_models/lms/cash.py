@@ -60,7 +60,7 @@ class Cash(LmsBase):
     # CONSTRAINT `cash_taxid_fkey` FOREIGN KEY (`taxid`) REFERENCES `taxes` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `cash_userid_fkey` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Cash(id='{self.id}', "
             f"time='{self.time}', "
@@ -68,9 +68,9 @@ class Cash(LmsBase):
             f"userid='{self.userid}', "
             f"value='{self.value}', "
             f"taxid='{self.taxid}', "
-            f"customerid='{self.customerid}', "
+            # f"customerid='{self.customerid}', "
             f"comment='{self.comment}', "
-            f"docid='{self.docid}', "
+            # f"docid='{self.docid}', "
             f"itemid='{self.itemid}', "
             f"importid='{self.importid}', "
             f"sourceid='{self.sourceid}' ) "

@@ -34,7 +34,7 @@ class LocationState(LmsBase):
     # PRIMARY KEY (`id`),
     # UNIQUE KEY `name` (`name`)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"LocationState(id='{self.id}', "
             f"ident='{self.ident}', "

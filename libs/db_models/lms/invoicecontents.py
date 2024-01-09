@@ -64,7 +64,7 @@ class InvoiceContent(LmsBase):
     # CONSTRAINT `invoicecontents_tariffid_fkey` FOREIGN KEY (`tariffid`) REFERENCES `tariffs` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `invoicecontents_taxid_fkey` FOREIGN KEY (`taxid`) REFERENCES `taxes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"InvoiceContent(docid='{self.docid}', "
             f"itemid='{self.itemid}', "

@@ -115,7 +115,7 @@ class Address(LmsBase):
             return self.house
         return None
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Address(id='{self.id}', "
             f"name='{self.name}', "

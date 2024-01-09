@@ -67,7 +67,7 @@ class Network(LmsBase):
     # KEY `hostid` (`hostid`),
     # CONSTRAINT `networks_ibfk_1` FOREIGN KEY (`hostid`) REFERENCES `hosts` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Network(id='{self.id}', "
             f"name='{self.name}', "

@@ -45,7 +45,7 @@ class Comment(LmsBase):
     # KEY `modified_at` (`domain_id`,`modified_at`),
     # CONSTRAINT `comments_domain_id_fkey` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Comment(id='{self.id}', "
             f"domain_id='{self.domain_id}', "

@@ -589,7 +589,8 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
         """Set stop event."""
         if self._debug:
             self.logs.message_debug = "stop signal received"
-        self._stop_event.set()
+        if self._stop_event:
+            self._stop_event.set()
 
     @property
     def stopped(self) -> bool:

@@ -54,7 +54,7 @@ class CashImport(LmsBase):
     # CONSTRAINT `cashimport_sourcefileid_fkey` FOREIGN KEY (`sourcefileid`) REFERENCES `sourcefiles` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `cashimport_sourceid_fkey` FOREIGN KEY (`sourceid`) REFERENCES `cashsources` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"CashImport(id='{self.id}', "
             f"date='{self.date}', "

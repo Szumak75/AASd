@@ -104,14 +104,14 @@ class Node(LmsBase):
     # CONSTRAINT `nodes_netdev_fkey` FOREIGN KEY (`netdev`) REFERENCES `netdevices` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `nodes_ownerid_fkey` FOREIGN KEY (`ownerid`) REFERENCES `customers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Node(id='{self.id}', "
             f"name='{self.name}', "
             f"ipaddr='{self.ipaddr}', "
             f"ipaddr_pub='{self.ipaddr_pub}', "
             f"passwd='{self.passwd}', "
-            f"ownerid='{self.ownerid}', "
+            # f"ownerid='{self.ownerid}', "
             f"creationdate='{self.creationdate}', "
             f"moddate='{self.moddate}', "
             f"creatorid='{self.creatorid}', "

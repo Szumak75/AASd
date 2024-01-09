@@ -135,7 +135,7 @@ class Document(LmsBase):
     # CONSTRAINT `documents_reference_fkey` FOREIGN KEY (`reference`) REFERENCES `documents` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
     # CONSTRAINT `documents_userid_fkey` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"Document(id='{self.id}', "
             f"type='{self.type}', "
