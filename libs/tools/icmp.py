@@ -46,7 +46,7 @@ class Pinger(BClasses):
         if not isinstance(timeout, int):
             raise Raise.error(
                 f"Expected Integer type, received: '{type(timeout)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -88,7 +88,7 @@ class Pinger(BClasses):
         if self._data[_Keys.COMMAND] is None:
             raise Raise.error(
                 "Command for testing ICMP echo not found.",
-                ChildProcessError,  # type: ignore
+                ChildProcessError,
                 self._c_name,
                 currentframe(),
             )
@@ -178,7 +178,7 @@ class Tracert(BClasses):
         if self._data[_Keys.COMMAND] is None:
             raise Raise.error(
                 "Command for testing ICMP echo not found.",
-                ChildProcessError,  # type: ignore
+                ChildProcessError,
                 self._c_name,
                 currentframe(),
             )

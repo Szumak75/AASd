@@ -71,7 +71,7 @@ class AtChannel(BClasses):
             except Exception as ex:
                 raise Raise.error(
                     f"String format error, check example in config file. Exception: {ex}",
-                    ValueError,  # type: ignore
+                    ValueError,
                     self._c_name,
                     currentframe(),
                 )
@@ -83,7 +83,7 @@ class AtChannel(BClasses):
                 except Exception as ex:
                     raise Raise.error(
                         f"String format error, check example in config file. Exception: {ex}",
-                        ValueError,  # type: ignore
+                        ValueError,
                         self._c_name,
                         currentframe(),
                     )
@@ -97,7 +97,7 @@ class AtChannel(BClasses):
                 except Exception as ex:
                     raise Raise.error(
                         f"String format error, check example in config file. Exception: {ex}",
-                        ValueError,  # type: ignore
+                        ValueError,
                         self._c_name,
                         currentframe(),
                     )
@@ -114,7 +114,7 @@ class AtChannel(BClasses):
                         except Exception as ex:
                             raise Raise.error(
                                 f"String format error, check example in config file. Exception: {ex}",
-                                ValueError,  # type: ignore
+                                ValueError,
                                 self._c_name,
                                 currentframe(),
                             )
@@ -124,7 +124,7 @@ class AtChannel(BClasses):
                     except Exception as ex:
                         raise Raise.error(
                             f"String format error, check example in config file. Exception: {ex}",
-                            ValueError,  # type: ignore
+                            ValueError,
                             self._c_name,
                             currentframe(),
                         )
@@ -138,7 +138,7 @@ class AtChannel(BClasses):
         if len(tmp) != 5:
             raise Raise.error(
                 f"String format error, check example in config file.",
-                ValueError,  # type: ignore
+                ValueError,
                 self._c_name,
                 currentframe(),
             )
@@ -161,7 +161,7 @@ class AtChannel(BClasses):
         if not isinstance(config_channel, List):
             raise Raise.error(
                 f"Expected List type, received: '{type(config_channel)}'",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -169,7 +169,7 @@ class AtChannel(BClasses):
             if item.find(":") < 0:
                 raise Raise.error(
                     f"Channel string format error, check example in config file.",
-                    ValueError,  # type: ignore
+                    ValueError,
                     self._c_name,
                     currentframe(),
                 )
@@ -254,7 +254,7 @@ class Channel(BClasses):
         if not isinstance(config_channel, List):
             raise Raise.error(
                 f"Expected List type, received: '{type(config_channel)}'",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -271,7 +271,7 @@ class Channel(BClasses):
         if channel in self._data[_Keys.CHANNELS]:
             raise Raise.error(
                 f"Duplicate channel key found: '{channel}'",
-                KeyError,  # type: ignore
+                KeyError,
                 self._c_name,
                 currentframe(),
             )
@@ -350,7 +350,7 @@ class Message(BClasses):
         else:
             raise Raise.error(
                 f"Expected integer type, received '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -366,7 +366,7 @@ class Message(BClasses):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -400,7 +400,7 @@ class Message(BClasses):
         if not isinstance(mdict, Dict):
             raise Raise.error(
                 f"Expected Dict type, received: '{type(mdict)}'",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -419,7 +419,7 @@ class Message(BClasses):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -436,7 +436,7 @@ class Message(BClasses):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -464,7 +464,7 @@ class Message(BClasses):
         else:
             raise Raise.error(
                 f"Expected string or list type, received '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -510,7 +510,7 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
         if not isinstance(channel, (str, int)):
             raise Raise.error(
                 f"Expected string or integer type, received '{type(channel)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -530,22 +530,27 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
         if self._debug:
             self.logs.message_debug = "entering to the main loop"
 
-        while not self.stopped:
-            try:
-                message: Message = self.qcom.get(block=True, timeout=0.1)
-                if message is None:
-                    continue
-
+        if self.qcom is not None:
+            while not self.stopped:
                 try:
-                    self.__dispatch_message(message)
-                except Exception as ex:
-                    self.logs.message_critical = f'error while dispatch message: "{ex}"'
-                self.qcom.task_done()
+                    message: Message = self.qcom.get(block=True, timeout=0.1)
+                    if message is None:
+                        continue
 
-            except Empty:
-                pass
-            except Exception as ex:
-                self.logs.message_critical = f'error while processing message: "{ex}"'
+                    try:
+                        self.__dispatch_message(message)
+                    except Exception as ex:
+                        self.logs.message_critical = (
+                            f'error while dispatch message: "{ex}"'
+                        )
+                    self.qcom.task_done()
+
+                except Empty:
+                    pass
+                except Exception as ex:
+                    self.logs.message_critical = (
+                        f'error while processing message: "{ex}"'
+                    )
 
         if self._debug:
             self.logs.message_debug = "exit from loop"
@@ -555,7 +560,7 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
         if not isinstance(message, Message):
             raise Raise.error(
                 f"Expected Message type, received '{type(message)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -575,7 +580,7 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
         else:
             raise Raise.error(
                 f"Received message with unknown channel: {message.channel}",
-                ValueError,  # type: ignore
+                ValueError,
                 self._c_name,
                 currentframe(),
             )

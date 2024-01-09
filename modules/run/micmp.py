@@ -60,7 +60,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
-                TypeError, # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -73,7 +73,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
-                TypeError, # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -86,7 +86,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if not isinstance(var, (int, float)):
             raise Raise.error(
                 "Expected float type.",
-                TypeError, # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )

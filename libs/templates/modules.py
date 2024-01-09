@@ -50,7 +50,7 @@ class TemplateConfigItem(BClasses):
         if not isinstance(string, str):
             raise Raise.error(
                 f"Expected String type, received: '{type(string)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -67,7 +67,7 @@ class TemplateConfigItem(BClasses):
         if not isinstance(value, (str, int, float, bool, list)):
             raise Raise.error(
                 f"Expected Union[str, int, float, bool, list] typs, received: '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -84,7 +84,7 @@ class TemplateConfigItem(BClasses):
         if not isinstance(name, str):
             raise Raise.error(
                 f"Expected String type, received: '{type(name)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )

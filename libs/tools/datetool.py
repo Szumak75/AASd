@@ -82,7 +82,7 @@ class MIntervals(BClasses):
         if match is None:
             raise Raise.error(
                 f"Converting error, given value: '{value}' is in an unknown format.",
-                ValueError,  # type: ignore
+                ValueError,
                 self._c_name,
                 currentframe(),
             )

@@ -79,7 +79,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if not isinstance(tmp, List):
             raise Raise.error(
                 "Expected type 'List' in variable 'modules'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -88,7 +88,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
                 if not isinstance(item, str):
                     raise Raise.error(
                         "Names were expected as strings in the module list.",
-                        TypeError,  # type: ignore
+                        TypeError,
                         self._c_name,
                         currentframe(),
                     )
@@ -345,7 +345,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -380,7 +380,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected String type, received: '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -402,7 +402,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, bool):
             raise Raise.error(
                 f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -461,7 +461,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, bool):
             raise Raise.error(
                 f"Expected boolean type, received '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -480,7 +480,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -499,7 +499,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -518,7 +518,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, bool):
             raise Raise.error(
                 f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -540,7 +540,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, bool):
             raise Raise.error(
                 f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
@@ -559,7 +559,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected String type, received: '{type(value)}'.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )

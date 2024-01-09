@@ -50,7 +50,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if not isinstance(var, (int, float)):
             raise Raise.error(
                 "Expected float type.",
-                TypeError,  # type: ignore
+                TypeError,
                 self._c_name,
                 currentframe(),
             )
