@@ -70,7 +70,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, int):
             raise Raise.error(
                 "Expected int type.",
-                TypeError,
+                TypeError, # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -85,7 +85,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if not isinstance(var, (int, float)):
             raise Raise.error(
                 "Expected float type.",
-                TypeError,
+                TypeError, # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -98,7 +98,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected str type.",
-                TypeError,
+                TypeError, # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -111,7 +111,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected str type.",
-                TypeError,
+                TypeError, # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -124,7 +124,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected str type.",
-                TypeError,
+                TypeError, # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -137,7 +137,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected str type.",
-                TypeError,
+                TypeError, # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -150,7 +150,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, (str, List)):
             raise Raise.error(
                 "Expected str or list type.",
-                TypeError,
+                TypeError, # type: ignore
                 self._c_name,
                 currentframe(),
             )

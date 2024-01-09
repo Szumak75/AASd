@@ -11,7 +11,7 @@ import re
 from re import Pattern, Match
 
 from datetime import date, datetime, timedelta, timezone
-from typing import Dict
+from typing import Dict, Optional
 from inspect import currentframe
 
 from jsktoolbox.raisetool import Raise
@@ -61,13 +61,13 @@ class MDateTime(DateTime):
 class MIntervals(BClasses):
     """Intervals converter class."""
 
-    __name = None
-    __re = None
+    __name: str = ""
+    __re: Optional[Pattern[str]] = None
 
     def __init__(self, module_name: str) -> None:
         """Constructor."""
-        self.__name: str = module_name
-        self.__re: Pattern[str] = re.compile(r"(\d+)\s*([wdhms])", re.IGNORECASE)
+        self.__name = module_name
+        self.__re = re.compile(r"(\d+)\s*([wdhms])", re.IGNORECASE)
 
     def convert(self, value: str) -> int:
         """Convert string value to seconds.
@@ -75,12 +75,14 @@ class MIntervals(BClasses):
         Arguments:
         value [str] - value to convert, format: (d)w: weeks, (d)d: days, (d)h: hours, (d)m: minutes, (d)s: seconds
         """
-        match: Match[str] | None = self.__re.match(value)
+        match: Optional[Match[str]] = None
+        if self.__re is not None:
+            match = self.__re.match(value)
 
-        if (match) is None:
+        if match is None:
             raise Raise.error(
                 f"Converting error, given value: '{value}' is in an unknown format.",
-                ValueError,
+                ValueError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )

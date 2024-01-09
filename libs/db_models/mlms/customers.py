@@ -36,15 +36,15 @@ class MCustomer(Customer):
     assignments: Mapped[List["MAssignment"]] = relationship("MAssignment")
 
     @hybrid_property
-    def balance(self) -> int:
+    def balance(self) -> float:
         """Returns balance of cash operations."""
         balance = 0
         for item in self.cash_operations:
             cash: MCash = item
             if cash.value < 0:
                 if cash.docid is not None:
-                    doc: MDocument = cash.doc
-                    if balance >= 0:
+                    doc: Optional[MDocument] = cash.doc
+                    if doc and balance >= 0:
                         # self.__debt_time = cash.time
                         self.__debt_time = doc.cdate
                         self.__pay_time = doc.paytime

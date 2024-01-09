@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine import URL, engine_from_config
+from sqlalchemy.util import immutabledict
 
 from jsktoolbox.libs.base_th import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
@@ -139,9 +140,11 @@ class _Database(BDebug, BLogs):
                     host=ip,
                     database=self._data[_Keys.SQL_DATABASE],
                     port=3306,
-                    query={
-                        "charset": "utf8mb4",
-                    },
+                    query=immutabledict(
+                        {
+                            "charset": "utf8mb4",
+                        }
+                    ),
                 )
                 try:
                     config["db.url"] = url
@@ -194,7 +197,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -206,7 +209,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         var = self._get(varname=_Keys.CUTOFF)
         if var is not None and not isinstance(var, int):
             raise Raise.error(
-                "Expected int type.", TypeError, self._c_name, currentframe()
+                "Expected int type.", TypeError, self._c_name, currentframe()  # type: ignore
             )
         return var
 
@@ -216,7 +219,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         var = self._get(varname=_Keys.DPAYTIME)
         if var is not None and not isinstance(var, int):
             raise Raise.error(
-                "Expected int type.", TypeError, self._c_name, currentframe()
+                "Expected int type.", TypeError, self._c_name, currentframe()  # type: ignore
             )
         return var
 
@@ -227,7 +230,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -240,7 +243,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected string type.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -253,7 +256,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, str):
             raise Raise.error(
                 "Expected string type.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -266,7 +269,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -279,7 +282,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, (list, str)):
             raise Raise.error(
                 "Expected string type.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -292,14 +295,14 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
         return var
 
     @property
-    def sleep_period(self) -> float:
+    def sleep_period(self) -> Optional[float]:
         """Return sleep_period var."""
         var = self._get(varname=_Keys.SLEEP_PERIOD)
         if var is None:
@@ -307,7 +310,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if not isinstance(var, (int, float)):
             raise Raise.error(
                 "Expected float type.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -320,7 +323,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -332,7 +335,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         var = self._get(varname=_Keys.SQL_DATABASE)
         if var is not None and not isinstance(var, str):
             raise Raise.error(
-                "Expected str type.", TypeError, self._c_name, currentframe()
+                "Expected str type.", TypeError, self._c_name, currentframe()  # type: ignore
             )
         return var
 
@@ -342,7 +345,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         var = self._get(varname=_Keys.SQL_USER)
         if var is not None and not isinstance(var, str):
             raise Raise.error(
-                "Expected str type.", TypeError, self._c_name, currentframe()
+                "Expected str type.", TypeError, self._c_name, currentframe() # type: ignore
             )
         return var
 
@@ -352,7 +355,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         var = self._get(varname=_Keys.SQL_PASS)
         if var is not None and not isinstance(var, str):
             raise Raise.error(
-                "Expected str type", TypeError, self._c_name, currentframe()
+                "Expected str type", TypeError, self._c_name, currentframe() # type: ignore
             )
         return var
 

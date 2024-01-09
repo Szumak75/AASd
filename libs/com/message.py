@@ -71,7 +71,7 @@ class AtChannel(BClasses):
             except Exception as ex:
                 raise Raise.error(
                     f"String format error, check example in config file. Exception: {ex}",
-                    ValueError,
+                    ValueError,  # type: ignore
                     self._c_name,
                     currentframe(),
                 )
@@ -83,7 +83,7 @@ class AtChannel(BClasses):
                 except Exception as ex:
                     raise Raise.error(
                         f"String format error, check example in config file. Exception: {ex}",
-                        ValueError,
+                        ValueError,  # type: ignore
                         self._c_name,
                         currentframe(),
                     )
@@ -97,7 +97,7 @@ class AtChannel(BClasses):
                 except Exception as ex:
                     raise Raise.error(
                         f"String format error, check example in config file. Exception: {ex}",
-                        ValueError,
+                        ValueError,  # type: ignore
                         self._c_name,
                         currentframe(),
                     )
@@ -114,7 +114,7 @@ class AtChannel(BClasses):
                         except Exception as ex:
                             raise Raise.error(
                                 f"String format error, check example in config file. Exception: {ex}",
-                                ValueError,
+                                ValueError,  # type: ignore
                                 self._c_name,
                                 currentframe(),
                             )
@@ -124,7 +124,7 @@ class AtChannel(BClasses):
                     except Exception as ex:
                         raise Raise.error(
                             f"String format error, check example in config file. Exception: {ex}",
-                            ValueError,
+                            ValueError,  # type: ignore
                             self._c_name,
                             currentframe(),
                         )
@@ -138,7 +138,7 @@ class AtChannel(BClasses):
         if len(tmp) != 5:
             raise Raise.error(
                 f"String format error, check example in config file.",
-                ValueError,
+                ValueError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -161,6 +161,7 @@ class AtChannel(BClasses):
         if not isinstance(config_channel, List):
             raise Raise.error(
                 f"Expected List type, received: '{type(config_channel)}'",
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -168,7 +169,7 @@ class AtChannel(BClasses):
             if item.find(":") < 0:
                 raise Raise.error(
                     f"Channel string format error, check example in config file.",
-                    ValueError,
+                    ValueError,  # type: ignore
                     self._c_name,
                     currentframe(),
                 )
@@ -253,6 +254,7 @@ class Channel(BClasses):
         if not isinstance(config_channel, List):
             raise Raise.error(
                 f"Expected List type, received: '{type(config_channel)}'",
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -269,7 +271,7 @@ class Channel(BClasses):
         if channel in self._data[_Keys.CHANNELS]:
             raise Raise.error(
                 f"Duplicate channel key found: '{channel}'",
-                KeyError,
+                KeyError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -348,7 +350,7 @@ class Message(BClasses):
         else:
             raise Raise.error(
                 f"Expected integer type, received '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -364,7 +366,7 @@ class Message(BClasses):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -398,7 +400,7 @@ class Message(BClasses):
         if not isinstance(mdict, Dict):
             raise Raise.error(
                 f"Expected Dict type, received: '{type(mdict)}'",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -417,7 +419,7 @@ class Message(BClasses):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -434,7 +436,7 @@ class Message(BClasses):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -455,14 +457,14 @@ class Message(BClasses):
             self._data[_Keys.MTO] = []
         if isinstance(value, str):
             self._data[_Keys.MTO].append(value)
-        elif isinstance(value, List[str]):
+        elif isinstance(value, list):
             for item in value:
                 if item:
                     self._data[_Keys.MTO].append(item)
         else:
             raise Raise.error(
                 f"Expected string or list type, received '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -508,7 +510,7 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
         if not isinstance(channel, (str, int)):
             raise Raise.error(
                 f"Expected string or integer type, received '{type(channel)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -553,7 +555,7 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
         if not isinstance(message, Message):
             raise Raise.error(
                 f"Expected Message type, received '{type(message)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -573,7 +575,7 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
         else:
             raise Raise.error(
                 f"Received message with unknown channel: {message.channel}",
-                ValueError,
+                ValueError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -587,7 +589,9 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
     @property
     def stopped(self) -> bool:
         """Return stop flag."""
-        return self._stop_event.is_set()
+        if self._stop_event is not None:
+            return self._stop_event.is_set()
+        return False
 
 
 # #[EOF]#######################################################################

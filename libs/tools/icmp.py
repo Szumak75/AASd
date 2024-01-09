@@ -46,7 +46,7 @@ class Pinger(BClasses):
         if not isinstance(timeout, int):
             raise Raise.error(
                 f"Expected Integer type, received: '{type(timeout)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -76,17 +76,19 @@ class Pinger(BClasses):
                 _Keys.OPTS: "-q -c3 -W{} {} >/dev/null 2>&1",
             }
         )
-        (
-            self._data[_Keys.COMMAND],
-            self._data[_Keys.MULTIPLIER],
-        ) = self.__is_tool
+        tmp: Optional[tuple] = self.__is_tool
+        if tmp:
+            (
+                self._data[_Keys.COMMAND],
+                self._data[_Keys.MULTIPLIER],
+            ) = tmp
 
     def is_alive(self, ip: str) -> bool:
         """Check ICMP echo response."""
         if self._data[_Keys.COMMAND] is None:
             raise Raise.error(
                 "Command for testing ICMP echo not found.",
-                ChildProcessError,
+                ChildProcessError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -102,7 +104,7 @@ class Pinger(BClasses):
         return False
 
     @property
-    def __is_tool(self) -> Optional[Tuple[str]]:
+    def __is_tool(self) -> Optional[tuple]:
         """Check system command."""
         for cmd in self._data[_Keys.COMMANDS]:
             if find_executable(cmd[_Keys.CMD]) is not None:
@@ -176,7 +178,7 @@ class Tracert(BClasses):
         if self._data[_Keys.COMMAND] is None:
             raise Raise.error(
                 "Command for testing ICMP echo not found.",
-                ChildProcessError,
+                ChildProcessError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -193,8 +195,9 @@ class Tracert(BClasses):
             },
             stdout=subprocess.PIPE,
         ) as proc:
-            for line in proc.stdout:
-                out.append(line.decode("utf-8"))
+            if proc.stdout is not None:
+                for line in proc.stdout:
+                    out.append(line.decode("utf-8"))
         return out
 
 

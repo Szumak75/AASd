@@ -58,7 +58,9 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
 
     def _get(self, varname: str) -> Any:
         """Get variable from config."""
-        return self._cfh.get(self._section, varname)
+        if self._cfh and self._section:
+            return self._cfh.get(self._section, varname)
+        return None
 
     @property
     def debug(self) -> bool:
@@ -77,7 +79,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if not isinstance(tmp, List):
             raise Raise.error(
                 "Expected type 'List' in variable 'modules'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -86,7 +88,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
                 if not isinstance(item, str):
                     raise Raise.error(
                         "Names were expected as strings in the module list.",
-                        TypeError,
+                        TypeError,  # type: ignore
                         self._c_name,
                         currentframe(),
                     )
@@ -159,6 +161,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             )
             if self.debug:
                 self.logs.message_debug = f"{ex}"
+            return False
 
     def save(self) -> bool:
         """Try to save config file."""
@@ -228,17 +231,18 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         # get config template
         for item in com_mods:
             config[item] = []
-            mod: IComModule = self.import_module("modules.com", item)
-            if mod:
-                for mod_item in mod.template_module_variables():
+            cmod: IComModule = self.import_module("modules.com", item)
+            if cmod:
+                for mod_item in cmod.template_module_variables():
                     config[item].append(mod_item)
             else:
                 self.logs.message_error = f"Cannot load module: modules.com.'{item}'"
+
         for item in run_mods:
             config[item] = []
-            mod: IRunModule = self.import_module("modules.run", item)
-            if mod:
-                for mod_item in mod.template_module_variables():
+            rmod: IRunModule = self.import_module("modules.run", item)
+            if rmod:
+                for mod_item in rmod.template_module_variables():
                     config[item].append(mod_item)
             else:
                 self.logs.message_error = f"Cannot load module: modules.run.'{item}'"
@@ -341,7 +345,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -376,7 +380,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected String type, received: '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -398,13 +402,13 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, bool):
             raise Raise.error(
                 f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
         self.__main[_Keys.DEBUG] = value
 
-    def __get_modules_list(self, package: str) -> List[Union[IComModule, IRunModule]]:
+    def __get_modules_list(self, package: str) -> List:
         """Get configured modules list."""
         out = []
         if self.module_conf.modules:
@@ -457,7 +461,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, bool):
             raise Raise.error(
                 f"Expected boolean type, received '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -476,7 +480,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -495,7 +499,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected string type, received '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -514,7 +518,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, bool):
             raise Raise.error(
                 f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -536,7 +540,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, bool):
             raise Raise.error(
                 f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -555,7 +559,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if not isinstance(value, str):
             raise Raise.error(
                 f"Expected String type, received: '{type(value)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )

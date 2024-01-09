@@ -50,26 +50,26 @@ class TemplateConfigItem(BClasses):
         if not isinstance(string, str):
             raise Raise.error(
                 f"Expected String type, received: '{type(string)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
-                currentframe,
+                currentframe(),
             )
         self.__desc = string
 
     @property
-    def value(self) -> Optional[str]:
+    def value(self) -> Optional[Union[str, int, float, bool, List]]:
         """Return value."""
         return self.__val
 
     @value.setter
     def value(self, value: Union[str, int, float, bool, List]) -> None:
         """Set value."""
-        if not isinstance(value, (str, int, float, bool, List)):
+        if not isinstance(value, (str, int, float, bool, list)):
             raise Raise.error(
-                f"Expected Union[str, int, float, bool, List] typs, received: '{type(value)}'.",
-                TypeError,
+                f"Expected Union[str, int, float, bool, list] typs, received: '{type(value)}'.",
+                TypeError,  # type: ignore
                 self._c_name,
-                currentframe,
+                currentframe(),
             )
         self.__val = value
 
@@ -84,9 +84,9 @@ class TemplateConfigItem(BClasses):
         if not isinstance(name, str):
             raise Raise.error(
                 f"Expected String type, received: '{type(name)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
-                currentframe,
+                currentframe(),
             )
         self.__var = name
 

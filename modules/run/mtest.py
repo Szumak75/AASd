@@ -50,7 +50,7 @@ class _ModuleConf(IModuleConfig, BModuleConfig):
         if not isinstance(var, (int, float)):
             raise Raise.error(
                 "Expected float type.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -90,7 +90,7 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
         try:
-            if self.module_conf.sleep_period:
+            if self.module_conf and self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
         except Exception as ex:
             self.logs.message_critical = f"{ex}"
@@ -133,7 +133,9 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
     @property
     def debug(self) -> bool:
         """Return debug flag."""
-        return self._debug
+        if self._debug is not None:
+            return self._debug
+        return False
 
     @property
     def verbose(self) -> bool:
@@ -143,7 +145,9 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
     @property
     def stopped(self) -> bool:
         """Return stop flag."""
-        return self._stop_event.is_set()
+        if self._stop_event:
+            return self._stop_event.is_set()
+        return True
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:

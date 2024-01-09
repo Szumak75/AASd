@@ -37,7 +37,7 @@ class BConfigHandler(BClasses):
         if not isinstance(config_handler, ConfigTool):
             raise Raise.error(
                 f"Expected ConfigTool type, received'{type(config_handler)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -88,7 +88,7 @@ class BImporter(BClasses):
         if not isinstance(package, str):
             raise Raise.error(
                 f"Expected package name as string type, received: '{type(package)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -133,7 +133,7 @@ class BLogs(BClasses):
         if not isinstance(logs, LoggerClient):
             raise Raise.error(
                 f"Expected LoggerClient type, received: '{type(logs)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -156,7 +156,7 @@ class BCom(BClasses):
         if not isinstance(queue, Queue):
             raise Raise.error(
                 f"Expected Queue type, received: '{type(queue)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -183,7 +183,7 @@ class BConfig(BClasses):
         if not isinstance(conf_obj, Config):
             raise Raise.error(
                 f"Expected Config class type, received: '{type(conf_obj)}'.",
-                TypeError,
+                TypeError,  # type: ignore
                 self._c_name,
                 currentframe(),
             )
@@ -218,7 +218,11 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         """Return debug flag."""
         if Keys.DEBUG not in self._data:
             self._data[Keys.DEBUG] = False
-        if self._cfh and self._cfh.get(self._section, "debug") is not None:
+        if (
+            self._cfh
+            and self._section
+            and self._cfh.get(self._section, "debug") is not None
+        ):
             return self._cfh.get(self._section, "debug") or self._data[Keys.DEBUG]
         return self._data[Keys.DEBUG]
 
@@ -232,7 +236,11 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
         """Return verbose flag."""
         if Keys.VERBOSE not in self._data:
             self._data[Keys.VERBOSE] = False
-        if self._cfh and self._cfh.get(self._section, "verbose") is not None:
+        if (
+            self._cfh
+            and self._section
+            and self._cfh.get(self._section, "verbose") is not None
+        ):
             return self._cfh.get(self._section, "verbose") or self._data[Keys.VERBOSE]
         return self._data[Keys.VERBOSE]
 
