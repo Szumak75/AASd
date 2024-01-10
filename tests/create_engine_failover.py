@@ -135,7 +135,11 @@ class _Database(BDebug, BLogs):
             "db.echo_pool": True,
             "db.query_cache_size": 10,
         }
-        connection_args = {"raise_on_warnings": True, "failover": []}
+        connection_args = {
+            "raise_on_warnings": True,
+            "connect_timeout": 30,
+            "failover": [],
+        }
 
         for ip in self._data[_Keys.SQL_SERVER][1:]:
             connection_args["failover"].append(
