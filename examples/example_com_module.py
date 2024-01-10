@@ -104,6 +104,9 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
 
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
+        if self.module_conf is None:
+            return False
+
         try:
             if self.module_conf.sleep_period is not None:
                 self.sleep_period = self.module_conf.sleep_period
@@ -130,6 +133,9 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
     def run(self) -> None:
         """Main loop."""
         self.logs.message_notice = "starting..."
+
+        if self.module_conf is None or self.qcom is None:
+            return None
 
         # initialize local vars
 
@@ -182,12 +188,15 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         """Set stop event."""
         if self._debug:
             self.logs.message_debug = "stop signal received"
-        self._stop_event.set()
+        if self._stop_event:
+            self._stop_event.set()
 
     @property
     def debug(self) -> bool:
         """Return debug flag."""
-        return self._debug
+        if self._debug is not None:
+            return self._debug
+        return False
 
     @property
     def verbose(self) -> bool:
@@ -197,7 +206,9 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
     @property
     def stopped(self) -> bool:
         """Return stop flag."""
-        return self._stop_event.is_set()
+        if self._stop_event:
+            return self._stop_event.is_set()
+        return True
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:

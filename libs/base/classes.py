@@ -12,7 +12,6 @@ from inspect import currentframe
 from typing import Optional, List, Any
 from queue import Queue
 
-from jsktoolbox.attribtool import NoDynamicAttributes
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.libs.base_data import BData as BClasses
 from jsktoolbox.logstool.logs import LoggerClient
@@ -51,7 +50,7 @@ class BConfigSection(BClasses):
     def _section(self) -> Optional[str]:
         """Return section name."""
         if Keys.SECTION not in self._data:
-            self._section = None
+            self._data[Keys.SECTION] = None
         return self._data[Keys.SECTION]
 
     @_section.setter

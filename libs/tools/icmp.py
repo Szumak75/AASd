@@ -11,7 +11,7 @@ import subprocess
 
 from inspect import currentframe
 from distutils.spawn import find_executable
-from typing import Optional, Dict, List, Tuple
+from typing import Optional, Dict, List
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise

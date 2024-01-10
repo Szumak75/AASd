@@ -8,7 +8,7 @@
 
 from datetime import datetime
 from inspect import currentframe
-from typing import Optional, Union, Dict, List, Any
+from typing import Optional, Union, Dict, List
 from threading import Thread, Event
 from queue import Queue, Empty, Full
 
@@ -320,7 +320,7 @@ class Multipart(object, metaclass=ReadOnlyClass):
 class Message(BClasses):
     """Communication message container class."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Constructor."""
         self._data[_Keys.MMESS] = []
         self._data[_Keys.MMULTIPART] = None

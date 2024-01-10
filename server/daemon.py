@@ -13,7 +13,7 @@ import gc
 import setproctitle
 
 from inspect import currentframe
-from typing import Dict, List
+from typing import Dict, List, Optional
 from queue import Queue
 
 from jsktoolbox.raisetool import Raise
@@ -34,6 +34,7 @@ from jsktoolbox.logstool.formatters import (
     LogFormatterNull,
 )
 from jsktoolbox.libs.system import CommandLineParser
+from jsktoolbox.libs.base_logs import LoggerQueue
 from jsktoolbox.stringtool.crypto import SimpleCrypto
 
 from libs.base.classes import BProjectClass, BImporter
@@ -56,6 +57,10 @@ class AASd(BProjectClass, BImporter):
 
         # logger engines configuration
         lengine = LoggerEngine()
+        lqueue = lengine.logs_queue
+        if lqueue is None:
+            lqueue = LoggerQueue()
+            lengine.logs_queue = lqueue
 
         # logger levels
         self.__init_log_levels(lengine)
@@ -71,16 +76,16 @@ class AASd(BProjectClass, BImporter):
         self.logs_processor = thl
 
         # add config handler
-        self.conf = Config(qlog=lengine.logs_queue, app_name=self._c_name)
+        if self.conf is None:
+            self.conf = Config(qlog=lqueue, app_name=self._c_name)
         self.conf.version = "1.0.DEV"
         self.conf.debug = False
         # the default config file path can be overwritten with the command line argument '-f'.
-        self.conf.config_file = (
-            "/var/tmp/aasd.conf"
-            if (self.conf.version and self.conf.version.find("DEV") > -1)
-            or not self.conf.version
-            else "/etc/aasd.conf"
-        )
+        cver: Optional[str] = self.conf.version
+        if cver and cver.find("DEV") > -1:
+            self.conf.config_file = "/var/tmp/aasd.conf"
+        else:
+            self.conf.config_file = "/etc/aasd.conf"
 
         # command line parser
         self.__init_command_line()
@@ -113,7 +118,8 @@ class AASd(BProjectClass, BImporter):
         signal.signal(signal.SIGINT, self.__sig_exit)
 
         # others
-        setproctitle.setproctitle(self.conf.app_name)
+        if self.conf.app_name:
+            setproctitle.setproctitle(self.conf.app_name)
         gc.enable()
 
     def __start_subsystem(self) -> List:
@@ -122,6 +128,9 @@ class AASd(BProjectClass, BImporter):
         Returns: List[ List[comms_mods], List[running_mods], ThDispatcher ]
         """
         self.logs.message_info = "starting..."
+
+        if self.logs is None or self.conf is None or self.logs.logs_queue is None:
+            return [None, None]
 
         # communication queue
         qcom = Queue()
@@ -149,7 +158,7 @@ class AASd(BProjectClass, BImporter):
                     self.logs.logs_queue,
                     self.conf.verbose,
                     self.conf.debug,
-                )
+                )  # type: ignore
                 o_mod.qcom = dispatch.register_queue(o_mod.module_conf.channel)
                 o_mod.start()
                 com_mods.append(o_mod)
@@ -167,7 +176,7 @@ class AASd(BProjectClass, BImporter):
                     qcom,
                     self.conf.verbose,
                     self.conf.debug,
-                )
+                )  # type: ignore
                 o_mod.start()
                 run_mods.append(o_mod)
             except Exception as ex:
@@ -185,14 +194,14 @@ class AASd(BProjectClass, BImporter):
         # stopping & joining running modules
         for mod in run_mods:
             mod.stop()
-            while mod.is_stopped != True:
-                mod.join()
+            while mod.is_stopped != True:  # type: ignore
+                mod.join()  # type: ignore
                 time.sleep(0.1)
-
+        # stopping & joining cummunication modules
         for mod in com_mods:
             mod.stop()
-            while mod.is_stopped != True:
-                mod.join()
+            while mod.is_stopped != True:  # type: ignore
+                mod.join()  # type: ignore
                 time.sleep(0.1)
 
         # dispatcher processor
@@ -203,6 +212,8 @@ class AASd(BProjectClass, BImporter):
 
     def run(self) -> None:
         """Start daemon."""
+        if self.conf is None:
+            return None
         # logger processor
         self.logs_processor.start()
 
@@ -280,6 +291,8 @@ class AASd(BProjectClass, BImporter):
 
     def __init_command_line(self) -> None:
         """Configure ConnamdLineParser and update config."""
+        if self.conf is None:
+            return None
         parser = CommandLineParser()
 
         # arguments configuration
@@ -300,13 +313,13 @@ class AASd(BProjectClass, BImporter):
             "password encryptor, valid only with [--section=] and [--varname=] option",
         )
         parser.configure_argument(
-            None,
+            "",
             "section",
             "section name for encrypt password",
             has_value=True,
         )
         parser.configure_argument(
-            None,
+            "",
             "varname",
             "varname in section to encrypt password",
             has_value=True,
@@ -325,7 +338,7 @@ class AASd(BProjectClass, BImporter):
         if parser.get_option("updateconf") is not None:
             self.conf.update = True
         if parser.get_option("file") is not None:
-            self.conf.config_file = parser.get_option("file")
+            self.conf.config_file = parser.get_option("file")  # type: ignore
         if parser.get_option("password") is not None:
             if (
                 parser.get_option("section") is None
@@ -338,8 +351,8 @@ class AASd(BProjectClass, BImporter):
                 print("")
                 self.__help(parser.dump())
             self.conf.password = True
-            self.conf._password_section = parser.get_option("section")
-            self.conf._password_varname = parser.get_option("varname")
+            self.conf._password_section = parser.get_option("section")  # type: ignore
+            self.conf._password_varname = parser.get_option("varname")  # type: ignore
 
     def __init_log_levels(self, engine: LoggerEngine) -> None:
         """Set logging levels configuration for LoggerEngine."""
@@ -418,6 +431,8 @@ class AASd(BProjectClass, BImporter):
 
     def __password_encoding(self) -> None:
         """Encode given password."""
+        if self.conf is None or self.conf.cf is None or self.conf._section is None:
+            return None
         # check salt, given section name and varname
         salt = self.conf.cf.get(self.conf._section, "salt")
         if salt is None:
@@ -425,14 +440,20 @@ class AASd(BProjectClass, BImporter):
                 "The 'salt' variable is missing from the main section of the configuration file."
             )
             sys.exit(2)
-        if not self.conf.cf.has_section(self.conf._password_section):
+        if self.conf._password_section and not self.conf.cf.has_section(
+            self.conf._password_section
+        ):
             print(
                 f"The specified section name '{self.conf._password_section}' was not found in the configuration file."
             )
             sys.exit(2)
 
-        if not self.conf.cf.has_varname(
-            self.conf._password_section, self.conf._password_varname
+        if (
+            self.conf._password_section
+            and self.conf._password_varname
+            and not self.conf.cf.has_varname(
+                self.conf._password_section, self.conf._password_varname
+            )
         ):
             print(
                 f"The specified variable name '{self.conf._password_varname}' was not found in the configuration section: '{self.conf._password_section}'."
@@ -444,27 +465,28 @@ class AASd(BProjectClass, BImporter):
             if password == "":
                 print('Type: "EXIT" to break.')
             elif password == "EXIT":
-                return
+                return None
             else:
                 break
         encrypt = SimpleCrypto.multiple_encrypt(salt, password)
-        self.conf.cf.set(
-            self.conf._password_section, self.conf._password_varname, encrypt
-        )
-        if self.conf.save():
-            print(f'Config file "{self.conf.config_file}" updated.')
-        else:
-            print(f"Error updating config file.")
+        if self.conf._password_section:
+            self.conf.cf.set(
+                self.conf._password_section, self.conf._password_varname, encrypt
+            )
+            if self.conf.save():
+                print(f'Config file "{self.conf.config_file}" updated.')
+            else:
+                print(f"Error updating config file.")
 
     def __sig_exit(self, signum: int, frame) -> None:
         """Received TERM|INT signal."""
-        if self.conf.debug:
+        if self.conf and self.conf.debug:
             self.logs.message_debug = "TERM or INT signal received."
         self.loop = False
 
     def __sig_hup(self, signum: int, frame) -> None:
         """Received HUP signal."""
-        if self.conf.debug:
+        if self.conf and self.conf.debug:
             self.logs.message_debug = "HUP signal received."
         self.hup = True
 

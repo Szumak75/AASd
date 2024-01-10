@@ -21,7 +21,7 @@ from libs.base.classes import (
     BModuleConfig,
     BImporter,
 )
-from libs.interfaces.conf import IModuleConfig
+
 from libs.interfaces.modules import IComModule, IRunModule
 from libs.templates.modules import TemplateConfigItem
 
@@ -53,14 +53,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
     VERSION = "__VERSION__"
 
 
-class _ModuleConf(IModuleConfig, BModuleConfig):
+class _ModuleConf(BModuleConfig):
     """Module Config private class."""
-
-    def _get(self, varname: str) -> Any:
-        """Get variable from config."""
-        if self._cfh and self._section:
-            return self._cfh.get(self._section, varname)
-        return None
 
     @property
     def debug(self) -> bool:
@@ -129,6 +123,12 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     def load(self) -> bool:
         """Try to load config file."""
         if self.config_file is None or self._section is None:
+            self.logs.message_critical = (
+                f"UNRECOVERABLE ERROR: {self._c_name}.{self._f_name}"
+            )
+            self.logs.message_error = (
+                f"config file: {self.config_file}, section:{self._section}"
+            )
             return False
         if self._cfh is None:
             config = ConfigTool(self.config_file, self._section)
@@ -151,6 +151,11 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             if out:
                 if self.debug:
                     self.logs.message_debug = "config file loaded successful"
+                if self.module_conf and self.module_conf.modules:
+                    self.logs.message_info = (
+                        f"list of modules to enable: {self.module_conf.modules}"
+                    )
+
             # check module updates
             if self.__check_module_config_updates():
                 if self.debug:
@@ -174,7 +179,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                     self.logs.message_debug = "config file saved successful"
                 return True
             else:
-                self.logs.message_critical = (
+                self.logs.message_warning = (
                     f"cannot save config file: '{self.config_file}'"
                 )
         return False
@@ -189,7 +194,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         test = False
         if self._cfh is None:
             return False
-        (com_mods, run_mods, config) = self.__get_modules_config()
+        com_mods, run_mods, config = self.__get_modules_config()
         # check modules
         for name in com_mods + run_mods:
             if not self._cfh.has_section(name):
@@ -241,7 +246,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 for mod_item in cmod.template_module_variables():
                     config[item].append(mod_item)
             else:
-                self.logs.message_error = f"Cannot load module: modules.com.'{item}'"
+                self.logs.message_error = f"Cannot load module: modules.com.{item}"
 
         for item in run_mods:
             config[item] = []
@@ -250,7 +255,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 for mod_item in rmod.template_module_variables():
                     config[item].append(mod_item)
             else:
-                self.logs.message_error = f"Cannot load module: modules.run.'{item}'"
+                self.logs.message_error = f"Cannot load module: modules.run.{item}"
         return com_mods, run_mods, config
 
     def __create_config_file(self) -> bool:
