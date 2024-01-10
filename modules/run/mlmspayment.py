@@ -114,7 +114,7 @@ class _Database(BDebug, BLogs):
         self._data[_Keys.SQL_PASS] = config[_Keys.SQL_PASS]
 
         # connection pool
-        self._data[_Keys.DPOOL] = []
+        self._data[_Keys.DPOOL] = None
 
     def create_connections(self) -> bool:
         """Create connections pool."""
@@ -123,62 +123,78 @@ class _Database(BDebug, BLogs):
             "db.echo": False,
             "db.poolclass": QueuePool,
             "db.pool_pre_ping": True,
-            "db.pool_size": 5,
+            "db.pool_size": 15,
             "db.pool_recycle": 120,
-            # "db.pool_use_lifo": True,
             "db.echo_pool": True,
             "db.query_cache_size": 10,
         }
-        for ip in self._data[_Keys.SQL_SERVER]:
-            ipo = Address(ip)
-            for dialect in ("pymysql", "mysqlconnector"):
-                url = URL(
-                    f"mysql+{dialect}",
-                    username=self._data[_Keys.SQL_USER],
-                    password=self._data[_Keys.SQL_PASS],
-                    host=ip,
-                    database=self._data[_Keys.SQL_DATABASE],
-                    port=3306,
-                    query=immutabledict(
-                        {
-                            "charset": "utf8mb4",
-                        }
-                    ),
-                )
-                try:
-                    config["db.url"] = url
-                    engine: Engine = engine_from_config(config, prefix="db.")
-                    with engine.connect() as connection:
-                        connection.execute(text("SELECT 1"))
-                    if self._debug:
-                        self.logs.message_debug = (
-                            f"add connection to server: {ipo} with backend: {dialect}"
-                        )
-                    self._data[_Keys.DPOOL].append(engine)
-                    break
-                except Exception as ex:
-                    if self._debug:
-                        self.logs.message_debug = (
-                            f"Create engine thrown exception: {ex}"
-                        )
-        if len(self._data[_Keys.DPOOL]) > 0:
+        connection_args = {"raise_on_warnings": True, "failover": []}
+
+        for ip in self._data[_Keys.SQL_SERVER][1:]:
+            connection_args["failover"].append(
+                {
+                    "user": self._data[_Keys.SQL_USER],
+                    "password": self._data[_Keys.SQL_PASS],
+                    "host": ip,
+                    "port": 3306,
+                    "database": self._data[_Keys.SQL_DATABASE],
+                }
+            )
+
+        for dialect, fail in (("mysqlconnector", True), ("pymysql", False)):
+            url = URL(
+                f"mysql+{dialect}",
+                username=self._data[_Keys.SQL_USER],
+                password=self._data[_Keys.SQL_PASS],
+                host=self._data[_Keys.SQL_SERVER][0],
+                database=self._data[_Keys.SQL_DATABASE],
+                port=3306,
+                query=immutabledict(
+                    {
+                        "charset": "utf8mb4",
+                    }
+                ),
+            )
+            try:
+                config["db.url"] = url
+
+                if fail:
+                    engine = engine_from_config(
+                        config, prefix="db.", connect_args=connection_args
+                    )
+                else:
+                    engine = engine_from_config(config, prefix="db.")
+
+                with engine.connect() as connection:
+                    connection.execute(text("SELECT 1"))
+                if self._debug:
+                    self.logs.message_debug = f"add connection to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect}"
+                self._data[_Keys.DPOOL] = engine
+                break
+            except Exception as ex:
+                if self._debug:
+                    self.logs.message_debug = f"Create engine thrown exception: {ex}"
+
+        if self._data[_Keys.DPOOL]:
             return True
+
         return False
 
     @property
     def session(self) -> Optional[Session]:
         """Returns db session."""
         session = None
-        for item in self._data[_Keys.DPOOL]:
-            engine: Engine = item
+        if self._data[_Keys.DPOOL]:
+            engine: Engine = self._data[_Keys.DPOOL]
             try:
                 session = Session(engine)
                 session.query(func.max(mlms.MCustomer.id))
                 if self._debug:
                     self.logs.message_debug = f"create session for {engine}"
+
             except:
                 session = None
-                continue
+
         return session
 
 

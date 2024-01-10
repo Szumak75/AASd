@@ -38,7 +38,6 @@ from jsktoolbox.datetool import Timestamp
 from libs.base.classes import BModule, BLogs, BDebug
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
-from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, AtChannel
 from libs.tools.datetool import MDateTime
