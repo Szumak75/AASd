@@ -1,0 +1,9 @@
+# TODO
+## [templating with Mako]
+https://docs.makotemplates.org/en/latest/
+
+## [daemon]
+limits for communication queue
+
+## [mlmspayment]
+implement communication failover
