@@ -9,13 +9,14 @@
 import os
 
 from inspect import currentframe
-from typing import Optional, List, Any
+from typing import Optional, List, Any, Union
 from queue import Queue
 
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.libs.base_data import BData as BClasses
 from jsktoolbox.logstool.logs import LoggerClient
 from jsktoolbox.configtool.main import Config as ConfigTool
+from jsktoolbox.attribtool import ReadOnlyClass
 
 from libs.keys import Keys
 
@@ -64,6 +65,12 @@ class BConfigSection(BClasses):
 class BModuleConfig(BConfigHandler, BConfigSection):
     """Base class for module config classes."""
 
+    class Keys(object, metaclass=ReadOnlyClass):
+        """Keys definition container class."""
+
+        SLEEP_PERIOD = "sleep_period"
+        MODCONF = "__MODULE_CONF__"
+
     def __init__(self, cfh: ConfigTool, section: Optional[str]) -> None:
         """Constructor."""
         self._cfh = cfh
@@ -74,6 +81,21 @@ class BModuleConfig(BConfigHandler, BConfigSection):
         if self._cfh and self._section:
             return self._cfh.get(self._section, varname)
         return None
+
+    @property
+    def sleep_period(self) -> Optional[float]:
+        """Return sleep_period var."""
+        var: Optional[Union[int, float]] = self._get(varname="sleep_period")
+        if var is None:
+            return None
+        if not isinstance(var, (int, float)):
+            raise Raise.error(
+                "Expected float or int type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return float(var)
 
 
 class BImporter(BClasses):

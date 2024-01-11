@@ -47,8 +47,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
     ADDRESS_FROM = "address_from"
     ADDRESS_TO = "address_to"
     CHANNEL = "channel"
-    MODCONF = "__MODULE_CONF__"
-    SLEEP_PERIOD = "sleep_period"
     SMTP_PASS = "smtp_pass"
     SMTP_PORT = "smtp_port"
     SMTP_SERVER = "smtp_server"
@@ -61,7 +59,7 @@ class _ModuleConf(BModuleConfig):
     @property
     def channel(self) -> Optional[int]:
         """Return channel var."""
-        var = self._get(varname=_Keys.CHANNEL)
+        var: Optional[int] = self._get(varname=_Keys.CHANNEL)
         if var is not None and not isinstance(var, int):
             raise Raise.error(
                 "Expected int type.",
@@ -70,21 +68,6 @@ class _ModuleConf(BModuleConfig):
                 currentframe(),
             )
         return var
-
-    @property
-    def sleep_period(self) -> Optional[float]:
-        """Return sleep_period var."""
-        var = self._get(varname=_Keys.SLEEP_PERIOD)
-        if var is None:
-            return None
-        if not isinstance(var, (int, float)):
-            raise Raise.error(
-                "Expected float type.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        return float(var)
 
     @property
     def smtp_server(self) -> Optional[str]:
@@ -172,7 +155,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+        self._data[_ModuleConf.Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
         self._data[_Keys.SMTP_PORT] = None
 
         # logging level
@@ -190,7 +173,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             if self.module_conf.sleep_period is not None:
                 self.sleep_period = self.module_conf.sleep_period
             # channel
-            if not self.module_conf.channel:
+            if self.module_conf.channel is None:
                 self.logs.message_critical = f"'{_Keys.CHANNEL}' not set, exiting..."
                 self.stop()
             # smtp_server
@@ -414,9 +397,9 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
     def run(self) -> None:
         """Main loop."""
         # initialize local vars
-        deffered_shift = 15 * 60  # 15 minutes
+        deffered_shift: int = 15 * 60  # 15 minutes
         deffered: int = deffered_shift + Timestamp.now
-        deffered_count = 7 * 24 * 4  # 7 days every 15 minutes
+        deffered_count: int = 7 * 24 * 4  # 7 days every 15 minutes
         deffered_queue = Queue(maxsize=1500)
 
         self.logs.message_notice = "starting..."
@@ -436,7 +419,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         while not self.stopped:
             # read from deffered queue
             if deffered < Timestamp.now:
-                tmp = []
+                tmp: List[Message] = []
                 while not self.stopped:
                     try:
                         message: Message = deffered_queue.get_nowait()
@@ -537,7 +520,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_Keys.MODCONF]
+        return self._data[_ModuleConf.Keys.MODCONF]
 
     @classmethod
     def template_module_name(cls) -> str:

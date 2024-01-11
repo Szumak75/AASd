@@ -8,7 +8,7 @@
 
 import time
 from inspect import currentframe
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 from threading import Thread, Event
 from queue import Queue
 
@@ -41,8 +41,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
     LASTDOWN = "__down__"
     LASTUP = "__up__"
     MESSAGE_CHANEL = "message_channel"
-    MODCONF = "__MODULE_CONF__"
-    SLEEP_PERIOD = "sleep_period"
 
 
 class _ModuleConf(BModuleConfig):
@@ -74,19 +72,6 @@ class _ModuleConf(BModuleConfig):
             )
         return var
 
-    @property
-    def sleep_period(self) -> float:
-        """Return sleep_period var."""
-        var = self._get(varname=_Keys.SLEEP_PERIOD)
-        if not isinstance(var, (int, float)):
-            raise Raise.error(
-                "Expected float type.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        return float(var)
-
 
 class Ipv4Test(BClasses):
     """Ipv4 container class."""
@@ -94,7 +79,7 @@ class Ipv4Test(BClasses):
     def __init__(self, address: Address) -> None:
         """Constructor."""
         self._data[_Keys.IP] = address
-        now = Timestamp.now
+        now: int = Timestamp.now
         self._data[_Keys.LASTUP] = now
         self._data[_Keys.LASTDOWN] = now
         self._data[_Keys.CHANGE] = False
@@ -165,7 +150,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+        self._data[_ModuleConf.Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
 
         # logging level
         self._debug = debug
@@ -343,7 +328,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_Keys.MODCONF]
+        return self._data[_ModuleConf.Keys.MODCONF]
 
     @classmethod
     def template_module_name(cls) -> str:
@@ -359,7 +344,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         out.append(TemplateConfigItem(desc="ICMP configuration for module."))
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
+                desc=f"'{_ModuleConf.Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
             )
         )
         out.append(
@@ -394,7 +379,9 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=15, desc="[second]")
+            TemplateConfigItem(
+                varname=_ModuleConf.Keys.SLEEP_PERIOD, value=15, desc="[second]"
+            )
         )
         out.append(
             TemplateConfigItem(

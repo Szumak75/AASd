@@ -59,17 +59,25 @@ class _ModuleConf(BModuleConfig):
     @property
     def debug(self) -> bool:
         """Return debug var."""
-        return self._get(_Keys.MC_DEBUG)
+        var: Optional[bool] = self._get(_Keys.MC_DEBUG)
+        if var is None:
+            return False
+        return var
 
     @property
     def verbose(self) -> bool:
         """Return verbose var."""
-        return self._get(_Keys.MC_VERBOSE)
+        var: Optional[bool] = self._get(_Keys.MC_VERBOSE)
+        if var is None:
+            return False
+        return var
 
     @property
     def modules(self) -> List[str]:
         """Return modules list."""
-        tmp = self._get(_Keys.MC_MODULES)
+        tmp: Optional[List[str]] = self._get(_Keys.MC_MODULES)
+        if tmp is None:
+            return []
         if not isinstance(tmp, List):
             raise Raise.error(
                 "Expected type 'List' in variable 'modules'.",
@@ -146,7 +154,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 self.logs.message_debug = (
                     f"try to load config file: '{self.config_file}'..."
                 )
-            out = self._cfh.load()
+            out: bool = self._cfh.load()
             # TODO: process config file
             if out:
                 if self.debug:
@@ -292,7 +300,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             self._section,
             varname=_Keys.MC_SALT,
             value=SimpleCrypto.salt_generator(6),
-            desc="salt for passwords encode/decode",
+            desc="[int] salt for passwords encode/decode",
         )
 
         # modules section

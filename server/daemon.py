@@ -57,7 +57,7 @@ class AASd(BProjectClass, BImporter):
 
         # logger engines configuration
         lengine = LoggerEngine()
-        lqueue = lengine.logs_queue
+        lqueue: Optional[LoggerQueue] = lengine.logs_queue
         if lqueue is None:
             lqueue = LoggerQueue()
             lengine.logs_queue = lqueue
@@ -246,11 +246,11 @@ class AASd(BProjectClass, BImporter):
 
     def __help(self, command_conf: Dict) -> None:
         """Show help information and shutdown."""
-        command_opts = ""
-        desc_opts = []
-        max_len = 0
-        opt_value = []
-        opt_novalue = []
+        command_opts: str = ""
+        desc_opts: List = []
+        max_len: int = 0
+        opt_value: List = []
+        opt_novalue: List = []
         # stage 1
         for item in command_conf.keys():
             if max_len < len(item):
@@ -262,7 +262,7 @@ class AASd(BProjectClass, BImporter):
         max_len += 7
         # stage 2
         for item in sorted(opt_novalue):
-            tmp = ""
+            tmp: str = ""
             if command_conf[item]["short"]:
                 tmp = f"-{command_conf[item]['short']}|--{item} "
             else:
@@ -271,7 +271,7 @@ class AASd(BProjectClass, BImporter):
             command_opts += tmp
         # stage 3
         for item in sorted(opt_value):
-            tmp = ""
+            tmp: str = ""
             if command_conf[item]["short"]:
                 tmp = f"-{command_conf[item]['short']}|--{item}"
             else:
@@ -434,7 +434,7 @@ class AASd(BProjectClass, BImporter):
         if self.conf is None or self.conf.cf is None or self.conf._section is None:
             return None
         # check salt, given section name and varname
-        salt = self.conf.cf.get(self.conf._section, "salt")
+        salt: Optional[int] = self.conf.cf.get(self.conf._section, "salt")
         if salt is None:
             print(
                 "The 'salt' variable is missing from the main section of the configuration file."
@@ -461,14 +461,14 @@ class AASd(BProjectClass, BImporter):
             sys.exit(2)
         # get password string from console
         while True:
-            password = input("Enter password: ")
+            password: str = input("Enter password: ")
             if password == "":
                 print('Type: "EXIT" to break.')
             elif password == "EXIT":
                 return None
             else:
                 break
-        encrypt = SimpleCrypto.multiple_encrypt(salt, password)
+        encrypt: str = SimpleCrypto.multiple_encrypt(salt, password)
         if self.conf._password_section:
             self.conf.cf.set(
                 self.conf._password_section, self.conf._password_varname, encrypt

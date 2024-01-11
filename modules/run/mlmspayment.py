@@ -49,8 +49,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
     # for database class
     DPOOL = "__connection_pool__"
-    # for module class
-    MODCONF = "__MODULE_CONF__"
     # for configuration
     AT_CHANNEL = "at_channel"
     CUTOFF = "cutoff_time"
@@ -60,7 +58,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
     MCHANNEL = "message_channel"
     MFOOTER = "message_footer"
     MNOTIFY = "payment_message"
-    SLEEP_PERIOD = "sleep_period"
     SQL_DATABASE = "sql_database"
     SQL_PASS = "sql_password"
     SQL_SERVER = "sql_server"
@@ -313,21 +310,6 @@ class _ModuleConf(BModuleConfig):
         return var
 
     @property
-    def sleep_period(self) -> Optional[float]:
-        """Return sleep_period var."""
-        var = self._get(varname=_Keys.SLEEP_PERIOD)
-        if var is None:
-            return None
-        if not isinstance(var, (int, float)):
-            raise Raise.error(
-                "Expected float type.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        return float(var)
-
-    @property
     def sql_server(self) -> List[str]:
         """Return sql server address list."""
         var = self._get(varname=_Keys.SQL_SERVER)
@@ -396,7 +378,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+        self._data[_ModuleConf.Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
 
         # logging level
         self._debug = debug
@@ -1072,7 +1054,7 @@ div.centered table { margin: 0 auto; text-align: left; }
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_Keys.MODCONF]
+        return self._data[_ModuleConf.Keys.MODCONF]
 
     @classmethod
     def template_module_name(cls) -> str:

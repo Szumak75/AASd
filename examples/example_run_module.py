@@ -8,7 +8,7 @@
 
 import time
 from inspect import currentframe
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional, Any, Union
 from threading import Thread, Event
 from queue import Queue
 
@@ -32,8 +32,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    MODCONF = "__MODULE_CONF__"
-    SLEEP_PERIOD = "sleep_period"
     MESSAGE_CHANNEL = "message_channel"
 
 
@@ -52,19 +50,6 @@ class _ModuleConf(BModuleConfig):
                 currentframe(),
             )
         return var
-
-    @property
-    def sleep_period(self) -> float:
-        """Return sleep_period var."""
-        var = self._get(varname=_Keys.SLEEP_PERIOD)
-        if not isinstance(var, (int, float)):
-            raise Raise.error(
-                "Expected float type.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        return float(var)
 
 
 class MExample(Thread, ThBaseObject, BModule, IRunModule):
@@ -88,7 +73,7 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+        self._data[_ModuleConf.Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
 
         # logging level
         self._debug = debug
@@ -178,7 +163,7 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_Keys.MODCONF]
+        return self._data[_ModuleConf.Keys.MODCONF]
 
     @classmethod
     def template_module_name(cls) -> str:
@@ -194,7 +179,7 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
         out.append(TemplateConfigItem(desc="Example configuration for module."))
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
+                desc=f"'{_ModuleConf.Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
             )
         )
         out.append(
@@ -224,7 +209,9 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
             )
         )
         out.append(
-            TemplateConfigItem(varname=_Keys.SLEEP_PERIOD, value=3.25, desc="[second]")
+            TemplateConfigItem(
+                varname=_ModuleConf.Keys.SLEEP_PERIOD, value=3.25, desc="[second]"
+            )
         )
         out.append(
             TemplateConfigItem(

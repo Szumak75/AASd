@@ -47,8 +47,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
     ADDRESS_FROM = "address_from"
     ADDRESS_TO = "address_to"
     CHANNEL = "channel"
-    MODCONF = "__MODULE_CONF__"
-    SLEEP_PERIOD = "sleep_period"
     SMTP_PASS = "smtp_pass"
     SMTP_PORT = "smtp_port"
     SMTP_SERVER = "smtp_server"
@@ -61,7 +59,7 @@ class _ModuleConf(BModuleConfig):
     @property
     def channel(self) -> Optional[int]:
         """Return channel var."""
-        var = self._get(varname=_Keys.CHANNEL)
+        var: Optional[int] = self._get(varname=_Keys.CHANNEL)
         if var is not None and not isinstance(var, int):
             raise Raise.error(
                 "Expected int type.",
@@ -70,21 +68,6 @@ class _ModuleConf(BModuleConfig):
                 currentframe(),
             )
         return var
-
-    @property
-    def sleep_period(self) -> Optional[float]:
-        """Return sleep_period var."""
-        var = self._get(varname=_Keys.SLEEP_PERIOD)
-        if var is None:
-            return None
-        if not isinstance(var, (int, float)):
-            raise Raise.error(
-                "Expected float type.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        return float(var)
 
     @property
     def smtp_server(self) -> Optional[str]:
@@ -172,7 +155,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+        self._data[_ModuleConf.Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
         self._data[_Keys.SMTP_PORT] = None
 
         # logging level
@@ -320,7 +303,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         # add email content
         if message.mmessages is not None:
             if Multipart.PLAIN in message.mmessages:
-                tmp = ""
+                tmp: str = ""
                 if isinstance(message.mmessages[Multipart.PLAIN], list):
                     for line in message.mmessages[Multipart.PLAIN]:
                         tmp += f"{line}\n"
@@ -371,7 +354,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                 smtp.ehlo()
                 smtp.starttls()
             if self._data[_Keys.SMTP_PORT] != 25:
-                salt = self._cfh.get(self._cfh.main_section_name, "salt")
+                salt: int = self._cfh.get(self._cfh.main_section_name, "salt")
                 if salt is not None:
                     password: str = SimpleCrypto.multiple_decrypt(
                         salt, self.module_conf.smtp_pass
@@ -414,9 +397,9 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
     def run(self) -> None:
         """Main loop."""
         # initialize local vars
-        deffered_shift = 15 * 60  # 15 minutes
+        deffered_shift: int = 15 * 60  # 15 minutes
         deffered: int = deffered_shift + Timestamp.now
-        deffered_count = 7 * 24 * 4  # 7 days every 15 minutes
+        deffered_count: int = 7 * 24 * 4  # 7 days every 15 minutes
         deffered_queue = Queue(maxsize=1500)
 
         self.logs.message_notice = "starting..."
@@ -436,7 +419,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         while not self.stopped:
             # read from deffered queue
             if deffered < Timestamp.now:
-                tmp = []
+                tmp: List[Message] = []
                 while not self.stopped:
                     try:
                         message: Message = deffered_queue.get_nowait()
@@ -504,7 +487,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sbreak = Timestamp.now + self.sleep_period
+        sbreak: float = Timestamp.now + self.sleep_period
         while not self.stopped and sbreak > Timestamp.now:
             time.sleep(0.2)
 
@@ -537,7 +520,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_Keys.MODCONF]
+        return self._data[_ModuleConf.Keys.MODCONF]
 
     @classmethod
     def template_module_name(cls) -> str:
