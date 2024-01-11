@@ -127,30 +127,17 @@ class _Database(BDebug, BLogs):
         """Create connections pool."""
         config = {
             "db.url": None,
-            "db.echo": False,
+            "db.echo": True,
             "db.poolclass": QueuePool,
             "db.pool_pre_ping": True,
             "db.pool_size": 15,
+            "db.max_overflow": 10,
             "db.pool_recycle": 120,
             "db.echo_pool": True,
-            "db.query_cache_size": 10,
+            "db.query_cache_size": 500,
+            "db.pool_timeout": 5,
+            "db.pool_use_lifo": True,
         }
-        connection_args = {
-            "raise_on_warnings": True,
-            "connect_timeout": 30,
-            "failover": [],
-        }
-
-        for ip in self._data[_Keys.SQL_SERVER][1:]:
-            connection_args["failover"].append(
-                {
-                    "user": self._data[_Keys.SQL_USER],
-                    "password": self._data[_Keys.SQL_PASS],
-                    "host": ip,
-                    "port": 3306,
-                    "database": self._data[_Keys.SQL_DATABASE],
-                }
-            )
 
         for dialect, fail in (("mysqlconnector", True), ("pymysql", False)):
             url = URL(
@@ -170,11 +157,30 @@ class _Database(BDebug, BLogs):
                 config["db.url"] = url
 
                 if fail:
+                    connection_args = {}
+                    connection_args["connect_timeout"] = 600
+                    connection_args["raise_on_warnings"] = True
+                    connection_args["failover"] = []
+                    for ip in self._data[_Keys.SQL_SERVER][1:]:
+                        connection_args["failover"].append(
+                            {
+                                "user": self._data[_Keys.SQL_USER],
+                                "password": self._data[_Keys.SQL_PASS],
+                                "host": ip,
+                                "port": 3306,
+                                "database": self._data[_Keys.SQL_DATABASE],
+                            }
+                        )
+
                     engine = engine_from_config(
                         config, prefix="db.", connect_args=connection_args
                     )
                 else:
-                    engine = engine_from_config(config, prefix="db.")
+                    connection_args = {}
+                    connection_args["connect_timeout"] = 600
+                    engine = engine_from_config(
+                        config, prefix="db.", connect_args=connection_args
+                    )
 
                 with engine.connect() as connection:
                     connection.execute(text("SELECT 1"))
@@ -199,7 +205,8 @@ class _Database(BDebug, BLogs):
             engine: Engine = self._data[_Keys.DPOOL]
             try:
                 session = Session(engine)
-                session.query(func.max(mlms.MCustomer.id))
+                var = session.query(func.max(mlms.MCustomer.id)).first()
+                self.logs.message_notice = f"check query: {var}"
                 if self._debug:
                     self.logs.message_debug = f"create session for {engine}"
 
@@ -221,7 +228,7 @@ if __name__ == "__main__":
     dbh = _Database(
         lqueue,
         {
-            _Keys.SQL_SERVER: ["10.5.0.37", "10.5.0.36", "10.5.0.39"],
+            _Keys.SQL_SERVER: ["10.5.0.35", "10.5.0.37", "10.5.0.36", "10.5.0.39"],
             _Keys.SQL_DATABASE: "lmsv3",
             _Keys.SQL_USER: "lms3",
             _Keys.SQL_PASS: f"{SimpleCrypto.multiple_decrypt(salt, '//4AAHAAAABMAAAAagAAAEkAAAA1AAAAZAAAADcAAAB6AAAAbgAAAGcAAABtAAAANQAAAE0AAABlAAAASgAAAHUAAAA=')}",
