@@ -127,7 +127,7 @@ class _Database(BDebug, BLogs):
         """Create connections pool."""
         config = {
             "db.url": None,
-            "db.echo": True,
+            "db.echo": False,
             "db.poolclass": QueuePool,
             "db.pool_pre_ping": True,
             "db.pool_size": 15,
@@ -228,7 +228,7 @@ if __name__ == "__main__":
     dbh = _Database(
         lqueue,
         {
-            _Keys.SQL_SERVER: ["10.5.0.35", "10.5.0.37", "10.5.0.36", "10.5.0.39"],
+            _Keys.SQL_SERVER: ["10.5.0.37", "10.5.0.36", "10.5.0.39"],
             _Keys.SQL_DATABASE: "lmsv3",
             _Keys.SQL_USER: "lms3",
             _Keys.SQL_PASS: f"{SimpleCrypto.multiple_decrypt(salt, '//4AAHAAAABMAAAAagAAAEkAAAA1AAAAZAAAADcAAAB6AAAAbgAAAGcAAABtAAAANQAAAE0AAABlAAAASgAAAHUAAAA=')}",
@@ -242,7 +242,32 @@ if __name__ == "__main__":
     session = dbh.session
     if session:
         lc.message_info = f"session object: {session}"
+        start = Timestamp.now
+        cfrom = 0
+        cto = 100
+        count = 0
+
+        customers: List[mlms.MCustomer] = (
+            session.query(mlms.MCustomer)
+            .filter(
+                mlms.MCustomer.deleted == 0,
+                and_(mlms.MCustomer.id >= cfrom, mlms.MCustomer.id < cto),
+            )
+            .all()
+        )
+        for customer in customers:
+            lc.message_info = f"cid={customer.id} elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-start)}"
+            if customer.balance < 0:
+                count += 1
+                lc.message_info = f"[{count}], balance: {customer.balance}"
+            lengine.send()
+
         session.close()
+        stop = Timestamp.now
+        lc.message_notice = (
+            f"Exec time: {MDateTime.elapsed_time_from_seconds(stop-start)}"
+        )
+
     lengine.send()
 
 
