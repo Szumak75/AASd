@@ -142,7 +142,7 @@ class _Database(BDebug, BLogs):
                         ),
                     )
                     connection_args: Dict[str, Any] = {}
-                    connection_args["connect_timeout"] = 5
+                    # connection_args["connect_timeout"] = 5
                     # create engine
                     engine: Engine = create_engine(
                         url=url, connect_args=connection_args
