@@ -121,7 +121,83 @@ class _Database(BDebug, BLogs):
         self._data[_Keys.SQL_PASS] = config[_Keys.SQL_PASS]
 
         # connection pool
-        self._data[_Keys.DPOOL] = None
+        self._data[_Keys.DPOOL] = []
+
+    def create_connections2(self) -> bool:
+        """Create connection pool, second variant."""
+        for dialect, fail in ("pymysql", False), ("mysqlconnector", True):
+            if not fail:
+                for ip in self._data[_Keys.SQL_SERVER]:
+                    url: URL = URL.create(
+                        f"mysql+{dialect}",
+                        username=self._data[_Keys.SQL_USER],
+                        password=self._data[_Keys.SQL_PASS],
+                        host=ip,
+                        database=self._data[_Keys.SQL_DATABASE],
+                        port=3306,
+                        query=immutabledict(
+                            {
+                                "charset": "utf8mb4",
+                            }
+                        ),
+                    )
+                    connection_args: Dict[str, Any] = {}
+                    connection_args["connect_timeout"] = 5
+                    # create engine
+                    engine: Engine = create_engine(
+                        url=url, connect_args=connection_args
+                    )
+                    try:
+                        with engine.connect() as connection:
+                            connection.execute(text("SELECT 1"))
+                        if self._debug:
+                            self.logs.message_notice = f"add connection to server: {ip} with backend: {dialect}"
+                        self._data[_Keys.DPOOL].append(engine)
+                    except Exception as ex:
+                        self.logs.message_warning = f"connect to server: {ip} with backend: {dialect} error: {ex}"
+            else:
+                url: URL = URL.create(
+                    f"mysql+{dialect}",
+                    username=self._data[_Keys.SQL_USER],
+                    password=self._data[_Keys.SQL_PASS],
+                    host=self._data[_Keys.SQL_SERVER][0],
+                    database=self._data[_Keys.SQL_DATABASE],
+                    port=3306,
+                    query=immutabledict(
+                        {
+                            "charset": "utf8mb4",
+                        }
+                    ),
+                )
+                connection_args: Dict[str, Any] = {}
+                connection_args["connect_timeout"] = 600
+                connection_args["failover"] = []
+                for ip in self._data[_Keys.SQL_SERVER][1:]:
+                    connection_args["failover"].append(
+                        {
+                            "user": self._data[_Keys.SQL_USER],
+                            "password": self._data[_Keys.SQL_PASS],
+                            "host": ip,
+                            "port": 3306,
+                            "database": self._data[_Keys.SQL_DATABASE],
+                            "pool_size": 5,
+                            "pool_name": ip,
+                        }
+                    )
+                # create engine
+                engine: Engine = create_engine(url=url, connect_args=connection_args)
+                try:
+                    with engine.connect() as connection:
+                        connection.execute(text("SELECT 1"))
+                    if self._debug:
+                        self.logs.message_notice = f"add connection to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect}"
+                    self._data[_Keys.DPOOL].append(engine)
+                except Exception as ex:
+                    self.logs.message_warning = f"connect to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect} error: {ex}"
+
+        if self._data[_Keys.DPOOL] is not None and len(self._data[_Keys.DPOOL]) > 0:
+            return True
+        return False
 
     def create_connections(self) -> bool:
         """Create connections pool."""
@@ -130,7 +206,7 @@ class _Database(BDebug, BLogs):
             "db.echo": False,
             "db.poolclass": QueuePool,
             "db.pool_pre_ping": True,
-            "db.pool_size": 15,
+            "db.pool_size": 5,
             "db.max_overflow": 10,
             "db.pool_recycle": 120,
             "db.echo_pool": True,
@@ -169,6 +245,8 @@ class _Database(BDebug, BLogs):
                                 "host": ip,
                                 "port": 3306,
                                 "database": self._data[_Keys.SQL_DATABASE],
+                                "pool_size": 5,
+                                "pool_name": ip,
                             }
                         )
 
@@ -186,13 +264,13 @@ class _Database(BDebug, BLogs):
                     connection.execute(text("SELECT 1"))
                 if self._debug:
                     self.logs.message_debug = f"add connection to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect}"
-                self._data[_Keys.DPOOL] = engine
+                self._data[_Keys.DPOOL].append(engine)
                 break
             except Exception as ex:
                 if self._debug:
                     self.logs.message_debug = f"Create engine thrown exception: {ex}"
 
-        if self._data[_Keys.DPOOL]:
+        if len(self._data[_Keys.DPOOL]) > 0:
             return True
 
         return False
@@ -201,8 +279,8 @@ class _Database(BDebug, BLogs):
     def session(self) -> Optional[Session]:
         """Returns db session."""
         session = None
-        if self._data[_Keys.DPOOL]:
-            engine: Engine = self._data[_Keys.DPOOL]
+        for item in self._data[_Keys.DPOOL]:
+            engine: Engine = item
             try:
                 session = Session(engine)
                 var = session.query(func.max(mlms.MCustomer.id)).first()
@@ -212,6 +290,8 @@ class _Database(BDebug, BLogs):
 
             except:
                 session = None
+            else:
+                break
 
         return session
 
@@ -228,7 +308,7 @@ if __name__ == "__main__":
     dbh = _Database(
         lqueue,
         {
-            _Keys.SQL_SERVER: ["10.5.0.37", "10.5.0.36", "10.5.0.39"],
+            _Keys.SQL_SERVER: ["8.8.8.8", "10.5.0.37", "10.5.0.36", "10.5.0.39"],
             # _Keys.SQL_SERVER: ["10.5.0.36", "10.5.0.37", "10.5.0.39"],
             _Keys.SQL_DATABASE: "lmsv3",
             _Keys.SQL_USER: "lms3",
@@ -238,7 +318,7 @@ if __name__ == "__main__":
         debug=True,
     )
 
-    dbh.create_connections()
+    dbh.create_connections2()
     lc.message_info = "getting session"
     session = dbh.session
     if session:
