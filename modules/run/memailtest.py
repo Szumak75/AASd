@@ -32,24 +32,9 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    MESSAGE_CHANNEL = "message_channel"
-
 
 class _ModuleConf(BModuleConfig):
     """Module Config private class."""
-
-    @property
-    def message_channel(self) -> Optional[List[str]]:
-        """Return message channel list."""
-        var = self._get(varname=_Keys.MESSAGE_CHANNEL)
-        if var is not None and not isinstance(var, List):
-            raise Raise.error(
-                "Expected list type.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        return var
 
 
 class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
@@ -223,7 +208,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.MESSAGE_CHANNEL}' [List[str]], comma separated communication channels list,"
+                desc=f"'{_ModuleConf.Keys.MESSAGE_CHANNEL}' [List[str]], comma separated communication channels list,"
             )
         )
         out.append(
@@ -251,7 +236,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                varname=_Keys.MESSAGE_CHANNEL,
+                varname=_ModuleConf.Keys.MESSAGE_CHANNEL,
                 value=["1"],
             )
         )

@@ -55,7 +55,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
     DCHANNEL = "diagnostic_channel"
     DPAYTIME = "default_paytime"
     LMS_URL = "lms_url"
-    MCHANNEL = "message_channel"
     MFOOTER = "message_footer"
     MNOTIFY = "payment_message"
     SQL_DATABASE = "sql_database"
@@ -281,19 +280,6 @@ class _ModuleConf(BModuleConfig):
         return var
 
     @property
-    def message_channel(self) -> Optional[List[str]]:
-        """Return message channel list."""
-        var = self._get(varname=_Keys.MCHANNEL)
-        if var is not None and not isinstance(var, List):
-            raise Raise.error(
-                "Expected list type.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        return var
-
-    @property
     def message_footer(self) -> Optional[Union[List[str], str]]:
         """Return message footer list."""
         var = self._get(varname=_Keys.MFOOTER)
@@ -437,7 +423,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 self.logs.message_critical = f"'{_Keys.AT_CHANNEL}' not configured"
                 self.stop()
             if not self.module_conf.message_channel:
-                self.logs.message_critical = f"'{_Keys.MCHANNEL}' not configured"
+                self.logs.message_critical = (
+                    f"'{_ModuleConf.Keys.MESSAGE_CHANNEL}' not configured"
+                )
                 self.stop()
             if not self.module_conf.diagnostic_channel:
                 self.logs.message_warning = f"'{_Keys.DCHANNEL}' not configured, maybe it's not an error, but check..."
@@ -1109,7 +1097,7 @@ div.centered table { margin: 0 auto; text-align: left; }
         )
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.MCHANNEL}' [List[str]] - message channels for notifications sent to customers."
+                desc=f"'{_ModuleConf.Keys.MESSAGE_CHANNEL}' [List[str]] - message channels for notifications sent to customers."
             )
         )
         out.append(
@@ -1164,7 +1152,9 @@ div.centered table { margin: 0 auto; text-align: left; }
             )
         )
         out.append(TemplateConfigItem(varname=_Keys.DCHANNEL, value=[]))
-        out.append(TemplateConfigItem(varname=_Keys.MCHANNEL, value=[1]))
+        out.append(
+            TemplateConfigItem(varname=_ModuleConf.Keys.MESSAGE_CHANNEL, value=[1])
+        )
         out.append(
             TemplateConfigItem(
                 varname=_Keys.MNOTIFY,

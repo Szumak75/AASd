@@ -68,8 +68,10 @@ class BModuleConfig(BConfigHandler, BConfigSection):
     class Keys(object, metaclass=ReadOnlyClass):
         """Keys definition container class."""
 
-        SLEEP_PERIOD = "sleep_period"
+        CHANNEL = "channel"
+        MESSAGE_CHANNEL = "message_channel"
         MODCONF = "__MODULE_CONF__"
+        SLEEP_PERIOD = "sleep_period"
 
     def __init__(self, cfh: ConfigTool, section: Optional[str]) -> None:
         """Constructor."""
@@ -83,9 +85,35 @@ class BModuleConfig(BConfigHandler, BConfigSection):
         return None
 
     @property
+    def channel(self) -> Optional[int]:
+        """Return channel var for communication modules."""
+        var: Optional[int] = self._get(varname=self.Keys.CHANNEL)
+        if var is not None and not isinstance(var, int):
+            raise Raise.error(
+                "Expected int type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
+    def message_channel(self) -> Optional[List[str]]:
+        """Return message channel list for running modules."""
+        var = self._get(varname=self.Keys.MESSAGE_CHANNEL)
+        if var is not None and not isinstance(var, List):
+            raise Raise.error(
+                "Expected list type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
     def sleep_period(self) -> Optional[float]:
         """Return sleep_period var."""
-        var: Optional[Union[int, float]] = self._get(varname="sleep_period")
+        var: Optional[Union[int, float]] = self._get(varname=self.Keys.SLEEP_PERIOD)
         if var is None:
             return None
         if not isinstance(var, (int, float)):

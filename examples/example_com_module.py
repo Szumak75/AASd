@@ -36,24 +36,9 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    CHANNEL = "channel"
-
 
 class _ModuleConf(BModuleConfig):
     """Module Config private class."""
-
-    @property
-    def channel(self) -> Optional[int]:
-        """Return channel var."""
-        var: Optional[int] = self._get(varname=_Keys.CHANNEL)
-        if var is not None and not isinstance(var, int):
-            raise Raise.error(
-                "Expected int type.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        return var
 
 
 class MExample(Thread, ThBaseObject, BModule, IComModule):
@@ -95,9 +80,7 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
                 self.sleep_period = self.module_conf.sleep_period
             # channel
             if not self.module_conf.channel:
-                self.logs.message_critical = (
-                    f"required variable '{_Keys.CHANNEL}' not set, exiting..."
-                )
+                self.logs.message_critical = f"required variable '{_ModuleConf.Keys.CHANNEL}' not set, exiting..."
                 self.stop()
 
         except Exception as ex:
@@ -213,10 +196,10 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
-                desc=f"{_Keys.CHANNEL} [int] - unique channel for communication method (for example: 100)"
+                desc=f"{_ModuleConf.Keys.CHANNEL} [int] - unique channel for communication method (for example: 100)"
             )
         )
-        out.append(TemplateConfigItem(varname=_Keys.CHANNEL, value=100))
+        out.append(TemplateConfigItem(varname=_ModuleConf.Keys.CHANNEL, value=100))
 
         return out
 

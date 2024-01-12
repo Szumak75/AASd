@@ -40,7 +40,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
     IP = "__ip__"
     LASTDOWN = "__down__"
     LASTUP = "__up__"
-    MESSAGE_CHANEL = "message_channel"
 
 
 class _ModuleConf(BModuleConfig):
@@ -50,19 +49,6 @@ class _ModuleConf(BModuleConfig):
     def hosts(self) -> Optional[List[str]]:
         """Returns hosts IP addrresses list."""
         var = self._get(varname=_Keys.HOSTS)
-        if var is not None and not isinstance(var, List):
-            raise Raise.error(
-                "Expected list type.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        return var
-
-    @property
-    def message_channel(self) -> Optional[List[str]]:
-        """Return message channel list."""
-        var = self._get(varname=_Keys.MESSAGE_CHANEL)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -354,7 +340,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.MESSAGE_CHANEL}' [List[str]], comma separated communication channels list,"
+                desc=f"'{_ModuleConf.Keys.MESSAGE_CHANNEL}' [List[str]], comma separated communication channels list,"
             )
         )
         out.append(
@@ -385,7 +371,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                varname=_Keys.MESSAGE_CHANEL,
+                varname=_ModuleConf.Keys.MESSAGE_CHANNEL,
                 value=["1:30m"],
             )
         )

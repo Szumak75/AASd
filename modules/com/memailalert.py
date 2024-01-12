@@ -46,7 +46,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
     ADDRESS_FROM = "address_from"
     ADDRESS_TO = "address_to"
-    CHANNEL = "channel"
     SMTP_PASS = "smtp_pass"
     SMTP_PORT = "smtp_port"
     SMTP_SERVER = "smtp_server"
@@ -55,19 +54,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
 class _ModuleConf(BModuleConfig):
     """Module Config private class."""
-
-    @property
-    def channel(self) -> Optional[int]:
-        """Return channel var."""
-        var: Optional[int] = self._get(varname=_Keys.CHANNEL)
-        if var is not None and not isinstance(var, int):
-            raise Raise.error(
-                "Expected int type.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        return var
 
     @property
     def smtp_server(self) -> Optional[str]:
@@ -174,7 +160,9 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 self.sleep_period = self.module_conf.sleep_period
             # channel
             if self.module_conf.channel is None:
-                self.logs.message_critical = f"'{_Keys.CHANNEL}' not set, exiting..."
+                self.logs.message_critical = (
+                    f"'{_ModuleConf.Keys.CHANNEL}' not set, exiting..."
+                )
                 self.stop()
             # smtp_server
             if not self.module_conf.smtp_server:
@@ -537,7 +525,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
-                desc=f"{_Keys.CHANNEL} [int] - unique channel for communication method (default: 1)"
+                desc=f"{_ModuleConf.Keys.CHANNEL} [int] - unique channel for communication method (default: 1)"
             )
         )
         out.append(
@@ -575,7 +563,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 desc="may be overrited by Message class properties if set."
             )
         )
-        out.append(TemplateConfigItem(varname=_Keys.CHANNEL, value=1))
+        out.append(TemplateConfigItem(varname=_ModuleConf.Keys.CHANNEL, value=1))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_SERVER))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_USER))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_PASS))
