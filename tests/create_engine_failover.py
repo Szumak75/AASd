@@ -139,7 +139,7 @@ class _Database(BDebug, BLogs):
             "db.pool_use_lifo": True,
         }
 
-        for dialect, fail in (("mysqlconnector", True), ("pymysql", False)):
+        for dialect, fail in ("pymysql", False), ("mysqlconnector", True):
             url = URL(
                 f"mysql+{dialect}",
                 username=self._data[_Keys.SQL_USER],
@@ -229,6 +229,7 @@ if __name__ == "__main__":
         lqueue,
         {
             _Keys.SQL_SERVER: ["10.5.0.37", "10.5.0.36", "10.5.0.39"],
+            # _Keys.SQL_SERVER: ["10.5.0.36", "10.5.0.37", "10.5.0.39"],
             _Keys.SQL_DATABASE: "lmsv3",
             _Keys.SQL_USER: "lms3",
             _Keys.SQL_PASS: f"{SimpleCrypto.multiple_decrypt(salt, '//4AAHAAAABMAAAAagAAAEkAAAA1AAAAZAAAADcAAAB6AAAAbgAAAGcAAABtAAAANQAAAE0AAABlAAAASgAAAHUAAAA=')}",
