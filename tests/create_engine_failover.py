@@ -160,17 +160,17 @@ class _Database(BDebug, BLogs):
                     connection_args = {}
                     connection_args["connect_timeout"] = 600
                     # connection_args["raise_on_warnings"] = True
-                    # connection_args["failover"] = []
-                    # for ip in self._data[_Keys.SQL_SERVER][1:]:
-                    #     connection_args["failover"].append(
-                    #         {
-                    #             "user": self._data[_Keys.SQL_USER],
-                    #             "password": self._data[_Keys.SQL_PASS],
-                    #             "host": ip,
-                    #             "port": 3306,
-                    #             "database": self._data[_Keys.SQL_DATABASE],
-                    #         }
-                    #     )
+                    connection_args["failover"] = []
+                    for ip in self._data[_Keys.SQL_SERVER][1:]:
+                        connection_args["failover"].append(
+                            {
+                                "user": self._data[_Keys.SQL_USER],
+                                "password": self._data[_Keys.SQL_PASS],
+                                "host": ip,
+                                "port": 3306,
+                                "database": self._data[_Keys.SQL_DATABASE],
+                            }
+                        )
 
                     engine = engine_from_config(
                         config, prefix="db.", connect_args=connection_args
