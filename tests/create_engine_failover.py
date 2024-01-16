@@ -308,7 +308,7 @@ if __name__ == "__main__":
     dbh = _Database(
         lqueue,
         {
-            _Keys.SQL_SERVER: ["8.8.8.8", "10.5.0.37", "10.5.0.36", "10.5.0.39"],
+            _Keys.SQL_SERVER: ["10.5.0.39", "10.5.0.37", "10.5.0.36"],
             # _Keys.SQL_SERVER: ["10.5.0.36", "10.5.0.37", "10.5.0.39"],
             _Keys.SQL_DATABASE: "lmsv3",
             _Keys.SQL_USER: "lms3",

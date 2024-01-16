@@ -15,7 +15,7 @@ from typing import Dict, List, Optional, Any, Union
 from threading import Thread, Event
 from queue import Queue
 
-from sqlalchemy import and_, text, func
+from sqlalchemy import create_engine, and_, text, func
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.engine.base import Engine
@@ -110,25 +110,101 @@ class _Database(BDebug, BLogs):
         self._data[_Keys.SQL_PASS] = config[_Keys.SQL_PASS]
 
         # connection pool
-        self._data[_Keys.DPOOL] = None
+        self._data[_Keys.DPOOL] = []
 
     def create_connections(self) -> bool:
+        """Create connection pool, second variant."""
+        for dialect, fail in ("pymysql", False), ("mysqlconnector", True):
+            if not fail:
+                for ip in self._data[_Keys.SQL_SERVER]:
+                    url: URL = URL.create(
+                        f"mysql+{dialect}",
+                        username=self._data[_Keys.SQL_USER],
+                        password=self._data[_Keys.SQL_PASS],
+                        host=ip,
+                        database=self._data[_Keys.SQL_DATABASE],
+                        port=3306,
+                        query=immutabledict(
+                            {
+                                "charset": "utf8mb4",
+                            }
+                        ),
+                    )
+                    connection_args: Dict[str, Any] = {}
+                    # connection_args["connect_timeout"] = 5
+                    # create engine
+                    engine: Engine = create_engine(
+                        url=url, connect_args=connection_args
+                    )
+                    try:
+                        with engine.connect() as connection:
+                            connection.execute(text("SELECT 1"))
+                        if self._debug:
+                            self.logs.message_notice = f"add connection to server: {ip} with backend: {dialect}"
+                        self._data[_Keys.DPOOL].append(engine)
+                    except Exception as ex:
+                        self.logs.message_warning = f"connect to server: {ip} with backend: {dialect} error: {ex}"
+            else:
+                url: URL = URL.create(
+                    f"mysql+{dialect}",
+                    username=self._data[_Keys.SQL_USER],
+                    password=self._data[_Keys.SQL_PASS],
+                    host=self._data[_Keys.SQL_SERVER][0],
+                    database=self._data[_Keys.SQL_DATABASE],
+                    port=3306,
+                    query=immutabledict(
+                        {
+                            "charset": "utf8mb4",
+                        }
+                    ),
+                )
+                connection_args: Dict[str, Any] = {}
+                connection_args["connect_timeout"] = 600
+                connection_args["failover"] = []
+                for ip in self._data[_Keys.SQL_SERVER][1:]:
+                    connection_args["failover"].append(
+                        {
+                            "user": self._data[_Keys.SQL_USER],
+                            "password": self._data[_Keys.SQL_PASS],
+                            "host": ip,
+                            "port": 3306,
+                            "database": self._data[_Keys.SQL_DATABASE],
+                            "pool_size": 5,
+                            "pool_name": ip,
+                        }
+                    )
+                # create engine
+                engine: Engine = create_engine(url=url, connect_args=connection_args)
+                try:
+                    with engine.connect() as connection:
+                        connection.execute(text("SELECT 1"))
+                    if self._debug:
+                        self.logs.message_notice = f"add connection to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect}"
+                    self._data[_Keys.DPOOL].append(engine)
+                except Exception as ex:
+                    self.logs.message_warning = f"connect to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect} error: {ex}"
+
+        if self._data[_Keys.DPOOL] is not None and len(self._data[_Keys.DPOOL]) > 0:
+            return True
+        return False
+
+    def create_connections_pool(self) -> bool:
         """Create connections pool."""
         config = {
             "db.url": None,
             "db.echo": False,
-            "db.echo_pool": True,
-            "db.max_overflow": 10,
-            "db.pool_pre_ping": True,
-            "db.pool_recycle": 3600,
-            "db.pool_size": 15,
-            "db.pool_timeout": 600,
-            "db.pool_use_lifo": True,
             "db.poolclass": QueuePool,
+            "db.pool_pre_ping": True,
+            "db.pool_size": 5,
+            "db.max_overflow": 10,
+            "db.pool_recycle": 120,
+            "db.echo_pool": True,
             "db.query_cache_size": 500,
+            "db.pool_timeout": 5,
+            "db.pool_use_lifo": True,
         }
 
-        for dialect, fail in (("mysqlconnector", True), ("pymysql", False)):
+        for dialect, fail in ("mysqlconnector", True), ("pymysql", False):
             url = URL(
                 f"mysql+{dialect}",
                 username=self._data[_Keys.SQL_USER],
@@ -148,7 +224,7 @@ class _Database(BDebug, BLogs):
                 if fail:
                     connection_args = {}
                     connection_args["connect_timeout"] = 600
-                    connection_args["raise_on_warnings"] = True
+                    # connection_args["raise_on_warnings"] = True
                     connection_args["failover"] = []
                     for ip in self._data[_Keys.SQL_SERVER][1:]:
                         connection_args["failover"].append(
@@ -158,6 +234,8 @@ class _Database(BDebug, BLogs):
                                 "host": ip,
                                 "port": 3306,
                                 "database": self._data[_Keys.SQL_DATABASE],
+                                "pool_size": 5,
+                                "pool_name": ip,
                             }
                         )
 
@@ -175,13 +253,13 @@ class _Database(BDebug, BLogs):
                     connection.execute(text("SELECT 1"))
                 if self._debug:
                     self.logs.message_debug = f"add connection to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect}"
-                self._data[_Keys.DPOOL] = engine
+                self._data[_Keys.DPOOL].append(engine)
                 break
             except Exception as ex:
                 if self._debug:
                     self.logs.message_debug = f"Create engine thrown exception: {ex}"
 
-        if self._data[_Keys.DPOOL]:
+        if len(self._data[_Keys.DPOOL]) > 0:
             return True
 
         return False
@@ -190,16 +268,19 @@ class _Database(BDebug, BLogs):
     def session(self) -> Optional[Session]:
         """Returns db session."""
         session = None
-        if self._data[_Keys.DPOOL]:
-            engine: Engine = self._data[_Keys.DPOOL]
+        for item in self._data[_Keys.DPOOL]:
+            engine: Engine = item
             try:
                 session = Session(engine)
-                session.query(func.max(mlms.MCustomer.id)).first()
+                var = session.query(func.max(mlms.MCustomer.id)).first()
+                # self.logs.message_notice = f"check query: {var}"
                 if self._debug:
                     self.logs.message_debug = f"create session for {engine}"
 
             except:
                 session = None
+            else:
+                break
 
         return session
 
@@ -469,7 +550,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         row = session.query(func.max(mlms.MCustomer.id)).first()
         maxid: int = row[0] if row is not None else 0
         cfrom = 0
-        cto = 100
+        cto = 10
         # customers query
         while cfrom < maxid:
             customers: List[mlms.MCustomer] = (
@@ -483,7 +564,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             )
             # increment search range
             cfrom: int = cto
-            cto += 100
+            cto += 10
 
             # analysis
             for item1 in customers:
@@ -536,7 +617,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         row = session.query(func.max(mlms.MCustomer.id)).first()
         maxid: int = row[0] if row is not None else 0
         cfrom = 0
-        cto = 100
+        cto = 10
         # customer query
         while cfrom < maxid:
             customers: List[mlms.MCustomer] = (
@@ -551,7 +632,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             )
             # increment search range
             cfrom: int = cto
-            cto += 100
+            cto += 10
             # analysis
             for item1 in customers:
                 customer: mlms.MCustomer = item1
