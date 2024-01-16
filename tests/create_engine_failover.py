@@ -145,7 +145,11 @@ class _Database(BDebug, BLogs):
                     # connection_args["connect_timeout"] = 5
                     # create engine
                     engine: Engine = create_engine(
-                        url=url, connect_args=connection_args
+                        url=url,
+                        connect_args=connection_args,
+                        echo=True,
+                        pool_recycle=3660,
+                        poolclass=QueuePool,
                     )
                     try:
                         with engine.connect() as connection:
@@ -185,7 +189,13 @@ class _Database(BDebug, BLogs):
                         }
                     )
                 # create engine
-                engine: Engine = create_engine(url=url, connect_args=connection_args)
+                engine: Engine = create_engine(
+                    url=url,
+                    connect_args=connection_args,
+                    echo=True,
+                    pool_recycle=3660,
+                    poolclass=QueuePool,
+                )
                 try:
                     with engine.connect() as connection:
                         connection.execute(text("SELECT 1"))
@@ -308,7 +318,7 @@ if __name__ == "__main__":
     dbh = _Database(
         lqueue,
         {
-            _Keys.SQL_SERVER: ["10.5.0.39", "10.5.0.37", "10.5.0.36"],
+            _Keys.SQL_SERVER: ["10.5.0.36", "10.5.0.37", "10.5.0.36"],
             # _Keys.SQL_SERVER: ["10.5.0.36", "10.5.0.37", "10.5.0.39"],
             _Keys.SQL_DATABASE: "lmsv3",
             _Keys.SQL_USER: "lms3",
@@ -330,10 +340,15 @@ if __name__ == "__main__":
 
         customers: List[mlms.MCustomer] = (
             session.query(mlms.MCustomer)
+            .join(mlms.MCash)
             .filter(
                 mlms.MCustomer.deleted == 0,
-                and_(mlms.MCustomer.id >= cfrom, mlms.MCustomer.id < cto),
+                mlms.MCustomer.id >= cfrom,
+                mlms.MCustomer.id < cto,
             )
+            .group_by(mlms.MCustomer.id)
+            .having(func.sum(mlms.MCash.value) < 0)
+            .order_by(mlms.MCustomer.id)
             .all()
         )
         for customer in customers:

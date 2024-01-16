@@ -134,7 +134,10 @@ class _Database(BDebug, BLogs):
                     # connection_args["connect_timeout"] = 5
                     # create engine
                     engine: Engine = create_engine(
-                        url=url, connect_args=connection_args
+                        url=url,
+                        connect_args=connection_args,
+                        pool_recycle=3600,
+                        poolclass=QueuePool,
                     )
                     try:
                         with engine.connect() as connection:
@@ -174,7 +177,12 @@ class _Database(BDebug, BLogs):
                         }
                     )
                 # create engine
-                engine: Engine = create_engine(url=url, connect_args=connection_args)
+                engine: Engine = create_engine(
+                    url=url,
+                    connect_args=connection_args,
+                    pool_recycle=3600,
+                    poolclass=QueuePool,
+                )
                 try:
                     with engine.connect() as connection:
                         connection.execute(text("SELECT 1"))
@@ -188,8 +196,11 @@ class _Database(BDebug, BLogs):
             return True
         return False
 
-    def create_connections_pool(self) -> bool:
-        """Create connections pool."""
+    def create_connections_failover(self) -> bool:
+        """Create connections pool.
+
+        WARNING: incredible slow
+        """
         config = {
             "db.url": None,
             "db.echo": False,
@@ -535,6 +546,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled = _Keys.CONTACT_DISABLED
 
+        STEEP: int = 10
+
         if self.debug or self.verbose:
             self.logs.message_debug = "get customers for verification"
 
@@ -550,7 +563,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         row = session.query(func.max(mlms.MCustomer.id)).first()
         maxid: int = row[0] if row is not None else 0
         cfrom: int = 0
-        cto = 10
+        cto = STEEP
         tstart: int = Timestamp.now
         # customers query
         while cfrom < maxid:
@@ -567,7 +580,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             )
             # increment search range
             cfrom = cto
-            cto += 10
+            cto += STEEP
 
             # analysis
             for item1 in customers:
@@ -601,7 +614,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
     def __get_indebted_customers(self, dbh: _Database, channel: int) -> None:
         """Gets a list of Customers for sending notifications."""
-
+        STEEP: int = 10
         if (
             self.module_conf is None
             or self.module_conf.default_paytime is None
@@ -622,7 +635,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         row = session.query(func.max(mlms.MCustomer.id)).first()
         maxid: int = row[0] if row is not None else 0
         cfrom: int = 0
-        cto: int = 10
+        cto: int = STEEP
         tstart: int = Timestamp.now
         # customer query
         while cfrom < maxid:
@@ -630,17 +643,21 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}"
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
+                .join(mlms.MCash)
                 .filter(
                     mlms.MCustomer.deleted == 0,
                     mlms.MCustomer.mailingnotice == 1,
-                    and_(mlms.MCustomer.id >= cfrom, mlms.MCustomer.id < cto),
+                    mlms.MCustomer.id >= cfrom,
+                    mlms.MCustomer.id < cto,
                 )
+                .group_by(mlms.MCustomer.id)
+                .having(func.sum(mlms.MCash.value) < 0)
                 .order_by(mlms.MCustomer.id)
                 .all()
             )
             # increment search range
             cfrom = cto
-            cto += 10
+            cto += STEEP
             # analysis
             for item1 in customers:
                 customer: mlms.MCustomer = item1
