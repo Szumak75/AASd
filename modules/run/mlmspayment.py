@@ -549,10 +549,13 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         # get customer max id
         row = session.query(func.max(mlms.MCustomer.id)).first()
         maxid: int = row[0] if row is not None else 0
-        cfrom = 0
+        cfrom: int = 0
         cto = 10
+        tstart: int = Timestamp.now
         # customers query
         while cfrom < maxid:
+            if self.debug:
+                self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}"
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .filter(
@@ -563,7 +566,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 .all()
             )
             # increment search range
-            cfrom: int = cto
+            cfrom = cto
             cto += 10
 
             # analysis
@@ -591,6 +594,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                         self.__add_diagnostic_contact(customer)
                 elif not customer.tariffs:
                     self.__add_diagnostic_tariff(customer)
+        if self.debug:
+            self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-tstart)}"
 
         self.__send_diagnostic(channel)
 
@@ -616,10 +621,13 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         row = session.query(func.max(mlms.MCustomer.id)).first()
         maxid: int = row[0] if row is not None else 0
-        cfrom = 0
-        cto = 10
+        cfrom: int = 0
+        cto: int = 10
+        tstart: int = Timestamp.now
         # customer query
         while cfrom < maxid:
+            if self.debug:
+                self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}"
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .filter(
@@ -631,7 +639,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 .all()
             )
             # increment search range
-            cfrom: int = cto
+            cfrom = cto
             cto += 10
             # analysis
             for item1 in customers:
@@ -668,6 +676,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 if message_window_td.days - 1 in pm:
                     # send message
                     self.__customer_message(customer, channel)
+        if self.debug:
+            self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-tstart)}"
 
     def __customer_message(self, customer: mlms.MCustomer, channel: int) -> None:
         """Prepare to send message."""
@@ -855,7 +865,7 @@ PIN: {customer_pin}
 
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
         count: int = len(self._data[_Keys.DCONT]) + 1
-        info = ""
+        info: str = ""
         self._data[_Keys.DCONT].append(
             template.format(
                 nr=count,
@@ -875,10 +885,10 @@ PIN: {customer_pin}
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
         count: int = len(self._data[_Keys.DTARIFF]) + 1
         # uwagi
-        info = ""
+        info: str = ""
         if customer.has_active_node is not None and customer.has_active_node == True:
             info += "aktywna usługa, "
-        info: str = info.strip()[:-1]
+        info = info.strip()[:-1]
         self._data[_Keys.DTARIFF].append(
             template.format(
                 nr=count,
