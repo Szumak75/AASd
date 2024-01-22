@@ -637,6 +637,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         self.__send_diagnostic(channel)
 
+        # close session
+        session.close()
+
     def __get_indebted_customers(self, dbh: _Database, channel: int) -> None:
         """Gets a list of Customers for sending notifications."""
         STEEP: int = 10
@@ -729,6 +732,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     self.__customer_message(customer, channel)
         if self.debug:
             self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-tstart)}"
+
+        # close session
+        session.close()
 
     def __customer_message(self, customer: mlms.MCustomer, channel: int) -> None:
         """Prepare to send message."""
