@@ -39,6 +39,7 @@ from libs.com.message import Message, Multipart, AtChannel
 from libs.tools.datetool import MDateTime
 
 import libs.db_models.mlms as mlms
+import libs.db_models.lms as lms
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -62,6 +63,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SQL_SERVER = "sql_server"
     SQL_USER = "sql_user"
     USER_URL = "user_url"
+    SKIP_GROUPS = "skip_group_id"
     # contact types
     # email notification: 8|32=40, type&40==40 and type&16384==0
     # mobile notification: 1|32=33, type&33==33 and type&16384==0
@@ -398,6 +400,16 @@ class _ModuleConf(BModuleConfig):
         return var
 
     @property
+    def skip_groups(self) -> Optional[List[int]]:
+        """Returns groups id to skiip."""
+        var = self._get(varname=_Keys.SKIP_GROUPS)
+        if var is not None and not isinstance(var, List):
+            raise Raise.error(
+                "Expected list type.", TypeError, self._c_name, currentframe()
+            )
+        return var
+
+    @property
     def sql_server(self) -> List[str]:
         """Return sql server address list."""
         var = self._get(varname=_Keys.SQL_SERVER)
@@ -519,6 +531,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     f"'{_ModuleConf.Keys.MESSAGE_CHANNEL}' not configured"
                 )
                 self.stop()
+            if not self.module_conf.skip_groups:
+                self.logs.message_warning = f"'{_Keys.SKIP_GROUPS}' not configured, maybe it's not error, but check..."
             if not self.module_conf.diagnostic_channel:
                 self.logs.message_warning = f"'{_Keys.DCHANNEL}' not configured, maybe it's not an error, but check..."
             if not self.module_conf.message_footer:
@@ -564,6 +578,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         maxid: int = row[0] if row is not None else 0
         cfrom: int = 0
         cto = STEEP
+        skip_groups: List[int] = (
+            self.module_conf.skip_groups
+            if self.module_conf and self.module_conf.skip_groups
+            else list()
+        )
         tstart: int = Timestamp.now
         # customers query
         while cfrom < maxid:
@@ -571,9 +590,15 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}"
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
+                .join(
+                    lms.CustomerAssignment,
+                    mlms.MCustomer.id == lms.CustomerAssignment.customerid,
+                )
                 .filter(
                     mlms.MCustomer.deleted == 0,
-                    and_(mlms.MCustomer.id >= cfrom, mlms.MCustomer.id < cto),
+                    mlms.MCustomer.id >= cfrom,
+                    mlms.MCustomer.id < cto,
+                    lms.CustomerAssignment.customergroupid.not_in(skip_groups),
                 )
                 .order_by(mlms.MCustomer.id)
                 .all()
@@ -623,6 +648,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         ):
             return None
 
+        skip_groups: List[int] = (
+            self.module_conf.skip_groups if self.module_conf.skip_groups else list()
+        )
+
         if self.debug or self.verbose:
             self.logs.message_debug = "get indebted customers list"
 
@@ -644,11 +673,16 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .join(mlms.MCash)
+                .join(
+                    lms.CustomerAssignment,
+                    mlms.MCustomer.id == lms.CustomerAssignment.customerid,
+                )
                 .filter(
                     mlms.MCustomer.deleted == 0,
                     mlms.MCustomer.mailingnotice == 1,
                     mlms.MCustomer.id >= cfrom,
                     mlms.MCustomer.id < cto,
+                    lms.CustomerAssignment.customergroupid.not_in(skip_groups),
                 )
                 .group_by(mlms.MCustomer.id)
                 .having(func.sum(mlms.MCash.value) < 0)
@@ -1210,6 +1244,11 @@ div.centered table { margin: 0 auto; text-align: left; }
         )
         out.append(
             TemplateConfigItem(
+                desc=f"'{_Keys.SKIP_GROUPS}' [List[int]] - list of lms group ids to skip."
+            )
+        )
+        out.append(
+            TemplateConfigItem(
                 desc=f"'{_Keys.SQL_SERVER}' [List[str]] - list of SQL servers IP addresses"
             )
         )
@@ -1282,6 +1321,11 @@ div.centered table { margin: 0 auto; text-align: left; }
                 varname=_Keys.CUTOFF,
                 value=14,
                 desc=f"[int] - number of days after {_Keys.DPAYTIME} after which the service will be disabled",
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.SKIP_GROUPS, value=[], desc="List[int] - lms group ids"
             )
         )
         out.append(

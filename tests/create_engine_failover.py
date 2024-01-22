@@ -46,6 +46,7 @@ from libs.com.message import Message, Multipart, AtChannel
 from libs.tools.datetool import MDateTime
 
 import libs.db_models.mlms as mlms
+import libs.db_models.lms as lms
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -341,10 +342,15 @@ if __name__ == "__main__":
         customers: List[mlms.MCustomer] = (
             session.query(mlms.MCustomer)
             .join(mlms.MCash)
+            .join(
+                lms.CustomerAssignment,
+                mlms.MCustomer.id == lms.CustomerAssignment.customerid,
+            )
             .filter(
                 mlms.MCustomer.deleted == 0,
                 mlms.MCustomer.id >= cfrom,
                 mlms.MCustomer.id < cto,
+                lms.CustomerAssignment.customergroupid.not_in([51, 78]),
             )
             .group_by(mlms.MCustomer.id)
             .having(func.sum(mlms.MCash.value) < 0)
