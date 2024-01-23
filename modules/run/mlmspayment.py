@@ -587,6 +587,14 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         cto = STEEP
         tstart: int = Timestamp.now
 
+        # excluded group
+        group = (
+            session.query(lms.CustomerAssignment)
+            .filter(lms.CustomerAssignment.customergroupid.in_(skip_groups))
+            .group_by(lms.CustomerAssignment.customerid)
+            .subquery()
+        )
+
         # customers query
         while cfrom < maxid:
             if self.debug:
@@ -594,17 +602,14 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .outerjoin(
-                    lms.CustomerAssignment,
-                    mlms.MCustomer.id == lms.CustomerAssignment.customerid,
+                    group,
+                    mlms.MCustomer.id == group.c.customerid,
                 )
                 .filter(
                     mlms.MCustomer.deleted == 0,
                     mlms.MCustomer.id >= cfrom,
                     mlms.MCustomer.id < cto,
-                    or_(
-                        lms.CustomerAssignment.id == None,
-                        lms.CustomerAssignment.customergroupid.not_in(skip_groups),
-                    ),
+                    group.c.id == None,
                 )
                 .order_by(mlms.MCustomer.id)
                 .all()
@@ -674,7 +679,16 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         cfrom: int = 0
         cto: int = STEEP
         tstart: int = Timestamp.now
-        # customer query
+
+        # excluded group
+        group = (
+            session.query(lms.CustomerAssignment)
+            .filter(lms.CustomerAssignment.customergroupid.in_(skip_groups))
+            .group_by(lms.CustomerAssignment.customerid)
+            .subquery()
+        )
+
+        # customers query
         while cfrom < maxid:
             if self.debug:
                 self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}, elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-tstart)}"
@@ -682,18 +696,15 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 session.query(mlms.MCustomer)
                 .join(mlms.MCash)
                 .outerjoin(
-                    lms.CustomerAssignment,
-                    mlms.MCustomer.id == lms.CustomerAssignment.customerid,
+                    group,
+                    mlms.MCustomer.id == group.c.customerid,
                 )
                 .filter(
                     mlms.MCustomer.deleted == 0,
                     mlms.MCustomer.mailingnotice == 1,
                     mlms.MCustomer.id >= cfrom,
                     mlms.MCustomer.id < cto,
-                    or_(
-                        lms.CustomerAssignment.id == None,
-                        lms.CustomerAssignment.customergroupid.not_in(skip_groups),
-                    ),
+                    group.c.id == None,
                 )
                 .group_by(mlms.MCustomer.id)
                 .having(func.sum(mlms.MCash.value) < 0)

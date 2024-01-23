@@ -148,7 +148,7 @@ class _Database(BDebug, BLogs):
                     engine: Engine = create_engine(
                         url=url,
                         connect_args=connection_args,
-                        echo=False,
+                        echo=True,
                         pool_recycle=3660,
                         poolclass=QueuePool,
                     )
@@ -335,34 +335,38 @@ if __name__ == "__main__":
     if session:
         lc.message_info = f"session object: {session}"
         start = Timestamp.now
-        cfrom = 0
-        cto = 1000
+        cfrom = 2270
+        cto = 2285
         count = 0
+
+        group = (
+            session.query(lms.CustomerAssignment)
+            .filter(lms.CustomerAssignment.customergroupid.in_([78, 96, 97]))
+            .group_by(lms.CustomerAssignment.customerid)
+            .subquery()
+        )
 
         customers: List[mlms.MCustomer] = (
             session.query(mlms.MCustomer)
-            .join(mlms.MCash)
+            .outerjoin(mlms.MCash)
             .outerjoin(
-                lms.CustomerAssignment,
-                mlms.MCustomer.id == lms.CustomerAssignment.customerid,
+                group,
+                mlms.MCustomer.id == group.c.customerid,
             )
             .filter(
                 mlms.MCustomer.deleted == 0,
                 mlms.MCustomer.id >= cfrom,
                 mlms.MCustomer.id < cto,
-                or_(
-                    lms.CustomerAssignment.id == None,
-                    lms.CustomerAssignment.customergroupid.not_in([51, 78, 96]),
-                ),
+                group.c.id == None,
             )
             .group_by(mlms.MCustomer.id)
-            .having(func.sum(mlms.MCash.value) < 0)
+            # .having(func.sum(mlms.MCash.value) < 0)
             .order_by(mlms.MCustomer.id)
             .all()
         )
         for customer in customers:
             lc.message_info = f"cid={customer.id} elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-start)}"
-            if customer.balance < 0:
+            if customer.balance is not None:  # < 0:
                 count += 1
                 lc.message_info = f"[{count}], balance: {customer.balance}"
             lengine.send()
