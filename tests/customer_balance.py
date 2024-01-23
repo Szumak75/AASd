@@ -36,7 +36,6 @@ from jsktoolbox.datetool import Timestamp
 from libs.base.classes import BModule, BLogs, BDebug
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
-from libs.interfaces.conf import IModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, AtChannel
 from libs.tools.datetool import MDateTime
@@ -67,6 +66,7 @@ engine = create_engine(
 with engine.connect() as connection:
     connection.execute(text("SELECT 1"))
 
+session = None
 try:
     with engine.connect() as connection:
         connection.execute(text("SELECT 1"))
@@ -77,8 +77,8 @@ except Exception as ex:
     print(f"Exception: '{ex}'")
 
 #
-if session:
-    customers: mlms.MCustomer = (
+if session is not None:
+    customers: List[mlms.MCustomer] = (
         session.query(mlms.MCustomer)
         .filter(
             mlms.MCustomer.deleted == 0,
