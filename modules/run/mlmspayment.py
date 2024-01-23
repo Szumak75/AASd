@@ -611,8 +611,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             cto += STEEP
 
             # analysis
-            for item1 in customers:
-                customer: mlms.MCustomer = item1
+            for customer in customers:
                 # build debt list
                 if customer.balance < 0 and MDateTime.elapsed_time_from_timestamp(
                     customer.debt_timestamp
@@ -621,8 +620,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 # build contact list
                 if customer.tariffs and customer.has_active_node is not None:
                     test = False
-                    for item2 in customer.contacts:
-                        contact: mlms.CustomerContact = item2
+                    for contact in customer.contacts:
                         if (
                             contact.type & email == email
                             and contact.type & disabled == 0
@@ -702,8 +700,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             cfrom = cto
             cto += STEEP
             # analysis
-            for item1 in customers:
-                customer: mlms.MCustomer = item1
+            for customer in customers:
                 if customer.balance >= 0:
                     # positive balance, skip
                     continue
