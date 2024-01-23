@@ -15,7 +15,7 @@ from typing import Dict, List, Optional, Any, Union
 from threading import Thread, Event
 from queue import Queue
 
-from sqlalchemy import create_engine, and_, text, func
+from sqlalchemy import create_engine, and_, or_, text, func
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.engine.base import Engine
@@ -590,7 +590,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}"
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
-                .join(
+                .outerjoin(
                     lms.CustomerAssignment,
                     mlms.MCustomer.id == lms.CustomerAssignment.customerid,
                 )
@@ -598,7 +598,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     mlms.MCustomer.deleted == 0,
                     mlms.MCustomer.id >= cfrom,
                     mlms.MCustomer.id < cto,
-                    lms.CustomerAssignment.customergroupid.not_in(skip_groups),
+                    or_(
+                        lms.CustomerAssignment.id == None,
+                        lms.CustomerAssignment.customergroupid.not_in(skip_groups),
+                    ),
                 )
                 .order_by(mlms.MCustomer.id)
                 .all()
@@ -676,7 +679,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .join(mlms.MCash)
-                .join(
+                .outerjoin(
                     lms.CustomerAssignment,
                     mlms.MCustomer.id == lms.CustomerAssignment.customerid,
                 )
@@ -685,7 +688,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     mlms.MCustomer.mailingnotice == 1,
                     mlms.MCustomer.id >= cfrom,
                     mlms.MCustomer.id < cto,
-                    lms.CustomerAssignment.customergroupid.not_in(skip_groups),
+                    or_(
+                        lms.CustomerAssignment.id == None,
+                        lms.CustomerAssignment.customergroupid.not_in(skip_groups),
+                    ),
                 )
                 .group_by(mlms.MCustomer.id)
                 .having(func.sum(mlms.MCash.value) < 0)

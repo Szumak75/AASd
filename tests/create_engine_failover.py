@@ -148,7 +148,7 @@ class _Database(BDebug, BLogs):
                     engine: Engine = create_engine(
                         url=url,
                         connect_args=connection_args,
-                        echo=True,
+                        echo=False,
                         pool_recycle=3660,
                         poolclass=QueuePool,
                     )
@@ -336,13 +336,13 @@ if __name__ == "__main__":
         lc.message_info = f"session object: {session}"
         start = Timestamp.now
         cfrom = 0
-        cto = 100
+        cto = 1000
         count = 0
 
         customers: List[mlms.MCustomer] = (
             session.query(mlms.MCustomer)
             .join(mlms.MCash)
-            .join(
+            .outerjoin(
                 lms.CustomerAssignment,
                 mlms.MCustomer.id == lms.CustomerAssignment.customerid,
             )
@@ -350,7 +350,10 @@ if __name__ == "__main__":
                 mlms.MCustomer.deleted == 0,
                 mlms.MCustomer.id >= cfrom,
                 mlms.MCustomer.id < cto,
-                lms.CustomerAssignment.customergroupid.not_in([51, 78]),
+                or_(
+                    lms.CustomerAssignment.id == None,
+                    lms.CustomerAssignment.customergroupid.not_in([51, 78]),
+                ),
             )
             .group_by(mlms.MCustomer.id)
             .having(func.sum(mlms.MCash.value) < 0)
