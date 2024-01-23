@@ -352,7 +352,7 @@ if __name__ == "__main__":
                 mlms.MCustomer.id < cto,
                 or_(
                     lms.CustomerAssignment.id == None,
-                    lms.CustomerAssignment.customergroupid.not_in([51, 78]),
+                    lms.CustomerAssignment.customergroupid.not_in([51, 78, 96]),
                 ),
             )
             .group_by(mlms.MCustomer.id)

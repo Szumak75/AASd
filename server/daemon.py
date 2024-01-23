@@ -120,6 +120,8 @@ class AASd(BProjectClass, BImporter):
         # others
         if self.conf.app_name:
             setproctitle.setproctitle(self.conf.app_name)
+
+        # automatic garbage collector
         gc.enable()
 
     def __start_subsystem(self) -> List:

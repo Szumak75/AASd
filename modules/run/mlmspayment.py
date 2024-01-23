@@ -562,8 +562,15 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         STEEP: int = 10
 
+        skip_groups: List[int] = (
+            self.module_conf.skip_groups
+            if self.module_conf and self.module_conf.skip_groups
+            else list()
+        )
+
         if self.debug or self.verbose:
             self.logs.message_debug = "get customers for verification"
+            self.logs.message_debug = f"skip group ids: {skip_groups}"
 
         # reset buffer
         self.__clean_diagnostic()
@@ -578,12 +585,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         maxid: int = row[0] if row is not None else 0
         cfrom: int = 0
         cto = STEEP
-        skip_groups: List[int] = (
-            self.module_conf.skip_groups
-            if self.module_conf and self.module_conf.skip_groups
-            else list()
-        )
         tstart: int = Timestamp.now
+
         # customers query
         while cfrom < maxid:
             if self.debug:
@@ -658,6 +661,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         if self.debug or self.verbose:
             self.logs.message_debug = "get indebted customers list"
+            self.logs.message_debug = f"skip group ids: {skip_groups}"
 
         # create session
         session: Optional[Session] = dbh.session
