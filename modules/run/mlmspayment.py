@@ -587,7 +587,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         # customers query
         while cfrom < maxid:
             if self.debug:
-                self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}"
+                self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}, elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-tstart)}"
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .outerjoin(
@@ -675,7 +675,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         # customer query
         while cfrom < maxid:
             if self.debug:
-                self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}"
+                self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}, elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-tstart)}"
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .join(mlms.MCash)
