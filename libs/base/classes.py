@@ -68,10 +68,10 @@ class BModuleConfig(BConfigHandler, BConfigSection):
     class Keys(object, metaclass=ReadOnlyClass):
         """Keys definition container class."""
 
-        CHANNEL = "channel"
-        MESSAGE_CHANNEL = "message_channel"
-        MODCONF = "__MODULE_CONF__"
-        SLEEP_PERIOD = "sleep_period"
+        CHANNEL: str = "channel"
+        MESSAGE_CHANNEL: str = "message_channel"
+        MODCONF: str = "__MODULE_CONF__"
+        SLEEP_PERIOD: str = "sleep_period"
 
     def __init__(self, cfh: ConfigTool, section: Optional[str]) -> None:
         """Constructor."""
@@ -165,7 +165,7 @@ class BImporter(BClasses):
 
         Returns: imported module or None.
         """
-        modulename = f"{package}.{name}"
+        modulename: str = f"{package}.{name}"
         name = f"{name[:2].upper()}{name[2:]}"
         try:
             module = __import__(modulename, globals(), locals(), [name])

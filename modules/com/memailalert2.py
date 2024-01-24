@@ -44,12 +44,12 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    ADDRESS_FROM = "address_from"
-    ADDRESS_TO = "address_to"
-    SMTP_PASS = "smtp_pass"
-    SMTP_PORT = "smtp_port"
-    SMTP_SERVER = "smtp_server"
-    SMTP_USER = "smtp_user"
+    ADDRESS_FROM: str = "address_from"
+    ADDRESS_TO: str = "address_to"
+    SMTP_PASS: str = "smtp_pass"
+    SMTP_PORT: str = "smtp_port"
+    SMTP_SERVER: str = "smtp_server"
+    SMTP_USER: str = "smtp_user"
 
 
 class _ModuleConf(BModuleConfig):
@@ -304,7 +304,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                     return out
                 msg.set_content(tmp, subtype="plain", charset="utf-8")
             if Multipart.HTML in message.mmessages:
-                tmp = ""
+                tmp: str = ""
                 if isinstance(message.mmessages[Multipart.HTML], List):
                     for line in message.mmessages[Multipart.HTML]:
                         tmp += f"{line}\n"
@@ -317,7 +317,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                     return out
                 msg.add_alternative(tmp, subtype="html", charset="utf-8")
         else:
-            tmp = ""
+            tmp: str = ""
             if isinstance(message.messages, List):
                 for line in message.messages:
                     tmp += f"{line}\n"

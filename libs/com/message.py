@@ -28,23 +28,23 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    ATDAY = "dmonth"
-    ATDWEEK = "dweek"
-    ATHOUR = "hour"
-    ATMINUTE = "minute"
-    ATMONTH = "month"
-    CHANNELS = "__channels__"
-    MCHANNEL = "__channel__"
-    MCOMQUEUES = "__comq__"
-    MCOUNTER = "__counter__"
-    MMESS = "__message__"
-    MMULTIPART = "__mmessage__"
-    MREPLY = "__reply__"
-    MSENDER = "__sender__"
-    MSUBJECT = "__subject__"
-    MTO = "__to__"
-    PINT = "__interval__"
-    PNEXT = "__next__"
+    ATDAY: str = "dmonth"
+    ATDWEEK: str = "dweek"
+    ATHOUR: str = "hour"
+    ATMINUTE: str = "minute"
+    ATMONTH: str = "month"
+    CHANNELS: str = "__channels__"
+    MCHANNEL: str = "__channel__"
+    MCOMQUEUES: str = "__comq__"
+    MCOUNTER: str = "__counter__"
+    MMESS: str = "__message__"
+    MMULTIPART: str = "__mmessage__"
+    MREPLY: str = "__reply__"
+    MSENDER: str = "__sender__"
+    MSUBJECT: str = "__subject__"
+    MTO: str = "__to__"
+    PINT: str = "__interval__"
+    PNEXT: str = "__next__"
 
 
 class AtChannel(BClasses):
@@ -313,8 +313,8 @@ class Multipart(object, metaclass=ReadOnlyClass):
     For define multipart message public keys.
     """
 
-    PLAIN = "plain"
-    HTML = "html"
+    PLAIN: str = "plain"
+    HTML: str = "html"
 
 
 class Message(BClasses):

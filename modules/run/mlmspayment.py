@@ -15,7 +15,7 @@ from typing import Dict, List, Optional, Any, Union
 from threading import Thread, Event
 from queue import Queue
 
-from sqlalchemy import create_engine, and_, or_, text, func
+from sqlalchemy import Subquery, create_engine, and_, or_, text, func
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import QueuePool
 from sqlalchemy.engine.base import Engine
@@ -49,45 +49,45 @@ class _Keys(object, metaclass=ReadOnlyClass):
     """
 
     # for database class
-    DPOOL = "__connection_pool__"
+    DPOOL: str = "__connection_pool__"
     # for configuration
-    AT_CHANNEL = "at_channel"
-    CUTOFF = "cutoff_time"
-    DCHANNEL = "diagnostic_channel"
-    DPAYTIME = "default_paytime"
-    LMS_URL = "lms_url"
-    MFOOTER = "message_footer"
-    MNOTIFY = "payment_message"
-    SQL_DATABASE = "sql_database"
-    SQL_PASS = "sql_password"
-    SQL_SERVER = "sql_server"
-    SQL_USER = "sql_user"
-    USER_URL = "user_url"
-    SKIP_GROUPS = "skip_group_id"
+    AT_CHANNEL: str = "at_channel"
+    CUTOFF: str = "cutoff_time"
+    DCHANNEL: str = "diagnostic_channel"
+    DPAYTIME: str = "default_paytime"
+    LMS_URL: str = "lms_url"
+    MFOOTER: str = "message_footer"
+    MNOTIFY: str = "payment_message"
+    SQL_DATABASE: str = "sql_database"
+    SQL_PASS: str = "sql_password"
+    SQL_SERVER: str = "sql_server"
+    SQL_USER: str = "sql_user"
+    USER_URL: str = "user_url"
+    SKIP_GROUPS: str = "skip_group_id"
     # contact types
     # email notification: 8|32=40, type&40==40 and type&16384==0
     # mobile notification: 1|32=33, type&33==33 and type&16384==0
     # type&16384|8|32==40 - True
-    CONTACT_BANKACCOUNT = 64
-    CONTACT_DISABLED = 16384
-    CONTACT_DOCUMENTS = 32768
-    CONTACT_EMAIL = 8
-    CONTACT_FAX = 2
-    CONTACT_IM = 7680
-    CONTACT_IM_FACEBOOK = 4096
-    CONTACT_IM_GG = 512
-    CONTACT_IM_SKYPE = 2048
-    CONTACT_IM_YAHOO = 1024
-    CONTACT_INVOICES = 16
-    CONTACT_LANDLINE = 4
-    CONTACT_MOBILE = 1
-    CONTACT_NOTIFICATIONS = 32
-    CONTACT_TECHNICAL = 128
-    CONTACT_URL = 256
+    CONTACT_BANKACCOUNT: int = 64
+    CONTACT_DISABLED: int = 16384
+    CONTACT_DOCUMENTS: int = 32768
+    CONTACT_EMAIL: int = 8
+    CONTACT_FAX: int = 2
+    CONTACT_IM: int = 7680
+    CONTACT_IM_FACEBOOK: int = 4096
+    CONTACT_IM_GG: int = 512
+    CONTACT_IM_SKYPE: int = 2048
+    CONTACT_IM_YAHOO: int = 1024
+    CONTACT_INVOICES: int = 16
+    CONTACT_LANDLINE: int = 4
+    CONTACT_MOBILE: int = 1
+    CONTACT_NOTIFICATIONS: int = 32
+    CONTACT_TECHNICAL: int = 128
+    CONTACT_URL: int = 256
     # diagnostic
-    DCONT = "__cont__"
-    DDEBT = "__debt__"
-    DTARIFF = "__tariff__"
+    DCONT: str = "__cont__"
+    DDEBT: str = "__debt__"
+    DTARIFF: str = "__tariff__"
 
 
 class _Database(BDebug, BLogs):
@@ -556,9 +556,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
     def __get_customers_for_verification(self, dbh: _Database, channel: int) -> None:
         """Get list of Customes to verification."""
-        email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
-        mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
-        disabled = _Keys.CONTACT_DISABLED
+        email: int = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
+        mobile: int = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
+        disabled: int = _Keys.CONTACT_DISABLED
 
         STEEP: int = 10
 
@@ -588,7 +588,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         tstart: int = Timestamp.now
 
         # excluded group
-        group = (
+        group: Subquery = (
             session.query(lms.CustomerAssignment)
             .filter(lms.CustomerAssignment.customergroupid.in_(skip_groups))
             .group_by(lms.CustomerAssignment.customerid)
@@ -681,7 +681,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         tstart: int = Timestamp.now
 
         # excluded group
-        group = (
+        group: Subquery = (
             session.query(lms.CustomerAssignment)
             .filter(lms.CustomerAssignment.customergroupid.in_(skip_groups))
             .group_by(lms.CustomerAssignment.customerid)
@@ -756,9 +756,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
     def __customer_message(self, customer: mlms.MCustomer, channel: int) -> None:
         """Prepare to send message."""
-        email = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
+        email: int = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         # mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
-        disabled = _Keys.CONTACT_DISABLED
+        disabled: int = _Keys.CONTACT_DISABLED
         list_email = []
         # list_sms = []
 
@@ -889,15 +889,15 @@ PIN: {customer_pin}
     # """Prepare customer text message and put it to communication queue."""
 
     def __add_diagnostic_debt(self, customer: mlms.MCustomer) -> None:
-        """"""
+        """Create diagnostic information about customer."""
 
         if self.module_conf is None:
             return None
 
         nemail: int = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
-        email = _Keys.CONTACT_EMAIL
+        email: int = _Keys.CONTACT_EMAIL
         # mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
-        disabled = _Keys.CONTACT_DISABLED
+        disabled: int = _Keys.CONTACT_DISABLED
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td><td>{info}</td></tr>"
         info = ""
         count: int = len(self._data[_Keys.DDEBT]) + 1
@@ -933,7 +933,7 @@ PIN: {customer_pin}
         )
 
     def __add_diagnostic_contact(self, customer: mlms.MCustomer) -> None:
-        """"""
+        """Create diagnostic information about customer."""
 
         if self.module_conf is None:
             return None
@@ -952,7 +952,7 @@ PIN: {customer_pin}
         )
 
     def __add_diagnostic_tariff(self, customer: mlms.MCustomer) -> None:
-        """"""
+        """Create diagnostic information about customer."""
 
         if self.module_conf is None:
             return None
@@ -1005,7 +1005,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci zadłużeni powyżej 30 dni."
             # head
-            tmp = {}
+            tmp: Dict[str, List[str]] = {}
             tmp[Multipart.HTML] = [
                 "<html>",
                 "<head></head>",
@@ -1038,7 +1038,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez zgody na kontakt."
             # head
-            tmp = {}
+            tmp: Dict[str, List[str]] = {}
             tmp[Multipart.HTML] = [
                 "<html>",
                 "<head></head>",
@@ -1071,7 +1071,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez taryf."
             # head
-            tmp = {}
+            tmp: Dict[str, List[str]] = {}
             tmp[Multipart.HTML] = [
                 "<html>",
                 "<head></head>",
@@ -1115,7 +1115,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             return None
 
         # initialization local variables
-        channel = None
+        channel: Optional[AtChannel] = None
         try:
             channel = AtChannel(self.module_conf.at_channel)
         except Exception as ex:
@@ -1125,6 +1125,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             self.stop()
 
         salt = self._cfh.get(self._cfh.main_section_name, "salt")
+        password: str = ""
         if salt is not None:
             password: str = SimpleCrypto.multiple_decrypt(
                 salt, self.module_conf.sql_pass

@@ -15,16 +15,16 @@ class Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    CFH = "__config_handler__"
-    CLOG = "__clog__"
-    CONF = "__configuration_object__"
-    DEBUG = "__debug__"
-    HUP = "__hup_variable__"
-    LOOP = "__loop__"
-    PROC_LOGS = "__proc_logs__"
-    QCOM = "__coms_queue__"
-    SECTION = "__section_name__"
-    VERBOSE = "__verbose__"
+    CFH: str = "__config_handler__"
+    CLOG: str = "__clog__"
+    CONF: str = "__configuration_object__"
+    DEBUG: str = "__debug__"
+    HUP: str = "__hup_variable__"
+    LOOP: str = "__loop__"
+    PROC_LOGS: str = "__proc_logs__"
+    QCOM: str = "__coms_queue__"
+    SECTION: str = "__section_name__"
+    VERBOSE: str = "__verbose__"
 
 
 # #[EOF]#######################################################################

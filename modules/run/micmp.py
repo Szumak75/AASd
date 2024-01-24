@@ -35,11 +35,11 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    CHANGE = "__change__"
-    HOSTS = "hosts"
-    IP = "__ip__"
-    LASTDOWN = "__down__"
-    LASTUP = "__up__"
+    CHANGE: str = "__change__"
+    HOSTS: str = "hosts"
+    IP: str = "__ip__"
+    LASTDOWN: str = "__down__"
+    LASTUP: str = "__up__"
 
 
 class _ModuleConf(BModuleConfig):
@@ -175,8 +175,8 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
 
         # initialization local variables
         ping = Pinger()
-        hosts = []
         channel = Channel(self.module_conf.message_channel)
+        hosts: List[Ipv4Test] = []
 
         # initialization variables from config file
         if not self._apply_config():
@@ -196,16 +196,14 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             # TODO: not implemented
             # TODO: do something, build a message if necessary, put it in the qcom queue
             # test
-            for item in hosts:
-                host: Ipv4Test = item
+            for host in hosts:
                 host.result = ping.is_alive(host.address)
             # analize
-            up_now = []
-            down_now = []
-            down = []
-            msg = []
-            for item in hosts:
-                host: Ipv4Test = item
+            up_now: List[Ipv4Test] = []
+            down_now: List[Ipv4Test] = []
+            down: List[Ipv4Test] = []
+            msg: List[Message] = []
+            for host in hosts:
                 if not host.result:
                     if host.change:
                         down_now.append(host)
@@ -215,8 +213,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                     up_now.append(host)
 
             # down_now - build message now
-            for item in down_now:
-                host: Ipv4Test = item
+            for host in down_now:
                 for chan in channel.channels:
                     message = Message()
                     message.channel = int(chan)
@@ -227,8 +224,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 channel.get
 
             # up_now - build message now
-            for item in up_now:
-                host: Ipv4Test = item
+            for host in up_now:
                 for chan in channel.channels:
                     message = Message()
                     message.channel = int(chan)
@@ -241,8 +237,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 if self.debug:
                     self.logs.message_debug = "expired channel found"
                 for chan in channel.get:
-                    for item in down:
-                        host: Ipv4Test = item
+                    for host in down:
                         if self.debug:
                             self.logs.message_debug = (
                                 f"create message for channel: '{chan}'"
@@ -256,8 +251,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             if msg:
                 # build channels dict
                 tmp = dict()
-                for item in msg:
-                    msg_tmp: Message = item
+                for msg_tmp in msg:
                     if str(msg_tmp.channel) not in tmp:
                         tmp[str(msg_tmp.channel)] = list()
                     tmp[str(msg_tmp.channel)].append(msg_tmp)

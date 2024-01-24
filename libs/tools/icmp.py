@@ -26,12 +26,12 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    CMD = "cmd"
-    COMMAND = "__command_found__"
-    COMMANDS = "__commands__"
-    MULTIPLIER = "multip"
-    OPTS = "opts"
-    TIMEOUT = "__timeout__"
+    CMD: str = "cmd"
+    COMMAND: str = "__command_found__"
+    COMMANDS: str = "__commands__"
+    MULTIPLIER: str = "multip"
+    OPTS: str = "opts"
+    TIMEOUT: str = "__timeout__"
 
 
 class Pinger(BClasses):
@@ -173,7 +173,7 @@ class Tracert(BClasses):
                     return out
         return None
 
-    def execute(self, ip: str) -> List:
+    def execute(self, ip: str) -> List[str]:
         """Traceroute to given IPv4 address."""
         if self._data[_Keys.COMMAND] is None:
             raise Raise.error(
@@ -182,8 +182,8 @@ class Tracert(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        out = []
-        args = []
+        out: List[str] = []
+        args: List[str] = []
         args.append(self._data[_Keys.COMMAND][_Keys.CMD])
         args.extend(self._data[_Keys.COMMAND][_Keys.OPTS].split(" "))
         args.append(str(Address(ip)))
