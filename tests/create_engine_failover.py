@@ -148,7 +148,7 @@ class _Database(BDebug, BLogs):
                     engine: Engine = create_engine(
                         url=url,
                         connect_args=connection_args,
-                        echo=True,
+                        echo=False,
                         pool_recycle=3660,
                         poolclass=QueuePool,
                     )
@@ -319,7 +319,7 @@ if __name__ == "__main__":
     dbh = _Database(
         lqueue,
         {
-            _Keys.SQL_SERVER: ["10.5.0.36", "10.5.0.37", "10.5.0.36"],
+            _Keys.SQL_SERVER: ["10.5.0.39", "10.5.0.37", "10.5.0.36"],
             # _Keys.SQL_SERVER: ["10.5.0.36", "10.5.0.37", "10.5.0.39"],
             _Keys.SQL_DATABASE: "lmsv3",
             _Keys.SQL_USER: "lms3",
@@ -340,7 +340,7 @@ if __name__ == "__main__":
         count = 0
 
         group = (
-            session.query(lms.CustomerAssignment)
+            session.query(lms.CustomerAssignment.customerid)
             .filter(lms.CustomerAssignment.customergroupid.in_([78, 96, 97]))
             .group_by(lms.CustomerAssignment.customerid)
             .subquery()
@@ -357,7 +357,7 @@ if __name__ == "__main__":
                 mlms.MCustomer.deleted == 0,
                 mlms.MCustomer.id >= cfrom,
                 mlms.MCustomer.id < cto,
-                group.c.id == None,
+                group.c.customerid == None,
             )
             .group_by(mlms.MCustomer.id)
             # .having(func.sum(mlms.MCash.value) < 0)

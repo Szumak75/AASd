@@ -589,7 +589,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         # excluded group
         group: Subquery = (
-            session.query(lms.CustomerAssignment)
+            session.query(lms.CustomerAssignment.customerid)
             .filter(lms.CustomerAssignment.customergroupid.in_(skip_groups))
             .group_by(lms.CustomerAssignment.customerid)
             .subquery()
@@ -682,7 +682,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         # excluded group
         group: Subquery = (
-            session.query(lms.CustomerAssignment)
+            session.query(lms.CustomerAssignment.customerid)
             .filter(lms.CustomerAssignment.customergroupid.in_(skip_groups))
             .group_by(lms.CustomerAssignment.customerid)
             .subquery()
@@ -719,7 +719,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 if customer.balance >= 0:
                     # positive balance, skip
                     continue
-                # cutt off time
+                # cut off time
                 # self.module_conf.cutoff_time
                 debt_td: timedelta = MDateTime.elapsed_time_from_timestamp(
                     customer.debt_timestamp
