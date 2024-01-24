@@ -29,7 +29,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     CMD: str = "cmd"
     COMMAND: str = "__command_found__"
     COMMANDS: str = "__commands__"
-    MULTIPLIER: str = "multip"
+    MULTIPLIER: str = "__multiplier__"
     OPTS: str = "opts"
     TIMEOUT: str = "__timeout__"
 

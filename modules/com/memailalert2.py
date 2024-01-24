@@ -550,7 +550,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         )
         out.append(
             TemplateConfigItem(
-                desc="may be overrited by Message class properties if set."
+                desc="can be overridden by properties of the Message class if set."
             )
         )
         out.append(
@@ -560,7 +560,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         )
         out.append(
             TemplateConfigItem(
-                desc="may be overrited by Message class properties if set."
+                desc="can be overridden by properties of the Message class if set."
             )
         )
         out.append(TemplateConfigItem(varname=_ModuleConf.Keys.CHANNEL, value=2))
