@@ -95,7 +95,7 @@ class Ipv4Test(BClasses):
 
     @property
     def result(self) -> bool:
-        """Returns last avability result."""
+        """Returns last availability result."""
         if self.last_up >= self.last_down:
             return True
         return False

@@ -401,7 +401,7 @@ class _ModuleConf(BModuleConfig):
 
     @property
     def skip_groups(self) -> Optional[List[int]]:
-        """Returns groups id to skiip."""
+        """Returns groups id to skip."""
         var = self._get(varname=_Keys.SKIP_GROUPS)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
@@ -555,7 +555,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         return True
 
     def __get_customers_for_verification(self, dbh: _Database, channel: int) -> None:
-        """Get list of Customes to verification."""
+        """Get list of Customers to verification."""
         email: int = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         mobile: int = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled: int = _Keys.CONTACT_DISABLED
