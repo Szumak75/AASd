@@ -66,7 +66,7 @@ class TemplateConfigItem(BClasses):
         """Set value."""
         if not isinstance(value, (str, int, float, bool, list)):
             raise Raise.error(
-                f"Expected Union[str, int, float, bool, list] typs, received: '{type(value)}'.",
+                f"Expected Union[str, int, float, bool, list] type, received: '{type(value)}'.",
                 TypeError,
                 self._c_name,
                 currentframe(),

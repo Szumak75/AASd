@@ -500,8 +500,8 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
         # communication queues for target modules
         # example:
         # {
-        #    level_1: [regisetred_queue1, registered_queue2, ]
-        #    level_2: [regisetred_queue3, ]
+        #    level_1: [registered_queue1, registered_queue2, ]
+        #    level_2: [registered_queue3, ]
         # }
         self._data[_Keys.MCOMQUEUES] = dict()
 

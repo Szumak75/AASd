@@ -304,7 +304,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         )
 
         # modules section
-        # comunication modules
+        # communication modules
         if self.debug:
             self.logs.message_debug = f"Found communication modules list: {com_mods}"
         if com_mods:
@@ -432,7 +432,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         """Get configured modules list."""
         out = []
         if self.module_conf and self.module_conf.modules:
-            # try search importtable modules and compare it to config variable list
+            # try search importable modules and compare it to config variable list
             name_list = self.import_name_list(package)
             if self.debug:
                 self.logs.message_debug = f"found module list: {name_list}"

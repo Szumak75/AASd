@@ -108,8 +108,8 @@ class Pinger(BClasses):
         """Check system command."""
         for cmd in self._data[_Keys.COMMANDS]:
             if find_executable(cmd[_Keys.CMD]) is not None:
-                test_cmd = f"{cmd[_Keys.CMD]} {cmd[_Keys.OPTS]}"
-                multi = cmd[_Keys.MULTIPLIER]
+                test_cmd: str = f"{cmd[_Keys.CMD]} {cmd[_Keys.OPTS]}"
+                multi: int = cmd[_Keys.MULTIPLIER]
                 if (
                     os.system(
                         test_cmd.format(
