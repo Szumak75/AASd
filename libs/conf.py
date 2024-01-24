@@ -6,6 +6,8 @@
   Purpose: configuration package
 """
 
+import socket
+
 from inspect import currentframe
 from typing import Dict, Optional, List, Any, Union, Tuple
 
@@ -450,6 +452,11 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                         )
 
         return out
+
+    @property
+    def fqdn(self) -> str:
+        """Get fully qualified domain name from name."""
+        return socket.getfqdn()
 
     @property
     def get_com_modules(self) -> List[IComModule]:
