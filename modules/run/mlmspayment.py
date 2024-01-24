@@ -609,7 +609,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     mlms.MCustomer.deleted == 0,
                     mlms.MCustomer.id >= cfrom,
                     mlms.MCustomer.id < cto,
-                    group.c.id == None,
+                    group.c.customerid == None,
                 )
                 .order_by(mlms.MCustomer.id)
                 .all()
@@ -704,7 +704,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     mlms.MCustomer.mailingnotice == 1,
                     mlms.MCustomer.id >= cfrom,
                     mlms.MCustomer.id < cto,
-                    group.c.id == None,
+                    group.c.customerid == None,
                 )
                 .group_by(mlms.MCustomer.id)
                 .having(func.sum(mlms.MCash.value) < 0)
