@@ -148,7 +148,7 @@ class AASd(BProjectClass, BImporter):
         # start dispatcher
         dispatch.start()
 
-        # break for coffe
+        # break for caffe
         time.sleep(1)
 
         # start communication modules
