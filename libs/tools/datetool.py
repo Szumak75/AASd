@@ -45,7 +45,7 @@ class MDateTime(DateTime):
     @property
     def mfi_date(cls) -> Dict:
         """Return MFI date formatted dict."""
-        now = cls.now()
+        now: datetime = cls.now()
         return {
             "day": f"{now.strftime('%a %b')} {int(now.strftime('%d')): >2d}",
             "year": now.strftime("%Y"),
