@@ -6,7 +6,7 @@ Autonomous Administrative System daemon.
 
 The main goal of the project is to create a modular platform supporting UNIX system administration tasks in the field of monitoring environmental parameters and process status as well as responding to incidents. However, due to the assumed architecture of the platform, there is a lot of freedom in creating the functionalities of working modules.
 
-The platform integrates two types of modules: intended for communication with the platform user: **modules.com** and intended for performing tasks: **modules.run**.
+The platform integrates two types of modules: intended for communication with the platform user: **_modules.com_** and intended for performing tasks: **_modules.run_**.
 
 Modules are loaded dynamically based on rules defined in the main section of the configuration file.
 
