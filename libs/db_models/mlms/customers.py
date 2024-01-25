@@ -36,9 +36,18 @@ class MCustomer(Customer):
     assignments: Mapped[List["MAssignment"]] = relationship("MAssignment")
 
     @hybrid_property
+    def sum_cash(self) -> float:
+        return sum(cash.value for cash in self.cash_operations)
+
+    @hybrid_property
     def balance(self) -> float:
         """Returns balance of cash operations."""
-        balance = 0
+        balance: float = self.sum_cash
+        if balance >= 0:
+            return balance
+
+        # detailed analysis
+        balance = 0.0
         for cash in self.cash_operations:
             if cash.value < 0:
                 if cash.docid is not None:
