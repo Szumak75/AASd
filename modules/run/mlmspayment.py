@@ -621,9 +621,12 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             # analysis
             for customer in customers:
                 # build debt list
-                if customer.balance < 0 and MDateTime.elapsed_time_from_timestamp(
-                    customer.debt_timestamp
-                ) > MDateTime.elapsed_time_from_seconds(60 * 60 * 24 * 30):
+                if (
+                    customer.balance < 0
+                    and customer.debt_timestamp > 0
+                    and MDateTime.elapsed_time_from_timestamp(customer.debt_timestamp)
+                    > MDateTime.elapsed_time_from_seconds(60 * 60 * 24 * 30)
+                ):
                     self.__add_diagnostic_debt(customer)
                 # build contact list
                 if customer.tariffs and customer.has_active_node is not None:
@@ -716,8 +719,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             cto += STEEP
             # analysis
             for customer in customers:
-                if customer.balance >= 0:
-                    # positive balance, skip
+                if customer.balance >= 0 or customer.debt_timestamp == 0:
+                    # positive balance or no last invoice skip
                     continue
                 # cut off time
                 # self.module_conf.cutoff_time
