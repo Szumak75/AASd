@@ -39,16 +39,17 @@ class MCustomer(Customer):
     def balance(self) -> float:
         """Returns balance of cash operations."""
         balance = 0
-        for item in self.cash_operations:
-            cash: MCash = item
+        for cash in self.cash_operations:
             if cash.value < 0:
                 if cash.docid is not None:
                     doc: Optional[MDocument] = cash.doc
-                    if doc and balance >= 0:
+                    if doc and balance >= 0 and (balance + cash.value) < 0:
                         # self.__debt_time = cash.time
                         self.__debt_time = doc.cdate
                         self.__pay_time = doc.paytime
             balance += cash.value
+            if balance >= 0:
+                self.__debt_time = 0
         return balance
 
     @property
