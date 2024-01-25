@@ -82,56 +82,26 @@ if session is not None:
         session.query(mlms.MCustomer)
         .filter(
             mlms.MCustomer.deleted == 0,
-            # mlms.MCustomer.id == 7,
+            mlms.MCustomer.id == 178,
             # mlms.MCustomer.paytime != "-1",
         )
         .all()
     )
     count = 0
-    for item1 in customers:
-        customer: mlms.MCustomer = item1
+    for customer in customers:
         # print(customer.has_active_node)
         count += 1
+        start = time.time()
+        print(customer.sum_cash)
+        stop = time.time()
+        print(stop - start)
+
+        start = time.time()
+        print(customer.balance)
+        stop = time.time()
+        print(stop - start)
         print(
             f"{count}: CID: {customer.id} Termin płatności: {customer.pay_time}, Bilans: {customer.balance}"
         )
-        # for item2 in customer.cash_operations:
-        # cash: mlms.MCash = item2
-        # print(cash)
-        # if True:
-        # continue
-        if customer.balance < 0:
-            # if customer.tariffs and customer.has_active_node is not None:
-            # print(customer)
-            # continue
-            # print(customer.cash_operations)
-            balance = 0
-            for item2 in customer.cash_operations:
-                cash: mlms.MCash = item2
-                # print(cash)
-                balance += cash.value
-                print(
-                    "{time} {value}/{balance}  {doc}  {comment}".format(
-                        time=MDateTime.datetime_from_timestamp(cash.time),
-                        value=cash.value,
-                        balance=balance,
-                        doc=True if cash.docid else False,
-                        comment=cash.comment,
-                    )
-                )
-
-            print(customer.balance)
-            print(customer.debt_timestamp)
-            print(MDateTime.datetime_from_timestamp(customer.debt_timestamp))
-            print(MDateTime.elapsed_time_from_timestamp(customer.debt_timestamp))
-            print(
-                f"consent date: {MDateTime.datetime_from_timestamp(customer.consentdate)}"
-            )
-            print(
-                f"cutoff stop: {MDateTime.datetime_from_timestamp(customer.cutoffstop)}"
-            )
-            for item2 in customer.tariffs:
-                tariff: mlms.Tariff = item2
-                print(tariff)
 
 # #[EOF]#######################################################################
