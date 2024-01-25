@@ -59,7 +59,7 @@ class MCustomer(Customer):
 
     @property
     def pay_time(self) -> int:
-        """Returns pay time as number of deys."""
+        """Returns pay time as number of days."""
         if self.__pay_time > 0:
             return self.__pay_time
         return self.paytime
