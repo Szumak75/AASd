@@ -39,12 +39,12 @@ class MCustomer(Customer):
     def sum_cash(self) -> float:
         if self.cash_operations:
             return sum(cash.value for cash in self.cash_operations)
-        return 0
+        return 0.0
 
     @hybrid_property
     def balance(self) -> float:
         """Returns balance of cash operations."""
-        balance = self.sum_cash
+        balance: float = self.sum_cash
         if balance >= 0:
             return balance
 

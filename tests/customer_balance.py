@@ -82,7 +82,7 @@ if session is not None:
         session.query(mlms.MCustomer)
         .filter(
             mlms.MCustomer.deleted == 0,
-            mlms.MCustomer.id == 178,
+            mlms.MCustomer.id == 3012,
             # mlms.MCustomer.paytime != "-1",
         )
         .all()
