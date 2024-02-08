@@ -47,7 +47,7 @@ class _ModuleConf(BModuleConfig):
 
     @property
     def hosts(self) -> Optional[List[str]]:
-        """Returns hosts IP addrresses list."""
+        """Returns hosts IP addresses list."""
         var = self._get(varname=_Keys.HOSTS)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
