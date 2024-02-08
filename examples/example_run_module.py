@@ -3,7 +3,7 @@
   Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 23.11.2023
 
-  Purpose:
+  Purpose: Example working module.
 """
 
 import time
@@ -115,8 +115,8 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sbreak = Timestamp.now + self.sleep_period
-        while not self.stopped and sbreak > Timestamp.now:
+        sleep_break: float = Timestamp.now + self.sleep_period
+        while not self.stopped and sleep_break > Timestamp.now:
             time.sleep(0.2)
 
     def stop(self) -> None:

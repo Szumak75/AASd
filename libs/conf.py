@@ -34,25 +34,28 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    APPNAME: str = "__app_name__"
+    # internal vars
+    APP_NAME: str = "__app_name__"
     CF: str = "__cf__"
-    CUPDATE: str = "__config_update__"
+    CONF_FILE: str = "__CONF_FILE__"
+    CONF_UPDATE: str = "__config_update__"
     DEBUG: str = "__DEBUG__"
-    FCONF: str = "__FCONF__"
     MAIN: str = "__MAIN__"
-    MC_DEBUG: str = "debug"
-    MC_MODULES: str = "modules"
-    MC_SALT: str = "salt"
-    MC_VERBOSE: str = "verbose"
     MODCONF: str = "__MODULE_CONF__"
     MODULES: str = "__MODULES__"
     NAME: str = "__NAME__"
     PASSWORD: str = "__password__"
-    PSECTION: str = "__psection__"
-    PVAR: str = "__pvar__"
-    STARTTIME: str = "__tstart__"
+    PASS_SECTION: str = "__pass_section__"
+    PASS_VAR: str = "__pass_var__"
+    START_TIME: str = "__start_time__"
     VERBOSE: str = "__VERBOSE__"
     VERSION: str = "__VERSION__"
+
+    # config keys
+    MC_DEBUG: str = "debug"
+    MC_MODULES: str = "modules"
+    MC_SALT: str = "salt"
+    MC_VERBOSE: str = "verbose"
 
 
 class _ModuleConf(BModuleConfig):
@@ -105,7 +108,7 @@ class _ModuleConf(BModuleConfig):
 
 
 class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
-    """Configuration containet class."""
+    """Configuration container class."""
 
     def __init__(self, qlog: LoggerQueue, app_name: str) -> None:
         """Constructor."""
@@ -119,10 +122,10 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         self._data[_Keys.MAIN] = dict()
         self._data[_Keys.MODULES] = dict()
         # starting timestamp
-        self._data[_Keys.MAIN][_Keys.STARTTIME] = Timestamp.now
+        self._data[_Keys.MAIN][_Keys.START_TIME] = Timestamp.now
         # self.module_conf
         self._data[_Keys.MODCONF] = None
-        # configfile main section name
+        # config file main section name
         self.app_name = app_name
         # config file handler
         self._data[_Keys.CF] = None
@@ -204,7 +207,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         test = False
         if self._cfh is None:
             return False
-        com_mods, run_mods, config = self.__get_modules_config()
+        (com_mods, run_mods, config) = self.__get_modules_config()
         # check modules
         for name in com_mods + run_mods:
             if not self._cfh.has_section(name):
@@ -251,18 +254,18 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         # get config template
         for item in com_mods:
             config[item] = []
-            cmod: IComModule = self.import_module("modules.com", item)  # type: ignore
-            if cmod:
-                for mod_item in cmod.template_module_variables():
+            com_mod: IComModule = self.import_module("modules.com", item)  # type: ignore
+            if com_mod:
+                for mod_item in com_mod.template_module_variables():
                     config[item].append(mod_item)
             else:
                 self.logs.message_error = f"Cannot load module: modules.com.{item}"
 
         for item in run_mods:
             config[item] = []
-            rmod: IRunModule = self.import_module("modules.run", item)  # type: ignore
-            if rmod:
-                for mod_item in rmod.template_module_variables():
+            run_mod: IRunModule = self.import_module("modules.run", item)  # type: ignore
+            if run_mod:
+                for mod_item in run_mod.template_module_variables():
                     config[item].append(mod_item)
             else:
                 self.logs.message_error = f"Cannot load module: modules.run.{item}"
@@ -357,9 +360,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     @property
     def app_name(self) -> Optional[str]:
         """Returns app name."""
-        if _Keys.APPNAME not in self.__main:
-            self.__main[_Keys.APPNAME] = None
-        return self.__main[_Keys.APPNAME]
+        if _Keys.APP_NAME not in self.__main:
+            self.__main[_Keys.APP_NAME] = None
+        return self.__main[_Keys.APP_NAME]
 
     @app_name.setter
     def app_name(self, value: str) -> None:
@@ -371,7 +374,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 self._c_name,
                 currentframe(),
             )
-        self.__main[_Keys.APPNAME] = value
+        self.__main[_Keys.APP_NAME] = value
         self._section = value
 
     @property
@@ -392,9 +395,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     @property
     def config_file(self) -> Optional[str]:
         """Return config_file path string."""
-        if _Keys.FCONF not in self.__main:
-            self.__main[_Keys.FCONF] = None
-        return self.__main[_Keys.FCONF]
+        if _Keys.CONF_FILE not in self.__main:
+            self.__main[_Keys.CONF_FILE] = None
+        return self.__main[_Keys.CONF_FILE]
 
     @config_file.setter
     def config_file(self, value: str) -> None:
@@ -406,7 +409,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 self._c_name,
                 currentframe(),
             )
-        self.__main[_Keys.FCONF] = value
+        self.__main[_Keys.CONF_FILE] = value
 
     @property
     def debug(self) -> bool:
@@ -497,9 +500,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     @property
     def _password_section(self) -> Optional[str]:
         """Return password section string."""
-        if _Keys.PSECTION not in self.__main:
+        if _Keys.PASS_SECTION not in self.__main:
             return None
-        return self.__main[_Keys.PSECTION]
+        return self.__main[_Keys.PASS_SECTION]
 
     @_password_section.setter
     def _password_section(self, value: str) -> None:
@@ -511,14 +514,14 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 self._c_name,
                 currentframe(),
             )
-        self.__main[_Keys.PSECTION] = value
+        self.__main[_Keys.PASS_SECTION] = value
 
     @property
     def _password_varname(self) -> Optional[str]:
         """Return password varname string."""
-        if _Keys.PVAR not in self.__main:
+        if _Keys.PASS_VAR not in self.__main:
             return None
-        return self.__main[_Keys.PVAR]
+        return self.__main[_Keys.PASS_VAR]
 
     @_password_varname.setter
     def _password_varname(self, value: str) -> None:
@@ -530,14 +533,14 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 self._c_name,
                 currentframe(),
             )
-        self.__main[_Keys.PVAR] = value
+        self.__main[_Keys.PASS_VAR] = value
 
     @property
     def update(self) -> bool:
         """Return update flag."""
-        if _Keys.CUPDATE not in self.__main:
-            self.__main[_Keys.CUPDATE] = False
-        return self.__main[_Keys.CUPDATE]
+        if _Keys.CONF_UPDATE not in self.__main:
+            self.__main[_Keys.CONF_UPDATE] = False
+        return self.__main[_Keys.CONF_UPDATE]
 
     @update.setter
     def update(self, value: bool) -> None:
@@ -549,7 +552,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
                 self._c_name,
                 currentframe(),
             )
-        self.__main[_Keys.CUPDATE] = value
+        self.__main[_Keys.CONF_UPDATE] = value
 
     @property
     def verbose(self) -> bool:

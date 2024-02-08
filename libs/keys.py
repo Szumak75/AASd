@@ -22,7 +22,7 @@ class Keys(object, metaclass=ReadOnlyClass):
     HUP: str = "__hup_variable__"
     LOOP: str = "__loop__"
     PROC_LOGS: str = "__proc_logs__"
-    QCOM: str = "__coms_queue__"
+    QCOM: str = "__comms_queue__"
     SECTION: str = "__section_name__"
     VERBOSE: str = "__verbose__"
 

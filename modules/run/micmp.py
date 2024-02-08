@@ -38,8 +38,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
     CHANGE: str = "__change__"
     HOSTS: str = "hosts"
     IP: str = "__ip__"
-    LASTDOWN: str = "__down__"
-    LASTUP: str = "__up__"
+    LAST_DOWN: str = "__down__"
+    LAST_UP: str = "__up__"
 
 
 class _ModuleConf(BModuleConfig):
@@ -66,8 +66,8 @@ class Ipv4Test(BClasses):
         """Constructor."""
         self._data[_Keys.IP] = address
         now: int = Timestamp.now
-        self._data[_Keys.LASTUP] = now
-        self._data[_Keys.LASTDOWN] = now
+        self._data[_Keys.LAST_UP] = now
+        self._data[_Keys.LAST_DOWN] = now
         self._data[_Keys.CHANGE] = False
 
     @property
@@ -86,12 +86,12 @@ class Ipv4Test(BClasses):
     @property
     def last_up(self) -> int:
         """Last UP timestamp."""
-        return self._data[_Keys.LASTUP]
+        return self._data[_Keys.LAST_UP]
 
     @property
     def last_down(self) -> int:
         """Last down timestamp."""
-        return self._data[_Keys.LASTDOWN]
+        return self._data[_Keys.LAST_DOWN]
 
     @property
     def result(self) -> bool:
@@ -107,12 +107,12 @@ class Ipv4Test(BClasses):
             if self.last_up <= self.last_down:
                 if self.last_up < self.last_down:
                     self._data[_Keys.CHANGE] = True
-                self._data[_Keys.LASTUP] = Timestamp.now
+                self._data[_Keys.LAST_UP] = Timestamp.now
         else:
             if self.last_up >= self.last_down:
                 if self.last_up > self.last_down:
                     self._data[_Keys.CHANGE] = True
-                self._data[_Keys.LASTDOWN] = Timestamp.now
+                self._data[_Keys.LAST_DOWN] = Timestamp.now
 
 
 class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
@@ -198,7 +198,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
             # test
             for host in hosts:
                 host.result = ping.is_alive(host.address)
-            # analize
+            # analyze
             up_now: List[Ipv4Test] = []
             down_now: List[Ipv4Test] = []
             down: List[Ipv4Test] = []
