@@ -14,7 +14,7 @@ Each module is launched in a separate thread and is executed independently of th
 
 The project is entirely written in python3 and runs in a dedicated virtual environment.
 
-The main process is executed in the foreground and it is assumed that it will be supervised by a service manager such as "runit" or "daemontools".
+The main process is executed in the foreground and it is assumed that it will be supervised by a service manager such as "**runit**" or "**daemontools**".
 
 The project is dedicated and tested on FreeBSD platforms, most of the modules should work properly in the Linux environment.
 
