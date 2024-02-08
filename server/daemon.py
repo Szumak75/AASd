@@ -56,14 +56,14 @@ class AASd(BProjectClass, BImporter):
         self.loop = True
 
         # logger engines configuration
-        lengine = LoggerEngine()
-        lqueue: Optional[LoggerQueue] = lengine.logs_queue
-        if lqueue is None:
-            lqueue = LoggerQueue()
-            lengine.logs_queue = lqueue
+        log_engine = LoggerEngine()
+        log_queue: Optional[LoggerQueue] = log_engine.logs_queue
+        if log_queue is None:
+            log_queue = LoggerQueue()
+            log_engine.logs_queue = log_queue
 
         # logger levels
-        self.__init_log_levels(lengine)
+        self.__init_log_levels(log_engine)
 
         # logger client
         self.logs = LoggerClient()
@@ -71,18 +71,18 @@ class AASd(BProjectClass, BImporter):
         # logger processor
         thl = ThLoggerProcessor()
         thl.sleep_period = 1.5
-        thl.logger_engine = lengine
+        thl.logger_engine = log_engine
         thl.logger_client = self.logs
         self.logs_processor = thl
 
         # add config handler
         if self.conf is None:
-            self.conf = Config(qlog=lqueue, app_name=self._c_name)
+            self.conf = Config(qlog=log_queue, app_name=self._c_name)
         self.conf.version = "1.0.DEV"
         self.conf.debug = False
         # the default config file path can be overwritten with the command line argument '-f'.
-        cver: Optional[str] = self.conf.version
-        if cver and cver.find("DEV") > -1:
+        conf_ver: Optional[str] = self.conf.version
+        if conf_ver and conf_ver.find("DEV") > -1:
             self.conf.config_file = "/var/tmp/aasd.conf"
         else:
             self.conf.config_file = "/etc/aasd.conf"
@@ -199,7 +199,7 @@ class AASd(BProjectClass, BImporter):
             while mod.is_stopped != True:  # type: ignore
                 mod.join()  # type: ignore
                 time.sleep(0.1)
-        # stopping & joining cummunication modules
+        # stopping & joining communication modules
         for mod in com_mods:
             mod.stop()
             while mod.is_stopped != True:  # type: ignore
@@ -252,7 +252,7 @@ class AASd(BProjectClass, BImporter):
         desc_opts: List = []
         max_len: int = 0
         opt_value: List = []
-        opt_novalue: List = []
+        opt_no_value: List = []
         # stage 1
         for item in command_conf.keys():
             if max_len < len(item):
@@ -260,10 +260,10 @@ class AASd(BProjectClass, BImporter):
             if command_conf[item]["has_value"]:
                 opt_value.append(item)
             else:
-                opt_novalue.append(item)
+                opt_no_value.append(item)
         max_len += 7
         # stage 2
-        for item in sorted(opt_novalue):
+        for item in sorted(opt_no_value):
             tmp: str = ""
             if command_conf[item]["short"]:
                 tmp = f"-{command_conf[item]['short']}|--{item} "
@@ -292,7 +292,7 @@ class AASd(BProjectClass, BImporter):
         sys.exit(2)
 
     def __init_command_line(self) -> None:
-        """Configure ConnamdLineParser and update config."""
+        """Configure CommandLineParser and update config."""
         if self.conf is None:
             return None
         parser = CommandLineParser()

@@ -385,10 +385,10 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
     def run(self) -> None:
         """Main loop."""
         # initialize local vars
-        deffered_shift: int = 15 * 60  # 15 minutes
-        deffered: int = deffered_shift + Timestamp.now
-        deffered_count: int = 7 * 24 * 4  # 7 days every 15 minutes
-        deffered_queue = Queue(maxsize=1500)
+        deferred_shift: int = 15 * 60  # 15 minutes
+        deferred: int = deferred_shift + Timestamp.now
+        deferred_count: int = 7 * 24 * 4  # 7 days every 15 minutes
+        deferred_queue = Queue(maxsize=1500)
 
         self.logs.message_notice = "starting..."
 
@@ -405,24 +405,24 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
             return None
 
         while not self.stopped:
-            # read from deffered queue
-            if deffered < Timestamp.now:
+            # read from deferred queue
+            if deferred < Timestamp.now:
                 tmp: List[Message] = []
                 while not self.stopped:
                     try:
-                        message: Message = deffered_queue.get_nowait()
+                        message: Message = deferred_queue.get_nowait()
                         if message is None:
                             break
                         if self.debug:
-                            self.logs.message_debug = "found deffered message"
-                        # try to send for deffered_count times
+                            self.logs.message_debug = "found deferred message"
+                        # try to send for deferred_count times
                         if (
                             not self.__send_message(message)
-                            and message.counter < deffered_count
+                            and message.counter < deferred_count
                         ):
                             if self.debug:
                                 self.logs.message_debug = (
-                                    "deffered message not sent, retry..."
+                                    "deferred message not sent, retry..."
                                 )
                             tmp.append(message)
 
@@ -430,13 +430,13 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                         break
                     except Exception as ex:
                         self.logs.message_critical = (
-                            f"error while processing deffered queue: {ex}"
+                            f"error while processing deferred queue: {ex}"
                         )
                         break
-                deffered = Timestamp.now + deffered_shift
+                deferred = Timestamp.now + deferred_shift
                 for item in tmp:
-                    if not deffered_queue.full():
-                        deffered_queue.put(item)
+                    if not deferred_queue.full():
+                        deferred_queue.put(item)
 
             # read from queue, process message if received
             if self.debug and self.verbose:
@@ -454,9 +454,9 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                     try:
                         if not self.__send_message(message):
                             if self.debug:
-                                self.logs.message_debug = "deffered message"
-                            if not deffered_queue.full():
-                                deffered_queue.put(message)
+                                self.logs.message_debug = "deferred message"
+                            if not deferred_queue.full():
+                                deferred_queue.put(message)
                         else:
                             continue
                     except Exception as ex:
@@ -475,8 +475,8 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sbreak: float = Timestamp.now + self.sleep_period
-        while not self.stopped and sbreak > Timestamp.now:
+        sleep_break: float = Timestamp.now + self.sleep_period
+        while not self.stopped and sleep_break > Timestamp.now:
             time.sleep(0.2)
 
     def stop(self) -> None:

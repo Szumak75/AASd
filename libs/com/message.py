@@ -28,11 +28,11 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    ATDAY: str = "dmonth"
-    ATDWEEK: str = "dweek"
-    ATHOUR: str = "hour"
-    ATMINUTE: str = "minute"
-    ATMONTH: str = "month"
+    AT_DAY: str = "dmonth"
+    AT_DWEEK: str = "dweek"
+    AT_HOUR: str = "hour"
+    AT_MINUTE: str = "minute"
+    AT_MONTH: str = "month"
     CHANNELS: str = "__channels__"
     MCHANNEL: str = "__channel__"
     MCOMQUEUES: str = "__comq__"
@@ -144,15 +144,15 @@ class AtChannel(BClasses):
             )
         # value format: '\d+', '\d+|\d+|\d+', '\d+-\d+', '\d+|\d+-\d+', '*'
         # minutes
-        out[_Keys.ATMINUTE] = self.__build_value_list(form=tmp[0], vrange=[0, 59])
+        out[_Keys.AT_MINUTE] = self.__build_value_list(form=tmp[0], vrange=[0, 59])
         # hours
-        out[_Keys.ATHOUR] = self.__build_value_list(form=tmp[1], vrange=[0, 23])
+        out[_Keys.AT_HOUR] = self.__build_value_list(form=tmp[1], vrange=[0, 23])
         # days-of-month
-        out[_Keys.ATDAY] = self.__build_value_list(form=tmp[2], vrange=[1, 31])
+        out[_Keys.AT_DAY] = self.__build_value_list(form=tmp[2], vrange=[1, 31])
         # months
-        out[_Keys.ATMONTH] = self.__build_value_list(form=tmp[3], vrange=[1, 12])
+        out[_Keys.AT_MONTH] = self.__build_value_list(form=tmp[3], vrange=[1, 12])
         # days-of-week
-        out[_Keys.ATDWEEK] = self.__build_value_list(form=tmp[4], vrange=[0, 7])
+        out[_Keys.AT_DWEEK] = self.__build_value_list(form=tmp[4], vrange=[0, 7])
 
         return out
 
@@ -192,16 +192,16 @@ class AtChannel(BClasses):
         for chan in self.channels:
             for item in self._data[_Keys.CHANNELS][chan]:
                 if (
-                    date.minute in item[_Keys.ATMINUTE]
-                    and date.hour in item[_Keys.ATHOUR]
-                    and date.day in item[_Keys.ATDAY]
-                    and date.month in item[_Keys.ATMONTH]
+                    date.minute in item[_Keys.AT_MINUTE]
+                    and date.hour in item[_Keys.AT_HOUR]
+                    and date.day in item[_Keys.AT_DAY]
+                    and date.month in item[_Keys.AT_MONTH]
                 ):
                     if date.weekday() == 6 and (
-                        0 in item[_Keys.ATDWEEK] or 7 in item[_Keys.ATDWEEK]
+                        0 in item[_Keys.AT_DWEEK] or 7 in item[_Keys.AT_DWEEK]
                     ):
                         return True
-                    elif date.weekday() + 1 in item[_Keys.ATDWEEK]:
+                    elif date.weekday() + 1 in item[_Keys.AT_DWEEK]:
                         return True
         return False
 
@@ -213,17 +213,17 @@ class AtChannel(BClasses):
         for channel in self.channels:
             for item in self._data[_Keys.CHANNELS][channel]:
                 if (
-                    date.minute in item[_Keys.ATMINUTE]
-                    and date.hour in item[_Keys.ATHOUR]
-                    and date.day in item[_Keys.ATDAY]
-                    and date.month in item[_Keys.ATMONTH]
+                    date.minute in item[_Keys.AT_MINUTE]
+                    and date.hour in item[_Keys.AT_HOUR]
+                    and date.day in item[_Keys.AT_DAY]
+                    and date.month in item[_Keys.AT_MONTH]
                 ):
                     if date.weekday() == 6 and (
-                        0 in item[_Keys.ATDWEEK] or 7 in item[_Keys.ATDWEEK]
+                        0 in item[_Keys.AT_DWEEK] or 7 in item[_Keys.AT_DWEEK]
                     ):
                         if channel not in out:
                             out.append(channel)
-                    elif date.weekday() + 1 in item[_Keys.ATDWEEK]:
+                    elif date.weekday() + 1 in item[_Keys.AT_DWEEK]:
                         if channel not in out:
                             out.append(channel)
         return out

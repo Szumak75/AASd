@@ -88,7 +88,7 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
 
         # starting module loop
         while not self.stopped:
-            # someting
+            # something
             count += 1
             self.logs.message_info = f"ping {count:>04d}"
             self.sleep()

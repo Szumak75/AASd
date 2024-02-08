@@ -49,15 +49,15 @@ class _Keys(object, metaclass=ReadOnlyClass):
     """
 
     # for database class
-    DPOOL: str = "__connection_pool__"
+    DB_POOL: str = "__connection_pool__"
     # for configuration
     AT_CHANNEL: str = "at_channel"
     CUTOFF: str = "cutoff_time"
-    DCHANNEL: str = "diagnostic_channel"
-    DPAYTIME: str = "default_paytime"
+    DIAG_CHANNEL: str = "diagnostic_channel"
+    DEF_PAY_TIME: str = "default_paytime"
     LMS_URL: str = "lms_url"
-    MFOOTER: str = "message_footer"
-    MNOTIFY: str = "payment_message"
+    MSG_FOOTER: str = "message_footer"
+    MSG_NOTIFY: str = "payment_message"
     SQL_DATABASE: str = "sql_database"
     SQL_PASS: str = "sql_password"
     SQL_SERVER: str = "sql_server"
@@ -68,7 +68,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     # email notification: 8|32=40, type&40==40 and type&16384==0
     # mobile notification: 1|32=33, type&33==33 and type&16384==0
     # type&16384|8|32==40 - True
-    CONTACT_BANKACCOUNT: int = 64
+    CONTACT_BANK_ACCOUNT: int = 64
     CONTACT_DISABLED: int = 16384
     CONTACT_DOCUMENTS: int = 32768
     CONTACT_EMAIL: int = 8
@@ -85,9 +85,9 @@ class _Keys(object, metaclass=ReadOnlyClass):
     CONTACT_TECHNICAL: int = 128
     CONTACT_URL: int = 256
     # diagnostic
-    DCONT: str = "__cont__"
-    DDEBT: str = "__debt__"
-    DTARIFF: str = "__tariff__"
+    DIAG_CONT: str = "__cont__"
+    DIAG_DEBT: str = "__debt__"
+    DIAG_TARIFF: str = "__tariff__"
 
 
 class _Database(BDebug, BLogs):
@@ -112,7 +112,7 @@ class _Database(BDebug, BLogs):
         self._data[_Keys.SQL_PASS] = config[_Keys.SQL_PASS]
 
         # connection pool
-        self._data[_Keys.DPOOL] = []
+        self._data[_Keys.DB_POOL] = []
 
     def create_connections(self) -> bool:
         """Create connection pool, second variant."""
@@ -146,7 +146,7 @@ class _Database(BDebug, BLogs):
                             connection.execute(text("SELECT 1"))
                         if self._debug:
                             self.logs.message_notice = f"add connection to server: {ip} with backend: {dialect}"
-                        self._data[_Keys.DPOOL].append(engine)
+                        self._data[_Keys.DB_POOL].append(engine)
                     except Exception as ex:
                         self.logs.message_warning = f"connect to server: {ip} with backend: {dialect} error: {ex}"
             else:
@@ -190,11 +190,11 @@ class _Database(BDebug, BLogs):
                         connection.execute(text("SELECT 1"))
                     if self._debug:
                         self.logs.message_notice = f"add connection to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect}"
-                    self._data[_Keys.DPOOL].append(engine)
+                    self._data[_Keys.DB_POOL].append(engine)
                 except Exception as ex:
                     self.logs.message_warning = f"connect to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect} error: {ex}"
 
-        if self._data[_Keys.DPOOL] is not None and len(self._data[_Keys.DPOOL]) > 0:
+        if self._data[_Keys.DB_POOL] is not None and len(self._data[_Keys.DB_POOL]) > 0:
             return True
         return False
 
@@ -266,13 +266,13 @@ class _Database(BDebug, BLogs):
                     connection.execute(text("SELECT 1"))
                 if self._debug:
                     self.logs.message_debug = f"add connection to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect}"
-                self._data[_Keys.DPOOL].append(engine)
+                self._data[_Keys.DB_POOL].append(engine)
                 break
             except Exception as ex:
                 if self._debug:
                     self.logs.message_debug = f"Create engine thrown exception: {ex}"
 
-        if len(self._data[_Keys.DPOOL]) > 0:
+        if len(self._data[_Keys.DB_POOL]) > 0:
             return True
 
         return False
@@ -281,7 +281,7 @@ class _Database(BDebug, BLogs):
     def session(self) -> Optional[Session]:
         """Returns db session."""
         session = None
-        for item in self._data[_Keys.DPOOL]:
+        for item in self._data[_Keys.DB_POOL]:
             engine: Engine = item
             try:
                 session = Session(engine)
@@ -327,7 +327,7 @@ class _ModuleConf(BModuleConfig):
     @property
     def default_paytime(self) -> Optional[int]:
         """Returns default pay time in days number."""
-        var = self._get(varname=_Keys.DPAYTIME)
+        var = self._get(varname=_Keys.DEF_PAY_TIME)
         if var is not None and not isinstance(var, int):
             raise Raise.error(
                 "Expected int type.", TypeError, self._c_name, currentframe()
@@ -337,7 +337,7 @@ class _ModuleConf(BModuleConfig):
     @property
     def diagnostic_channel(self) -> Optional[List[str]]:
         """Return diagnostic channel list."""
-        var = self._get(varname=_Keys.DCHANNEL)
+        var = self._get(varname=_Keys.DIAG_CHANNEL)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -376,7 +376,7 @@ class _ModuleConf(BModuleConfig):
     @property
     def message_footer(self) -> Optional[Union[List[str], str]]:
         """Return message footer list."""
-        var = self._get(varname=_Keys.MFOOTER)
+        var = self._get(varname=_Keys.MSG_FOOTER)
         if var is not None and not isinstance(var, (List, str)):
             raise Raise.error(
                 "Expected string type.",
@@ -389,7 +389,7 @@ class _ModuleConf(BModuleConfig):
     @property
     def payment_message(self) -> Optional[List[str]]:
         """Return message channel list."""
-        var = self._get(varname=_Keys.MNOTIFY)
+        var = self._get(varname=_Keys.MSG_NOTIFY)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -491,15 +491,15 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         self.qcom = qcom
 
         # init internal buffer
-        self._data[_Keys.DDEBT] = []
-        self._data[_Keys.DCONT] = []
-        self._data[_Keys.DTARIFF] = []
+        self._data[_Keys.DIAG_DEBT] = []
+        self._data[_Keys.DIAG_CONT] = []
+        self._data[_Keys.DIAG_TARIFF] = []
 
     def __clean_diagnostic(self) -> None:
         """Initialize diagnostic data buffer."""
-        self._data[_Keys.DDEBT].clear()
-        self._data[_Keys.DCONT].clear()
-        self._data[_Keys.DTARIFF].clear()
+        self._data[_Keys.DIAG_DEBT].clear()
+        self._data[_Keys.DIAG_CONT].clear()
+        self._data[_Keys.DIAG_TARIFF].clear()
 
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
@@ -515,10 +515,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 self.logs.message_critical = f"'{_Keys.USER_URL}' not set"
                 self.stop()
             if not self.module_conf.payment_message:
-                self.logs.message_critical = f"'{_Keys.MNOTIFY}' not set"
+                self.logs.message_critical = f"'{_Keys.MSG_NOTIFY}' not set"
                 self.stop()
             if not self.module_conf.default_paytime:
-                self.logs.message_critical = f"'{_Keys.DPAYTIME}' not set"
+                self.logs.message_critical = f"'{_Keys.DEF_PAY_TIME}' not set"
                 self.stop()
             if not self.module_conf.cutoff_time:
                 self.logs.message_critical = f"'{_Keys.CUTOFF}' not set"
@@ -534,9 +534,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             if not self.module_conf.skip_groups:
                 self.logs.message_warning = f"'{_Keys.SKIP_GROUPS}' not configured, maybe it's not error, but check..."
             if not self.module_conf.diagnostic_channel:
-                self.logs.message_warning = f"'{_Keys.DCHANNEL}' not configured, maybe it's not an error, but check..."
+                self.logs.message_warning = f"'{_Keys.DIAG_CHANNEL}' not configured, maybe it's not an error, but check..."
             if not self.module_conf.message_footer:
-                self.logs.message_warning = f"'{_Keys.MFOOTER}' not configured, maybe it's not error, but check..."
+                self.logs.message_warning = f"'{_Keys.MSG_FOOTER}' not configured, maybe it's not error, but check..."
             if not self.module_conf.sql_server:
                 self.logs.message_critical = f"'{_Keys.SQL_SERVER}' not configured"
                 self.stop()
@@ -582,10 +582,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         # get customer max id
         row = session.query(func.max(mlms.MCustomer.id)).first()
-        maxid: int = row[0] if row is not None else 0
-        cfrom: int = 0
-        cto = STEEP
-        tstart: int = Timestamp.now
+        max_id: int = row[0] if row is not None else 0
+        count_from: int = 0
+        count_to = STEEP
+        time_start: int = Timestamp.now
 
         # excluded group
         group: Subquery = (
@@ -596,9 +596,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         )
 
         # customers query
-        while cfrom < maxid:
+        while count_from < max_id:
             if self.debug:
-                self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}, elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-tstart)}"
+                self.logs.message_notice = f"Check customers from id: {count_from} to {count_to}, elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-time_start)}"
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .outerjoin(
@@ -607,16 +607,16 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 )
                 .filter(
                     mlms.MCustomer.deleted == 0,
-                    mlms.MCustomer.id >= cfrom,
-                    mlms.MCustomer.id < cto,
+                    mlms.MCustomer.id >= count_from,
+                    mlms.MCustomer.id < count_to,
                     group.c.customerid == None,
                 )
                 .order_by(mlms.MCustomer.id)
                 .all()
             )
             # increment search range
-            cfrom = cto
-            cto += STEEP
+            count_from = count_to
+            count_to += STEEP
 
             # analysis
             for customer in customers:
@@ -645,7 +645,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 elif not customer.tariffs:
                     self.__add_diagnostic_tariff(customer)
         if self.debug:
-            self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-tstart)}"
+            self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-time_start)}"
 
         self.__send_diagnostic(channel)
 
@@ -678,10 +678,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
             return
 
         row = session.query(func.max(mlms.MCustomer.id)).first()
-        maxid: int = row[0] if row is not None else 0
+        max_id: int = row[0] if row is not None else 0
         cfrom: int = 0
         cto: int = STEEP
-        tstart: int = Timestamp.now
+        time_start: int = Timestamp.now
 
         # excluded group
         group: Subquery = (
@@ -692,9 +692,9 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         )
 
         # customers query
-        while cfrom < maxid:
+        while cfrom < max_id:
             if self.debug:
-                self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}, elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-tstart)}"
+                self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}, elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-time_start)}"
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .join(mlms.MCash)
@@ -752,7 +752,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     # send message
                     self.__customer_message(customer, channel)
         if self.debug:
-            self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-tstart)}"
+            self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-time_start)}"
 
         # close session
         session.close()
@@ -862,16 +862,22 @@ PIN: {customer_pin}
             cutoff=cutoff.days,
             cutoff_suffix="dzień" if cutoff.days == 1 else "dni",
             user_url=self.module_conf.user_url,
-            customer_name=f"{customer.name} {customer.lastname}"
-            if customer.lastname
-            else f"{customer.name}",
+            customer_name=(
+                f"{customer.name} {customer.lastname}"
+                if customer.lastname
+                else f"{customer.name}"
+            ),
             customer_id=customer.id,
             customer_pin=customer.pin,
-            footer="\n".join(self.module_conf.message_footer)
-            if isinstance(self.module_conf.message_footer, list)
-            else str(self.module_conf.message_footer).replace("<br>", "\n")
-            if self.module_conf.message_footer
-            else "",
+            footer=(
+                "\n".join(self.module_conf.message_footer)
+                if isinstance(self.module_conf.message_footer, list)
+                else (
+                    str(self.module_conf.message_footer).replace("<br>", "\n")
+                    if self.module_conf.message_footer
+                    else ""
+                )
+            ),
         )
 
         # add To addresses
@@ -903,7 +909,7 @@ PIN: {customer_pin}
         disabled: int = _Keys.CONTACT_DISABLED
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td><td>{info}</td></tr>"
         info = ""
-        count: int = len(self._data[_Keys.DDEBT]) + 1
+        count: int = len(self._data[_Keys.DIAG_DEBT]) + 1
         # uwagi
         has_email = False
         has_nemail = False
@@ -923,7 +929,7 @@ PIN: {customer_pin}
             info += "brak taryf, "
         info: str = info.strip()[:-1]
 
-        self._data[_Keys.DDEBT].append(
+        self._data[_Keys.DIAG_DEBT].append(
             template.format(
                 nr=count,
                 cid=customer.id,
@@ -942,9 +948,9 @@ PIN: {customer_pin}
             return None
 
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
-        count: int = len(self._data[_Keys.DCONT]) + 1
+        count: int = len(self._data[_Keys.DIAG_CONT]) + 1
         info: str = ""
-        self._data[_Keys.DCONT].append(
+        self._data[_Keys.DIAG_CONT].append(
             template.format(
                 nr=count,
                 cid=customer.id,
@@ -961,13 +967,13 @@ PIN: {customer_pin}
             return None
 
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
-        count: int = len(self._data[_Keys.DTARIFF]) + 1
+        count: int = len(self._data[_Keys.DIAG_TARIFF]) + 1
         # uwagi
         info: str = ""
         if customer.has_active_node is not None and customer.has_active_node == True:
             info += "aktywna usługa, "
         info = info.strip()[:-1]
-        self._data[_Keys.DTARIFF].append(
+        self._data[_Keys.DIAG_TARIFF].append(
             template.format(
                 nr=count,
                 cid=customer.id,
@@ -1003,7 +1009,7 @@ div.centered { text-align: center; }
 div.centered table { margin: 0 auto; text-align: left; }
 </style>"""
         # debt
-        if self._data[_Keys.DDEBT]:
+        if self._data[_Keys.DIAG_DEBT]:
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci zadłużeni powyżej 30 dni."
@@ -1019,7 +1025,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<table>",
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>bilans:</th><th>od:</th><th>uwagi:</th></tr>",
             ]
-            for item in self._data[_Keys.DDEBT]:
+            for item in self._data[_Keys.DIAG_DEBT]:
                 tmp[Multipart.HTML].append(item)
             # foot
             tmp[Multipart.HTML].extend(
@@ -1036,7 +1042,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             self.qcom.put(mes)
 
         # contacts
-        if self._data[_Keys.DCONT]:
+        if self._data[_Keys.DIAG_CONT]:
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez zgody na kontakt."
@@ -1052,7 +1058,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<table>",
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
             ]
-            for item in self._data[_Keys.DCONT]:
+            for item in self._data[_Keys.DIAG_CONT]:
                 tmp[Multipart.HTML].append(item)
             # foot
             tmp[Multipart.HTML].extend(
@@ -1069,7 +1075,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             self.qcom.put(mes)
 
         # tariff
-        if self._data[_Keys.DTARIFF]:
+        if self._data[_Keys.DIAG_TARIFF]:
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez taryf."
@@ -1085,7 +1091,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<table>",
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
             ]
-            for item in self._data[_Keys.DTARIFF]:
+            for item in self._data[_Keys.DIAG_TARIFF]:
                 tmp[Multipart.HTML].append(item)
             # foot
             tmp[Multipart.HTML].extend(
@@ -1262,7 +1268,7 @@ div.centered table { margin: 0 auto; text-align: left; }
         out.append(TemplateConfigItem(desc=" All fields must be defined."))
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.DCHANNEL}' [List[str]] - diagnostic channels for sending statistics."
+                desc=f"'{_Keys.DIAG_CHANNEL}' [List[str]] - diagnostic channels for sending statistics."
             )
         )
         out.append(
@@ -1297,7 +1303,7 @@ div.centered table { margin: 0 auto; text-align: left; }
         )
         out.append(
             TemplateConfigItem(
-                desc=f"'{_Keys.MNOTIFY}' [list] - list of days from the payment expiration"
+                desc=f"'{_Keys.MSG_NOTIFY}' [list] - list of days from the payment expiration"
             )
         )
         out.append(
@@ -1326,20 +1332,20 @@ div.centered table { margin: 0 auto; text-align: left; }
                 value=["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"],
             )
         )
-        out.append(TemplateConfigItem(varname=_Keys.DCHANNEL, value=[]))
+        out.append(TemplateConfigItem(varname=_Keys.DIAG_CHANNEL, value=[]))
         out.append(
             TemplateConfigItem(varname=_ModuleConf.Keys.MESSAGE_CHANNEL, value=[1])
         )
         out.append(
             TemplateConfigItem(
-                varname=_Keys.MNOTIFY,
+                varname=_Keys.MSG_NOTIFY,
                 value=[],
                 desc="days of sending the notification after the due date",
             )
         )
         out.append(
             TemplateConfigItem(
-                varname=_Keys.DPAYTIME,
+                varname=_Keys.DEF_PAY_TIME,
                 value=7,
                 desc="[int] - default payment date as the number of days from invoice issuance",
             )
@@ -1348,7 +1354,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             TemplateConfigItem(
                 varname=_Keys.CUTOFF,
                 value=14,
-                desc=f"[int] - number of days after {_Keys.DPAYTIME} after which the service will be disabled",
+                desc=f"[int] - number of days after {_Keys.DEF_PAY_TIME} after which the service will be disabled",
             )
         )
         out.append(
@@ -1384,7 +1390,7 @@ div.centered table { margin: 0 auto; text-align: left; }
         out.append(TemplateConfigItem(varname=_Keys.USER_URL, value=""))
         out.append(
             TemplateConfigItem(
-                varname=_Keys.MFOOTER,
+                varname=_Keys.MSG_FOOTER,
                 value=[],
                 desc="List[str] - personal footer added to the email.",
             )
