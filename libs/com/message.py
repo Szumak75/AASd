@@ -253,6 +253,8 @@ class Channel(BClasses):
 
     def __config_channels(self, config_channel: List[str]) -> None:
         """Create channels dict."""
+        channel: str
+        interval: str
         if not isinstance(config_channel, List):
             raise Raise.error(
                 f"Expected List type, received: '{type(config_channel)}'",
@@ -285,7 +287,7 @@ class Channel(BClasses):
     @property
     def check(self) -> bool:
         """Returns True, if the time has come :)"""
-        now = Timestamp.now
+        now: int = Timestamp.now
         for item in self.channels:
             if self._data[_Keys.CHANNELS][item][_Keys.CHECK_NEXT] < now:
                 return True
