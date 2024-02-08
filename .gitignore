@@ -161,3 +161,6 @@ cython_debug/
 
 # Wing IDE project cache file
 *.wpu
+
+# code counter
+.VSCodeCounter
