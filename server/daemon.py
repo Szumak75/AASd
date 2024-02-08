@@ -153,34 +153,34 @@ class AASd(BProjectClass, BImporter):
 
         # start communication modules
         com_mods: List[IComModule] = []
-        for c_mod in self.conf.get_com_modules:
+        for com_mod in self.conf.get_com_modules:
             try:
-                o_mod = c_mod(
+                obj_mod = com_mod(
                     self.conf.cf,
                     self.logs.logs_queue,
                     self.conf.verbose,
                     self.conf.debug,
                 )  # type: ignore
-                o_mod.qcom = dispatch.register_queue(o_mod.module_conf.channel)
-                o_mod.start()
-                com_mods.append(o_mod)
+                obj_mod.qcom = dispatch.register_queue(obj_mod.module_conf.channel)
+                obj_mod.start()
+                com_mods.append(obj_mod)
             except Exception as ex:
                 if self.conf.debug:
                     self.logs.message_debug = f"{ex}"
 
         # start running modules
         run_mods: List[IRunModule] = []
-        for r_mod in self.conf.get_run_modules:
+        for run_mod in self.conf.get_run_modules:
             try:
-                o_mod = r_mod(
+                obj_mod = run_mod(
                     self.conf.cf,
                     self.logs.logs_queue,
                     qcom,
                     self.conf.verbose,
                     self.conf.debug,
                 )  # type: ignore
-                o_mod.start()
-                run_mods.append(o_mod)
+                obj_mod.start()
+                run_mods.append(obj_mod)
             except Exception as ex:
                 if self.conf.debug:
                     self.logs.message_debug = f"{ex}"

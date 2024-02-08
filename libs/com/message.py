@@ -8,7 +8,7 @@
 
 from datetime import datetime
 from inspect import currentframe
-from typing import Optional, Union, Dict, List
+from typing import Optional, Union, Dict, List, Any
 from threading import Thread, Event
 from queue import Queue, Empty, Full
 
@@ -29,22 +29,22 @@ class _Keys(object, metaclass=ReadOnlyClass):
     """
 
     AT_DAY: str = "dmonth"
-    AT_DWEEK: str = "dweek"
+    AT_DAY_WEEK: str = "dweek"
     AT_HOUR: str = "hour"
     AT_MINUTE: str = "minute"
     AT_MONTH: str = "month"
     CHANNELS: str = "__channels__"
-    MCHANNEL: str = "__channel__"
-    MCOMQUEUES: str = "__comq__"
-    MCOUNTER: str = "__counter__"
-    MMESS: str = "__message__"
-    MMULTIPART: str = "__mmessage__"
-    MREPLY: str = "__reply__"
-    MSENDER: str = "__sender__"
-    MSUBJECT: str = "__subject__"
-    MTO: str = "__to__"
-    PINT: str = "__interval__"
-    PNEXT: str = "__next__"
+    CHECK_INTERVAL: str = "__interval__"
+    CHECK_NEXT: str = "__next__"
+    MSG_CHANNEL: str = "__channel__"
+    MSG_COM_QUEUES: str = "__comq__"
+    MSG_COUNTER: str = "__counter__"
+    MSG_MESS: str = "__message__"
+    MSG_MULTIPART: str = "__mmessage__"
+    MSG_REPLY: str = "__reply__"
+    MSG_SENDER: str = "__sender__"
+    MSG_SUBJECT: str = "__subject__"
+    MSG_TO: str = "__to__"
 
 
 class AtChannel(BClasses):
@@ -59,11 +59,11 @@ class AtChannel(BClasses):
         self._data[_Keys.CHANNELS] = dict()
         self.__config_channels(config_channel)
 
-    def __build_value_list(self, form: str, vrange: List[int]) -> List[int]:
+    def __build_value_list(self, form: str, val_range: List[int]) -> List[int]:
         """Create list of integer from formatted string."""
         out = list()
         if form.find("*") > -1:
-            for i in range(vrange[0], vrange[1] + 1):
+            for i in range(val_range[0], val_range[1] + 1):
                 out.append(i)
         elif form.find("|") == -1 and form.find("-") == -1:
             try:
@@ -92,7 +92,7 @@ class AtChannel(BClasses):
             if len(tmp) == 2:
                 try:
                     for i in range(int(tmp[0]), int(tmp[1]) + 1):
-                        if i in range(vrange[0], vrange[1] + 1):
+                        if i in range(val_range[0], val_range[1] + 1):
                             out.append(i)
                 except Exception as ex:
                     raise Raise.error(
@@ -109,7 +109,7 @@ class AtChannel(BClasses):
                     if len(tmp2) == 2:
                         try:
                             for i in range(int(tmp2[0]), int(tmp2[1]) + 1):
-                                if i in range(vrange[0], vrange[1] + 1):
+                                if i in range(val_range[0], val_range[1] + 1):
                                     out.append(i)
                         except Exception as ex:
                             raise Raise.error(
@@ -144,20 +144,22 @@ class AtChannel(BClasses):
             )
         # value format: '\d+', '\d+|\d+|\d+', '\d+-\d+', '\d+|\d+-\d+', '*'
         # minutes
-        out[_Keys.AT_MINUTE] = self.__build_value_list(form=tmp[0], vrange=[0, 59])
+        out[_Keys.AT_MINUTE] = self.__build_value_list(form=tmp[0], val_range=[0, 59])
         # hours
-        out[_Keys.AT_HOUR] = self.__build_value_list(form=tmp[1], vrange=[0, 23])
+        out[_Keys.AT_HOUR] = self.__build_value_list(form=tmp[1], val_range=[0, 23])
         # days-of-month
-        out[_Keys.AT_DAY] = self.__build_value_list(form=tmp[2], vrange=[1, 31])
+        out[_Keys.AT_DAY] = self.__build_value_list(form=tmp[2], val_range=[1, 31])
         # months
-        out[_Keys.AT_MONTH] = self.__build_value_list(form=tmp[3], vrange=[1, 12])
+        out[_Keys.AT_MONTH] = self.__build_value_list(form=tmp[3], val_range=[1, 12])
         # days-of-week
-        out[_Keys.AT_DWEEK] = self.__build_value_list(form=tmp[4], vrange=[0, 7])
+        out[_Keys.AT_DAY_WEEK] = self.__build_value_list(form=tmp[4], val_range=[0, 7])
 
         return out
 
     def __config_channels(self, config_channel: List[str]) -> None:
         """Create channels dict."""
+        channel: str
+        cron: str
         if not isinstance(config_channel, List):
             raise Raise.error(
                 f"Expected List type, received: '{type(config_channel)}'",
@@ -173,7 +175,7 @@ class AtChannel(BClasses):
                     self._c_name,
                     currentframe(),
                 )
-            channel, cron = item.split(":", 1)
+            (channel, cron) = item.split(":", 1)
             if channel not in self._data[_Keys.CHANNELS]:
                 self._data[_Keys.CHANNELS][channel] = []
             self._data[_Keys.CHANNELS][channel].append(self.__build_cron_data(cron))
@@ -198,10 +200,10 @@ class AtChannel(BClasses):
                     and date.month in item[_Keys.AT_MONTH]
                 ):
                     if date.weekday() == 6 and (
-                        0 in item[_Keys.AT_DWEEK] or 7 in item[_Keys.AT_DWEEK]
+                        0 in item[_Keys.AT_DAY_WEEK] or 7 in item[_Keys.AT_DAY_WEEK]
                     ):
                         return True
-                    elif date.weekday() + 1 in item[_Keys.AT_DWEEK]:
+                    elif date.weekday() + 1 in item[_Keys.AT_DAY_WEEK]:
                         return True
         return False
 
@@ -219,11 +221,11 @@ class AtChannel(BClasses):
                     and date.month in item[_Keys.AT_MONTH]
                 ):
                     if date.weekday() == 6 and (
-                        0 in item[_Keys.AT_DWEEK] or 7 in item[_Keys.AT_DWEEK]
+                        0 in item[_Keys.AT_DAY_WEEK] or 7 in item[_Keys.AT_DAY_WEEK]
                     ):
                         if channel not in out:
                             out.append(channel)
-                    elif date.weekday() + 1 in item[_Keys.AT_DWEEK]:
+                    elif date.weekday() + 1 in item[_Keys.AT_DAY_WEEK]:
                         if channel not in out:
                             out.append(channel)
         return out
@@ -276,8 +278,8 @@ class Channel(BClasses):
                 currentframe(),
             )
         self._data[_Keys.CHANNELS][channel] = {
-            _Keys.PINT: interval,
-            _Keys.PNEXT: Timestamp.now,
+            _Keys.CHECK_INTERVAL: interval,
+            _Keys.CHECK_NEXT: Timestamp.now,
         }
 
     @property
@@ -285,7 +287,7 @@ class Channel(BClasses):
         """Returns True, if the time has come :)"""
         now = Timestamp.now
         for item in self.channels:
-            if self._data[_Keys.CHANNELS][item][_Keys.PNEXT] < now:
+            if self._data[_Keys.CHANNELS][item][_Keys.CHECK_NEXT] < now:
                 return True
         return False
 
@@ -296,9 +298,9 @@ class Channel(BClasses):
         out = []
         for item in self.channels:
             pdict: Dict = self._data[_Keys.CHANNELS][item]
-            if pdict[_Keys.PNEXT] < now:
+            if pdict[_Keys.CHECK_NEXT] < now:
                 out.append(item)
-                pdict[_Keys.PNEXT] = now + pdict[_Keys.PINT]
+                pdict[_Keys.CHECK_NEXT] = now + pdict[_Keys.CHECK_INTERVAL]
         return out
 
     @property
@@ -322,31 +324,31 @@ class Message(BClasses):
 
     def __init__(self) -> None:
         """Constructor."""
-        self._data[_Keys.MMESS] = []
-        self._data[_Keys.MMULTIPART] = None
-        self._data[_Keys.MCHANNEL] = None
-        self._data[_Keys.MTO] = None
-        self._data[_Keys.MSUBJECT] = None
-        self._data[_Keys.MSENDER] = None
-        self._data[_Keys.MREPLY] = None
-        self._data[_Keys.MCOUNTER] = 0
+        self._data[_Keys.MSG_MESS] = []
+        self._data[_Keys.MSG_MULTIPART] = None
+        self._data[_Keys.MSG_CHANNEL] = None
+        self._data[_Keys.MSG_TO] = None
+        self._data[_Keys.MSG_SUBJECT] = None
+        self._data[_Keys.MSG_SENDER] = None
+        self._data[_Keys.MSG_REPLY] = None
+        self._data[_Keys.MSG_COUNTER] = 0
 
     @property
     def counter(self) -> int:
         """Return counter."""
-        self._data[_Keys.MCOUNTER] += 1
-        return self._data[_Keys.MCOUNTER]
+        self._data[_Keys.MSG_COUNTER] += 1
+        return self._data[_Keys.MSG_COUNTER]
 
     @property
     def channel(self) -> Optional[int]:
         """Return channel int."""
-        return self._data[_Keys.MCHANNEL]
+        return self._data[_Keys.MSG_CHANNEL]
 
     @channel.setter
     def channel(self, value: int) -> None:
         """Set message communication channel."""
         if isinstance(value, int):
-            self._data[_Keys.MCHANNEL] = value
+            self._data[_Keys.MSG_CHANNEL] = value
         else:
             raise Raise.error(
                 f"Expected integer type, received '{type(value)}'.",
@@ -358,7 +360,7 @@ class Message(BClasses):
     @property
     def reply_to(self) -> Optional[str]:
         """Return optional reply-to string."""
-        return self._data[_Keys.MREPLY]
+        return self._data[_Keys.MSG_REPLY]
 
     @reply_to.setter
     def reply_to(self, value: str) -> None:
@@ -370,48 +372,48 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.MREPLY] = value
+        self._data[_Keys.MSG_REPLY] = value
 
     @property
     def messages(self) -> List[str]:
         """Return messages list."""
-        return self._data[_Keys.MMESS]
+        return self._data[_Keys.MSG_MESS]
 
     @messages.setter
     def messages(self, message: str) -> None:
         """Append message to list."""
-        self._data[_Keys.MMESS].append(str(message))
+        self._data[_Keys.MSG_MESS].append(str(message))
 
     @property
     def mmessages(self) -> Optional[Dict]:
         """Return optional multipart messages list."""
-        return self._data[_Keys.MMULTIPART]
+        return self._data[_Keys.MSG_MULTIPART]
 
     @mmessages.setter
-    def mmessages(self, mdict: Dict) -> None:
+    def mmessages(self, msg_dict: Dict[str, Any]) -> None:
         """Append multipart dict messages.
 
         Example:
-        mdict = {
+        msg_dict = {
         Multipart.PLAIN: []
         Multipart.HTML: []
         }
         """
-        if not isinstance(mdict, Dict):
+        if not isinstance(msg_dict, Dict):
             raise Raise.error(
-                f"Expected Dict type, received: '{type(mdict)}'",
+                f"Expected Dict type, received: '{type(msg_dict)}'",
                 TypeError,
                 self._c_name,
                 currentframe(),
             )
-        if self._data[_Keys.MMULTIPART] is None:
-            self._data[_Keys.MMULTIPART] = {}
-        self._data[_Keys.MMULTIPART].update(mdict)
+        if self._data[_Keys.MSG_MULTIPART] is None:
+            self._data[_Keys.MSG_MULTIPART] = {}
+        self._data[_Keys.MSG_MULTIPART].update(msg_dict)
 
     @property
     def sender(self) -> Optional[str]:
         """Return optional sender string."""
-        return self._data[_Keys.MSENDER]
+        return self._data[_Keys.MSG_SENDER]
 
     @sender.setter
     def sender(self, value: str) -> None:
@@ -423,12 +425,12 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.MSENDER] = value
+        self._data[_Keys.MSG_SENDER] = value
 
     @property
     def subject(self) -> Optional[str]:
         """Return optional title string."""
-        return self._data[_Keys.MSUBJECT]
+        return self._data[_Keys.MSG_SUBJECT]
 
     @subject.setter
     def subject(self, value: str) -> None:
@@ -440,7 +442,7 @@ class Message(BClasses):
                 self._c_name,
                 currentframe(),
             )
-        self._data[_Keys.MSUBJECT] = value
+        self._data[_Keys.MSG_SUBJECT] = value
 
     @property
     def to(self) -> Optional[List[str]]:
@@ -448,19 +450,19 @@ class Message(BClasses):
 
         For example: custom email address.
         """
-        return self._data[_Keys.MTO]
+        return self._data[_Keys.MSG_TO]
 
     @to.setter
     def to(self, value: Union[List[str], str]) -> None:
         """Set optional to string."""
         if not self.to:
-            self._data[_Keys.MTO] = []
+            self._data[_Keys.MSG_TO] = []
         if isinstance(value, str):
-            self._data[_Keys.MTO].append(value)
+            self._data[_Keys.MSG_TO].append(value)
         elif isinstance(value, list):
             for item in value:
                 if item:
-                    self._data[_Keys.MTO].append(item)
+                    self._data[_Keys.MSG_TO].append(item)
         else:
             raise Raise.error(
                 f"Expected string or list type, received '{type(value)}'.",
@@ -503,7 +505,7 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
         #    level_1: [registered_queue1, registered_queue2, ]
         #    level_2: [registered_queue3, ]
         # }
-        self._data[_Keys.MCOMQUEUES] = dict()
+        self._data[_Keys.MSG_COM_QUEUES] = dict()
 
     def register_queue(self, channel: int) -> Queue:
         """Register queue for communication module."""
@@ -514,12 +516,12 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
                 self._c_name,
                 currentframe(),
             )
-        if str(channel) not in self._data[_Keys.MCOMQUEUES]:
-            self._data[_Keys.MCOMQUEUES][str(channel)] = []
+        if str(channel) not in self._data[_Keys.MSG_COM_QUEUES]:
+            self._data[_Keys.MSG_COM_QUEUES][str(channel)] = []
         queue = Queue(maxsize=3000)
         if self._debug:
             self.logs.message_debug = f"add queue for communication channel: {channel}"
-        self._data[_Keys.MCOMQUEUES][str(channel)].append(queue)
+        self._data[_Keys.MSG_COM_QUEUES][str(channel)].append(queue)
         return queue
 
     def run(self) -> None:
@@ -568,8 +570,8 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
             self.logs.message_debug = (
                 f"Received message for channel: '{message.channel}'"
             )
-        if str(message.channel) in self._data[_Keys.MCOMQUEUES]:
-            for item in self._data[_Keys.MCOMQUEUES][str(message.channel)]:
+        if str(message.channel) in self._data[_Keys.MSG_COM_QUEUES]:
+            for item in self._data[_Keys.MSG_COM_QUEUES][str(message.channel)]:
                 try:
                     queue: Queue = item
                     queue.put(message, block=True, timeout=0.1)
