@@ -21,4 +21,5 @@ The project is dedicated and tested on FreeBSD platforms, most of the modules sh
 ## Table of contents
 
 1. [Installation](https://github.com/Szumak75/AASd/blob/master/docs/Installation.md)
+1. [Modules](https://github.com/Szumak75/AASd/blob/master/docs/Modules.md)
 1. [Flow Diagram](https://github.com/Szumak75/AASd/blob/master/docs/Flow.md)
