@@ -86,7 +86,7 @@ The location of the configuration file for a STABLE or RELEASE project is '/etc/
 For DEVEL version: '/var/tmp/aasd.conf'
 
 ```
-$ ./aasd.py -d
+% ./aasd.py -d
 [AASd]: [Config] Config initialization...
 [AASd]: [Config] ... complete
 [AASd->WARNING]: [Config] config file '/etc/aasd.conf' not exist
@@ -129,7 +129,7 @@ This, of course, does not protect against password interception, but limits its 
 For example, to add the password for the `memailalert` module to the `smtp_pass` variable, we run the project as follows:
 
 ```
-$ ./aasd.py -p --section=memailalert --varname=smtp_pass
+% ./aasd.py -p --section=memailalert --varname=smtp_pass
 Receive password encoder options.
 Enter password: Qwerty12
 Config file "/etc/aasd.conf" updated.
@@ -138,9 +138,44 @@ Config file "/etc/aasd.conf" updated.
 As a result of executing this command, the `smtp_pass` variable will be assigned an encoded string of characters:
 
 ```
-$ grep 'smtp_pass' /etc/aasd.conf|head -2
+% grep 'smtp_pass' /etc/aasd.conf|head -2
 # smtp_pass [str] - smtp auth password for sending emails.
 smtp_pass = "//4AAD0AAABZAAAAJwAAAFQAAABWAAAAIQAAAEcAAABIAAAA"
 ```
 
 ## Preparation to launch the project with `runit`
+
+The project in the `/opt/AASd/docs/runit` directory contains a prepared startup schema for `runit`.\
+The schema has two functions:
+
+- starts a logger that captures diagnostic information sent by the daemon to stdout, tags it with the '**AASd**' tag and sends it to syslog,
+- starts the main daemon process and keeps it running,
+
+### FreeBSD syslog configuration
+
+Syslog configuration example.
+
+```
+% cat /etc/syslog.d/aasd.conf 
+!AASd
+*.*               /var/log/aasd.log
+```
+
+Example of a log archiving system configuration.
+
+```
+% cat /etc/newsyslog.conf.d/aasd.conf 
+/var/log/aasd.log    644 7 1000  * J
+```
+
+Reloading the new syslog configuration:
+
+```
+service syslogd reload
+```
+
+### Starting daemon with `runit`
+
+You must copy the folder with the startup schema to the destination appropriate for the configured `runit` manager schemas. The AASd daemon will be started automatically.
+
+Please check the contents of the `/var/log/aasd.log` log file to see if all project subsystems have been initialized correctly.
