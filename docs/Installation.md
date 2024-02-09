@@ -143,6 +143,4 @@ $ grep 'smtp_pass' /etc/aasd.conf|head -2
 smtp_pass = "//4AAD0AAABZAAAAJwAAAFQAAABWAAAAIQAAAEcAAABIAAAA"
 ```
 
-## Preparation to launch the project
-
-## Integration and start with `runit`
+## Preparation to launch the project with `runit`
