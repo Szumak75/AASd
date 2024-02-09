@@ -233,6 +233,7 @@ class _Database(BDebug, BLogs):
             )
             try:
                 config["db.url"] = url
+                engine: Engine
 
                 if fail:
                     connection_args = {}
