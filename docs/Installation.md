@@ -28,13 +28,13 @@ If you choose a different location, remember to modify the startup scripts.
 - ZFS-based file system
 
 ```
-$ zfs create -o mountpoint=/opt zroot/opt
+zfs create -o mountpoint=/opt zroot/opt
 ```
 
 - alternative old way
 
 ```
-$ mkdir /opt
+mkdir /opt
 ```
 
 ## Getting source
@@ -42,8 +42,8 @@ $ mkdir /opt
 The preferred method is to use `git`:
 
 ```
-$ cd /opt
-$ git clone https://github.com/Szumak75/AASd.git
+cd /opt
+git clone https://github.com/Szumak75/AASd.git
 ```
 
 or download zipped source from github and extract it to `/opt` directory.
@@ -52,8 +52,8 @@ or download zipped source from github and extract it to `/opt` directory.
 ## Initialize the virtual environment
 
 ```
-$ cd /opt/AASd
-$ python3 -m venv .venv
+cd /opt/AASd
+python3 -m venv .venv
 ```
 
 ## Activate the virtual environment
@@ -61,21 +61,21 @@ $ python3 -m venv .venv
 - csh
 
 ```
-$ source /opt/AASd/.venv/bin/activate.csh
+source /opt/AASd/.venv/bin/activate.csh
 ```
 
 - sh
 
 ```
-$ . /opt/AASd/.venv/bin/activate
+. /opt/AASd/.venv/bin/activate
 ```
 
 ## Install the requirements with `pip`
 
 ```
-$ cd /opt/AASd
-$ pip install --upgrade pip
-$ pip install -r requirements.txt
+cd /opt/AASd
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
 ## Generating a configuration file
