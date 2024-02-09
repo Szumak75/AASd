@@ -113,8 +113,8 @@ $ ./aasd.py -d
 To interrupt a running process, send the interrupt signal [ctrl]-[c] or the TERM signal with the kill command.
 
 The configuration file is divided into sections containing variables.\
-The main section [aasd] contains the 'salt' variable used to simply encrypt password variables.\
-The second important variable is 'modules' - it is a list of modules that we want to activate after configuration.\
+The main section `[aasd]` contains the `salt` variable used to simply encrypt password variables.\
+The second important variable is `modules` - it is a list of modules that we want to activate after configuration.\
 The remaining sections contain a description and configuration variables of the current module list.
 
 ## Password encryption
@@ -126,7 +126,7 @@ Many current and future modules require configuring variables containing passwor
 It was assumed that these passwords would be encrypted with a simple two-sided algorithm.\
 This, of course, does not protect against password interception, but limits its readability.
 
-For example, to add the password for the '`memailalert`' module to the '`smtp_pass`' variable, we run the project as follows:
+For example, to add the password for the `memailalert` module to the `smtp_pass` variable, we run the project as follows:
 
 ```
 $ ./aasd.py -p --section=memailalert --varname=smtp_pass
@@ -135,7 +135,7 @@ Enter password: Qwerty12
 Config file "/etc/aasd.conf" updated.
 ```
 
-As a result of executing this command, the '`smtp_pass`' variable will be assigned an encoded string of characters:
+As a result of executing this command, the `smtp_pass` variable will be assigned an encoded string of characters:
 
 ```
 $ grep 'smtp_pass' /etc/aasd.conf|head -2
