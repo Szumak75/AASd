@@ -99,8 +99,8 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sbreak: float = Timestamp.now + self.sleep_period
-        while not self.stopped and sbreak > Timestamp.now:
+        sleep_break: float = Timestamp.now + self.sleep_period
+        while not self.stopped and sleep_break > Timestamp.now:
             time.sleep(0.2)
 
     def stop(self) -> None:
