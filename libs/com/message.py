@@ -28,8 +28,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    AT_DAY: str = "dmonth"
-    AT_DAY_WEEK: str = "dweek"
+    AT_DAY: str = "day_of_month"
+    AT_DAY_WEEK: str = "day_of_week"
     AT_HOUR: str = "hour"
     AT_MINUTE: str = "minute"
     AT_MONTH: str = "month"
@@ -37,10 +37,10 @@ class _Keys(object, metaclass=ReadOnlyClass):
     CHECK_INTERVAL: str = "__interval__"
     CHECK_NEXT: str = "__next__"
     MSG_CHANNEL: str = "__channel__"
-    MSG_COM_QUEUES: str = "__comq__"
+    MSG_COM_QUEUES: str = "__com_q__"
     MSG_COUNTER: str = "__counter__"
     MSG_MESS: str = "__message__"
-    MSG_MULTIPART: str = "__mmessage__"
+    MSG_MULTIPART: str = "__m_message__"
     MSG_REPLY: str = "__reply__"
     MSG_SENDER: str = "__sender__"
     MSG_SUBJECT: str = "__subject__"
@@ -299,10 +299,10 @@ class Channel(BClasses):
         now: int = Timestamp.now
         out = []
         for item in self.channels:
-            pdict: Dict = self._data[_Keys.CHANNELS][item]
-            if pdict[_Keys.CHECK_NEXT] < now:
+            check_dict: Dict = self._data[_Keys.CHANNELS][item]
+            if check_dict[_Keys.CHECK_NEXT] < now:
                 out.append(item)
-                pdict[_Keys.CHECK_NEXT] = now + pdict[_Keys.CHECK_INTERVAL]
+                check_dict[_Keys.CHECK_NEXT] = now + check_dict[_Keys.CHECK_INTERVAL]
         return out
 
     @property
