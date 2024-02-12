@@ -149,7 +149,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
             self._data[_Keys.MODCONF] = _ModuleConf(config, self._section)
             if not config.file_exists:
                 self.logs.message_warning = (
-                    f"config file '{self.config_file}' not exist"
+                    f"config file '{self.config_file}' does not exist"
                 )
                 self.logs.message_warning = "try to create default one"
                 if not self.__create_config_file():

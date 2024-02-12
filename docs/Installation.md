@@ -89,7 +89,7 @@ For DEVEL version: '/var/tmp/aasd.conf'
 % ./aasd.py -d
 [AASd]: [Config] Config initialization...
 [AASd]: [Config] ... complete
-[AASd->WARNING]: [Config] config file '/etc/aasd.conf' not exist
+[AASd->WARNING]: [Config] config file '/etc/aasd.conf' does not exist
 [AASd->WARNING]: [Config] try to create default one
 [AASd->DEBUG]: [Config] Found communication modules list: ['memailalert', 'memailalert2']
 [AASd->DEBUG]: [Config] Found running modules list: ['memailtest', 'micmp', 'mlmspayment', 'mtest']
