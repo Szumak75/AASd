@@ -2,6 +2,14 @@
 
 ## Purpose
 
+At intervals specified by `sleep_period`, the module checks the network availability of IPv4 addresses from the `hosts` list.
+
+If there is no response, a notification is generated with information about the time of the event for the appropriate IP address.
+
+If the event persists longer than the `delay` value specified in the `message_channel` variable, another message will be generated informing that the event is still ongoing.
+
+After restoring communication with the address to which the recorded event concerned, a message is generated informing about the end of the event and its duration.
+
 ## Configuration section
 
 ```
