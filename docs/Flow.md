@@ -26,7 +26,7 @@ flowchart LR
     CQ --> C1
     C1 -...-> CE(["send\nreceived\nmessages"])
     end
-    subgraph run [running modules]
+    subgraph run [task modules]
     R1[module 1] --> R2[logger\nclient]
     CONF --> R1
     R2 --> LQ
