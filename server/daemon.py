@@ -78,7 +78,7 @@ class AASd(BProjectClass, BImporter):
         # add config handler
         if self.conf is None:
             self.conf = Config(qlog=log_queue, app_name=self._c_name)
-        self.conf.version = "1.0.DEV"
+        self.conf.version = "1.0.0"
         self.conf.debug = False
         # the default config file path can be overwritten with the command line argument '-f'.
         conf_ver: Optional[str] = self.conf.version
