@@ -46,6 +46,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
     ADDRESS_FROM: str = "address_from"
     ADDRESS_TO: str = "address_to"
+    DEBUG_BCC: str = "debug_bcc"
     SMTP_PASS: str = "smtp_pass"
     SMTP_PORT: str = "smtp_port"
     SMTP_SERVER: str = "smtp_server"
@@ -111,6 +112,19 @@ class _ModuleConf(BModuleConfig):
     def address_to(self) -> Optional[Union[str, List]]:
         """Return address_to var."""
         var = self._get(varname=_Keys.ADDRESS_TO)
+        if var is not None and not isinstance(var, (str, List)):
+            raise Raise.error(
+                "Expected str or list type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
+    def debug_bcc(self) -> Optional[Union[List, str]]:
+        """Return debug_bcc var."""
+        var = self._get(varname=_Keys.DEBUG_BCC)
         if var is not None and not isinstance(var, (str, List)):
             raise Raise.error(
                 "Expected str or list type.",
@@ -186,6 +200,11 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
             if not self.module_conf.address_to:
                 self.logs.message_critical = f"'{_Keys.ADDRESS_TO}' not set, exiting..."
                 self.stop()
+            # debug_bcc
+            if not self.module_conf.debug_bcc:
+                self.logs.message_notice = f"'{_Keys.DEBUG_BCC}' is not set."
+            else:
+                self.logs.message_notice = f"'{_Keys.DEBUG_BCC}' is set."
 
         except Exception as ex:
             self.logs.message_critical = f"[{self._f_name}] {ex}"
@@ -285,6 +304,17 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                     f'cannot build address to: "{self.module_conf.address_to}"'
                 )
                 return out
+
+        # add debug emails if configured
+        if self.module_conf.debug_bcc:
+            if isinstance(self.module_conf.debug_bcc, str):
+                msg.add_header("Bcc", self.module_conf.debug_bcc)
+            elif isinstance(self.module_conf.debug_bcc, list):
+                bcc: List[str] = []
+                for item in self.module_conf.debug_bcc:
+                    bcc.append(item)
+                msg.add_header("Bcc", ", ".join(bcc))
+
         msg.add_header("Message-Id", make_msgid())
         msg.add_header("Date", MDateTime.email_date)
 
@@ -563,12 +593,19 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                 desc="can be overridden by properties of the Message class if set."
             )
         )
+        out.append(
+            TemplateConfigItem(
+                desc=f"{_Keys.DEBUG_BCC} [list] - target debug email list added as BCC,"
+            )
+        )
+
         out.append(TemplateConfigItem(varname=_ModuleConf.Keys.CHANNEL, value=2))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_SERVER))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_USER))
         out.append(TemplateConfigItem(varname=_Keys.SMTP_PASS))
         out.append(TemplateConfigItem(varname=_Keys.ADDRESS_FROM))
         out.append(TemplateConfigItem(varname=_Keys.ADDRESS_TO, value=[]))
+        out.append(TemplateConfigItem(varname=_Keys.DEBUG_BCC, value=None))
 
         return out
 
