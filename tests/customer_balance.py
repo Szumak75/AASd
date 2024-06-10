@@ -8,6 +8,8 @@
 """
 
 import time
+from datetime import timedelta
+
 from inspect import currentframe
 from typing import Dict, List, Optional, Tuple, Any
 from threading import Thread, Event
@@ -82,7 +84,7 @@ if session is not None:
         session.query(mlms.MCustomer)
         .filter(
             mlms.MCustomer.deleted == 0,
-            mlms.MCustomer.id == 3012,
+            mlms.MCustomer.id == 10068,
             # mlms.MCustomer.paytime != "-1",
         )
         .all()
@@ -103,5 +105,68 @@ if session is not None:
         print(
             f"{count}: CID: {customer.id} Termin płatności: {customer.pay_time}, Bilans: {customer.balance}"
         )
+        debt_td: timedelta = MDateTime.elapsed_time_from_timestamp(
+            customer.debt_timestamp
+        )
+        deadline: int = customer.pay_time
+
+        print(
+            f"debt_td: {debt_td} && deadline: {MDateTime.elapsed_time_from_seconds(deadline * 24 * 60 * 60)}"
+        )
+        if debt_td < MDateTime.elapsed_time_from_seconds(deadline * 24 * 60 * 60):
+            print("skip")
+        else:
+            pm = [3, 11]
+            message_window_td: timedelta = (
+                debt_td - MDateTime.elapsed_time_from_seconds(deadline * 24 * 60 * 60)
+            )
+            print(f"message window: {message_window_td}")
+
+            if message_window_td.days in pm:
+
+                template = """Szanowni Państwo,
+
+    saldo na koncie na dzień {current_date} wynosi: {debt} PLN.
+    Prosimy o pilną weryfikację salda oraz uregulowanie należności.
+
+    Informujemy, że w przypadku nieuregulowania należności lub braku
+    kontaktu z biurem obsługi klienta w sprawie przedłużenia terminu
+    płatności, usługa dostępu do internetu zostanie zablokowana
+    automatycznie za {cutoff} {cutoff_suffix}.
+
+    Późniejsze odblokowani usługi będzie możliwe po zaksięgowaniu
+    środków na naszym koncie bankowym.
+
+    Adres panelu użytkownika:
+    {user_url}
+
+    Dane do zalogowania dla '{customer_name}':
+    ID klienta: {customer_id}
+    PIN: {customer_pin}
+
+    {footer}
+    """
+                cutoff_td: timedelta = MDateTime.elapsed_time_from_seconds(
+                    (deadline + 14 + 1) * 24 * 60 * 60
+                )
+                cutoff: timedelta = cutoff_td - debt_td
+                print(f"cutoff_td: {cutoff_td}, cutoff: {cutoff}")
+                messages = template.format(
+                    current_date=MDateTime.datenow,
+                    debt=customer.balance,
+                    cutoff=cutoff.days,
+                    cutoff_suffix="dzień" if cutoff.days == 1 else "dni",
+                    user_url="self.module_conf.user_url",
+                    customer_name=(
+                        f"{customer.name} {customer.lastname}"
+                        if customer.lastname
+                        else f"{customer.name}"
+                    ),
+                    customer_id=customer.id,
+                    customer_pin=customer.pin,
+                    footer="",
+                )
+
+                print(messages)
 
 # #[EOF]#######################################################################

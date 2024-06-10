@@ -749,7 +749,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     debt_td
                     - MDateTime.elapsed_time_from_seconds(deadline * 24 * 60 * 60)
                 )
-                if message_window_td.days + 1 in pm:
+                if message_window_td.days in pm:
                     # send message
                     self.__customer_message(customer, channel)
         if self.debug:
@@ -850,7 +850,7 @@ PIN: {customer_pin}
         # deadline * 24 * 60 * 60
         # )
         cutoff_td: timedelta = MDateTime.elapsed_time_from_seconds(
-            (deadline + self.module_conf.cutoff_time) * 24 * 60 * 60
+            (deadline + self.module_conf.cutoff_time + 1) * 24 * 60 * 60
         )
         cutoff: timedelta = cutoff_td - debt_td
         # create message object
@@ -884,7 +884,7 @@ PIN: {customer_pin}
         # add To addresses
         for item in contacts:
             mes.to = item.contact
-        
+
         # put message to communication queue
         self.logs.message_notice = (
             f"add message for customer: {customer.id} about balance: {customer.balance}"
