@@ -13,7 +13,7 @@ from typing import Optional, List, Any, Union
 from queue import Queue
 
 from jsktoolbox.raisetool import Raise
-from jsktoolbox.libs.base_data import BData as BClasses
+from jsktoolbox.basetool.data import BData as BClasses
 from jsktoolbox.logstool.logs import LoggerClient
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass

@@ -12,7 +12,7 @@ from typing import List, Optional, Any, Union
 from threading import Thread, Event
 from queue import Queue
 
-from jsktoolbox.libs.base_th import ThBaseObject
+from jsktoolbox.basetool.threads import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
@@ -149,8 +149,8 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sleep_break: float = Timestamp.now + self.sleep_period
-        while not self.stopped and sleep_break > Timestamp.now:
+        sleep_break: float = Timestamp.now() + self.sleep_period
+        while not self.stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:

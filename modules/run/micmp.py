@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, Any, Union
 from threading import Thread, Event
 from queue import Queue
 
-from jsktoolbox.libs.base_th import ThBaseObject
+from jsktoolbox.basetool.threads import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.netaddresstool.ipv4 import Address
@@ -65,7 +65,7 @@ class Ipv4Test(BClasses):
     def __init__(self, address: Address) -> None:
         """Constructor."""
         self._data[_Keys.IP] = address
-        now: int = Timestamp.now
+        now: int = Timestamp.now()
         self._data[_Keys.LAST_UP] = now
         self._data[_Keys.LAST_DOWN] = now
         self._data[_Keys.CHANGE] = False
@@ -228,9 +228,15 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 for chan in channel.channels:
                     message = Message()
                     message.channel = int(chan)
-                    message.messages = f"{host.address} is up now after {MDateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
+                    message.messages = (
+                        f"{host.address} is up now"
+                        f" after {MDateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
+                    )
                     msg.append(message)
-                self.logs.message_notice = f"{host.address} is up now after {MDateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
+                self.logs.message_notice = (
+                    f"{host.address} is up now"
+                    f" after {MDateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
+                )
 
             # down - build message if channel has expired timeout
             if channel.check and down:
@@ -244,9 +250,15 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                             )
                             message = Message()
                             message.channel = int(chan)
-                            message.messages = f"{host.address} is down since {MDateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
+                            message.messages = (
+                                f"{host.address} is down"
+                                f" since {MDateTime.elapsed_time_from_seconds(Timestamp.now() - host.last_down)}"
+                            )
                             msg.append(message)
-                        self.logs.message_notice = f"{host.address} is down since {MDateTime.elapsed_time_from_seconds(Timestamp.now - host.last_down)}"
+                        self.logs.message_notice = (
+                            f"{host.address} is down"
+                            f" since {MDateTime.elapsed_time_from_seconds(Timestamp.now() - host.last_down)}"
+                        )
             # build and send message
             if msg:
                 # build channels dict
@@ -275,8 +287,8 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sleep_break: float = Timestamp.now + self.sleep_period
-        while not self.stopped and sleep_break > Timestamp.now:
+        sleep_break: float = Timestamp.now() + self.sleep_period
+        while not self.stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:

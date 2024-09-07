@@ -18,7 +18,7 @@ from queue import Queue, Empty, Full
 from email.message import EmailMessage
 from email.utils import make_msgid
 
-from jsktoolbox.libs.base_th import ThBaseObject
+from jsktoolbox.basetool.threads import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
@@ -416,7 +416,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         """Main loop."""
         # initialize local vars
         deferred_shift: int = 15 * 60  # 15 minutes
-        deferred: int = deferred_shift + Timestamp.now
+        deferred: int = deferred_shift + Timestamp.now()
         deferred_count: int = 7 * 24 * 4  # 7 days every 15 minutes
         deferred_queue = Queue(maxsize=1500)
 
@@ -436,7 +436,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
 
         while not self.stopped:
             # read from deferred queue
-            if deferred < Timestamp.now:
+            if deferred < Timestamp.now():
                 tmp: List[Message] = []
                 while not self.stopped:
                     try:
@@ -463,7 +463,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                             f"error while processing deferred queue: {ex}"
                         )
                         break
-                deferred = Timestamp.now + deferred_shift
+                deferred = Timestamp.now() + deferred_shift
                 for item in tmp:
                     if not deferred_queue.full():
                         deferred_queue.put(item)
@@ -505,8 +505,8 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sleep_break: float = Timestamp.now + self.sleep_period
-        while not self.stopped and sleep_break > Timestamp.now:
+        sleep_break: float = Timestamp.now() + self.sleep_period
+        while not self.stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:
