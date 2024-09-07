@@ -22,7 +22,7 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine import URL, engine_from_config
 from sqlalchemy.util import immutabledict
 
-from jsktoolbox.libs.base_th import ThBaseObject
+from jsktoolbox.basetool.threads import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.stringtool.crypto import SimpleCrypto
@@ -586,7 +586,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         max_id: int = row[0] if row is not None else 0
         count_from: int = 0
         count_to = STEEP
-        time_start: int = Timestamp.now
+        time_start: int = Timestamp.now()
 
         # excluded group
         group: Subquery = (
@@ -599,7 +599,10 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         # customers query
         while count_from < max_id:
             if self.debug:
-                self.logs.message_notice = f"Check customers from id: {count_from} to {count_to}, elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-time_start)}"
+                self.logs.message_notice = (
+                    f"Check customers from id: {count_from} to {count_to}, "
+                    f"elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now()-time_start)}"
+                )
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .outerjoin(
@@ -646,7 +649,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 elif not customer.tariffs:
                     self.__add_diagnostic_tariff(customer)
         if self.debug:
-            self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-time_start)}"
+            self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now()-time_start)}"
 
         self.__send_diagnostic(channel)
 
@@ -682,7 +685,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         max_id: int = row[0] if row is not None else 0
         cfrom: int = 0
         cto: int = STEEP
-        time_start: int = Timestamp.now
+        time_start: int = Timestamp.now()
 
         # excluded group
         group: Subquery = (
@@ -695,7 +698,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         # customers query
         while cfrom < max_id:
             if self.debug:
-                self.logs.message_notice = f"Check customers from id: {cfrom} to {cto}, elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-time_start)}"
+                self.logs.message_notice = (
+                    f"Check customers from id: {cfrom}"
+                    f" to {cto},"
+                    f" elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now()-time_start)}"
+                )
             customers: List[mlms.MCustomer] = (
                 session.query(mlms.MCustomer)
                 .join(mlms.MCash)
@@ -753,7 +760,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                     # send message
                     self.__customer_message(customer, channel)
         if self.debug:
-            self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-time_start)}"
+            self.logs.message_info = f"Customer verification time: {MDateTime.elapsed_time_from_seconds(Timestamp.now()-time_start)}"
 
         # close session
         session.close()
@@ -1197,8 +1204,8 @@ div.centered table { margin: 0 auto; text-align: left; }
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sleep_break: float = Timestamp.now + self.sleep_period
-        while not self.stopped and sleep_break > Timestamp.now:
+        sleep_break: float = Timestamp.now() + self.sleep_period
+        while not self.stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:

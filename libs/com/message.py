@@ -14,7 +14,7 @@ from queue import Queue, Empty, Full
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
-from jsktoolbox.libs.base_th import ThBaseObject
+from jsktoolbox.basetool.threads import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.datetool import Timestamp
 
@@ -281,13 +281,13 @@ class Channel(BClasses):
             )
         self._data[_Keys.CHANNELS][channel] = {
             _Keys.CHECK_INTERVAL: interval,
-            _Keys.CHECK_NEXT: Timestamp.now,
+            _Keys.CHECK_NEXT: Timestamp.now(),
         }
 
     @property
     def check(self) -> bool:
         """Returns True, if the time has come :)"""
-        now: int = Timestamp.now
+        now: int = Timestamp.now()
         for item in self.channels:
             if self._data[_Keys.CHANNELS][item][_Keys.CHECK_NEXT] < now:
                 return True
@@ -296,7 +296,7 @@ class Channel(BClasses):
     @property
     def get(self) -> List[str]:
         """Get a list of expired channels."""
-        now: int = Timestamp.now
+        now: int = Timestamp.now()
         out = []
         for item in self.channels:
             check_dict: Dict = self._data[_Keys.CHANNELS][item]

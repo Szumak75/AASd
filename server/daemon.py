@@ -33,8 +33,8 @@ from jsktoolbox.logstool.formatters import (
     LogFormatterDateTime,
     LogFormatterNull,
 )
-from jsktoolbox.libs.system import CommandLineParser
-from jsktoolbox.libs.base_logs import LoggerQueue
+from jsktoolbox.systemtool import CommandLineParser
+from jsktoolbox.basetool.logs import LoggerQueue
 from jsktoolbox.stringtool.crypto import SimpleCrypto
 
 from libs.base.classes import BProjectClass, BImporter

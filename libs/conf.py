@@ -16,6 +16,7 @@ from jsktoolbox.raisetool import Raise
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.stringtool.crypto import SimpleCrypto
+
 from libs.base.classes import (
     BLogs,
     BConfigSection,
