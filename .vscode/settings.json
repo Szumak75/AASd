@@ -1,7 +1,9 @@
 {
     "python.analysis.typeCheckingMode": "basic",
     "cSpell.words": [
+        "aasd",
         "basetool",
-        "systemtool"
+        "systemtool",
+        "updateconf"
     ]
 }
