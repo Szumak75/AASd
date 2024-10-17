@@ -29,7 +29,7 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine import URL, engine_from_config
 from sqlalchemy.util import immutabledict
 
-from jsktoolbox.libs.base_th import ThBaseObject
+from jsktoolbox.basetool.threads import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue, LoggerEngine
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.stringtool.crypto import SimpleCrypto
@@ -334,7 +334,7 @@ if __name__ == "__main__":
     session = dbh.session
     if session:
         lc.message_info = f"session object: {session}"
-        start = Timestamp.now
+        start = Timestamp.now()
         cfrom = 2270
         cto = 2285
         count = 0
@@ -365,14 +365,14 @@ if __name__ == "__main__":
             .all()
         )
         for customer in customers:
-            lc.message_info = f"cid={customer.id} elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now-start)}"
+            lc.message_info = f"cid={customer.id} elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now()-start)}"
             if customer.balance is not None:  # < 0:
                 count += 1
                 lc.message_info = f"[{count}], balance: {customer.balance}"
             lengine.send()
 
         session.close()
-        stop = Timestamp.now
+        stop = Timestamp.now()
         lc.message_notice = (
             f"Exec time: {MDateTime.elapsed_time_from_seconds(stop-start)}"
         )
