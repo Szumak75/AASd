@@ -196,13 +196,13 @@ class AASd(BProjectClass, BImporter):
         # stopping & joining running modules
         for mod in run_mods:
             mod.stop()
-            while mod.is_stopped != True:  # type: ignore
+            while mod.stopped != True:  
                 mod.join()  # type: ignore
                 time.sleep(0.1)
         # stopping & joining communication modules
         for mod in com_mods:
             mod.stop()
-            while mod.is_stopped != True:  # type: ignore
+            while mod.stopped != True:  
                 mod.join()  # type: ignore
                 time.sleep(0.1)
 
@@ -495,59 +495,34 @@ class AASd(BProjectClass, BImporter):
     @property
     def hup(self) -> bool:
         """Return hup flag."""
-        if Keys.HUP not in self._data:
-            self._data[Keys.HUP] = False
-        return self._data[Keys.HUP]
+        return self._get_data(key=Keys.HUP, default_value=False)  # type: ignore
 
     @hup.setter
     def hup(self, value: bool) -> None:
         """Set loop flag."""
-        if not isinstance(value, bool):
-            raise Raise.error(
-                f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self._data[Keys.HUP] = value
+        self._set_data(key=Keys.HUP, value=value, set_default_type=bool)
 
     @property
     def logs_processor(self) -> ThLoggerProcessor:
         """Return logs_processor."""
-        if Keys.PROC_LOGS not in self._data:
-            self._data[Keys.PROC_LOGS] = None
-        return self._data[Keys.PROC_LOGS]
+        return self._get_data(key=Keys.PROC_LOGS, default_value=None)  # type:ignore
 
     @logs_processor.setter
     def logs_processor(self, value: ThLoggerProcessor) -> None:
         """Set logs_processor."""
-        if not isinstance(value, ThLoggerProcessor):
-            raise Raise.error(
-                f"Expected ThLoggerProcessor type, received: '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self._data[Keys.PROC_LOGS] = value
+        self._set_data(
+            key=Keys.PROC_LOGS, value=value, set_default_type=ThLoggerProcessor
+        )
 
     @property
     def loop(self) -> bool:
         """Return loop flag."""
-        if Keys.LOOP not in self._data:
-            self._data[Keys.LOOP] = False
-        return self._data[Keys.LOOP]
+        return self._get_data(key=Keys.LOOP, default_value=False)  # type:ignore
 
     @loop.setter
     def loop(self, value: bool) -> None:
         """Set loop flag."""
-        if not isinstance(value, bool):
-            raise Raise.error(
-                f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self._data[Keys.LOOP] = value
+        self._set_data(key=Keys.LOOP, value=value, set_default_type=bool)
 
 
 # #[EOF]#######################################################################

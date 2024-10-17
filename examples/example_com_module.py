@@ -146,9 +146,9 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
 
     def sleep(self) -> None:
         """Sleep interval for main loop."""
-        sleep_break: float = Timestamp.now + self.sleep_period
-        while not self.stopped and sleep_break > Timestamp.now:
-            time.sleep(0.2)
+        sleep_break: float = Timestamp.now() + self.sleep_period
+        while not self.stopped and sleep_break > Timestamp.now():
+            self._sleep(0.2)
 
     def stop(self) -> None:
         """Set stop event."""
@@ -156,6 +156,14 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
             self.logs.message_debug = "stop signal received"
         if self._stop_event:
             self._stop_event.set()
+
+    @property
+    def stopped(self) -> bool:
+        """Return stop flag."""
+        
+        if self._stop_event:
+            return self._stop_event.is_set()
+        return True
 
     @property
     def debug(self) -> bool:
@@ -170,16 +178,12 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         return self._verbose
 
     @property
-    def stopped(self) -> bool:
-        """Return stop flag."""
-        if self._stop_event:
-            return self._stop_event.is_set()
-        return True
-
-    @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_ModuleConf.Keys.MODCONF]
+        return self._get_data(
+            key=_ModuleConf.Keys.MODCONF,
+            default_value=None
+        )
 
     @classmethod
     def template_module_name(cls) -> str:

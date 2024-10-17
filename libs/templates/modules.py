@@ -10,11 +10,10 @@ from inspect import currentframe
 from typing import Dict, Union, List, Optional
 
 from jsktoolbox.raisetool import Raise
+from jsktoolbox.basetool.data import BData
 
-from libs.base.classes import BClasses
 
-
-class TemplateConfigItem(BClasses):
+class TemplateConfigItem(BData):
     """Template item for config generator."""
 
     __var: Optional[str] = None
