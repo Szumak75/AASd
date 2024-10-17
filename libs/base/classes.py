@@ -13,7 +13,7 @@ from typing import Optional, List, Any, Union
 from queue import Queue
 
 from jsktoolbox.raisetool import Raise
-from jsktoolbox.basetool.data import BData as BClasses
+from jsktoolbox.basetool.data import BData
 from jsktoolbox.logstool.logs import LoggerClient
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
@@ -21,45 +21,39 @@ from jsktoolbox.attribtool import ReadOnlyClass
 from libs.keys import Keys
 
 
-class BConfigHandler(BClasses):
+class BConfigHandler(BData):
     """Base class for Config handler."""
 
     @property
     def _cfh(self) -> Optional[ConfigTool]:
         """Return config handler object."""
-        if Keys.CFH not in self._data:
-            self._data[Keys.CFH] = None
-        return self._data[Keys.CFH]
+        return self._get_data(key=Keys.CFH, default_value=None)
 
     @_cfh.setter
     def _cfh(self, config_handler: Optional[ConfigTool]) -> None:
         """Set config handler."""
-        if config_handler is not None and not isinstance(config_handler, ConfigTool):
-            raise Raise.error(
-                f"Expected ConfigTool type, received'{type(config_handler)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self._data[Keys.CFH] = config_handler
+        self._set_data(
+            key=Keys.CFH, value=config_handler, set_default_type=Optional[ConfigTool]
+        )
 
 
-class BConfigSection(BClasses):
+class BConfigSection(BData):
     """Base class for Config handler."""
 
     @property
     def _section(self) -> Optional[str]:
         """Return section name."""
-        if Keys.SECTION not in self._data:
-            self._data[Keys.SECTION] = None
-        return self._data[Keys.SECTION]
+        return self._get_data(key=Keys.SECTION, default_value=None)
 
     @_section.setter
     def _section(self, section_name: Optional[str]) -> None:
         """Set section name."""
-        if section_name is None:
-            self._data[Keys.SECTION] = None
-        self._data[Keys.SECTION] = str(section_name).lower()
+        sn: Optional[str] = None
+        if section_name and isinstance(section_name, str):
+            sn = section_name.lower()
+        else:
+            sn = section_name
+        self._set_data(key=Keys.SECTION, value=sn, set_default_type=Optional[str])
 
 
 class BModuleConfig(BConfigHandler, BConfigSection):
@@ -87,7 +81,7 @@ class BModuleConfig(BConfigHandler, BConfigSection):
     @property
     def channel(self) -> Optional[int]:
         """Return channel var for communication modules."""
-        var: Optional[int] = self._get(varname=self.Keys.CHANNEL)
+        var: Optional[int] = self._get(varname=BModuleConfig.Keys.CHANNEL)
         if var is not None and not isinstance(var, int):
             raise Raise.error(
                 "Expected int type.",
@@ -100,7 +94,7 @@ class BModuleConfig(BConfigHandler, BConfigSection):
     @property
     def message_channel(self) -> Optional[List[str]]:
         """Return message channel list for running modules."""
-        var = self._get(varname=self.Keys.MESSAGE_CHANNEL)
+        var = self._get(varname=BModuleConfig.Keys.MESSAGE_CHANNEL)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -113,7 +107,9 @@ class BModuleConfig(BConfigHandler, BConfigSection):
     @property
     def sleep_period(self) -> Optional[float]:
         """Return sleep_period var."""
-        var: Optional[Union[int, float]] = self._get(varname=self.Keys.SLEEP_PERIOD)
+        var: Optional[Union[int, float]] = self._get(
+            varname=BModuleConfig.Keys.SLEEP_PERIOD
+        )
         if var is None:
             return None
         if not isinstance(var, (int, float)):
@@ -126,7 +122,7 @@ class BModuleConfig(BConfigHandler, BConfigSection):
         return float(var)
 
 
-class BImporter(BClasses):
+class BImporter(BData):
     """Base class for modules importer.
 
     Requirements:
@@ -174,53 +170,39 @@ class BImporter(BClasses):
         return getattr(module, name)
 
 
-class BLogs(BClasses):
+class BLogs(BData):
     """Base class for LoggerClient property."""
 
     @property
     def logs(self) -> LoggerClient:
         """Return LoggerClient object or None."""
-        if Keys.CLOG not in self._data:
-            self._data[Keys.CLOG] = LoggerClient()
-        return self._data[Keys.CLOG]
+        if self._get_data(key=Keys.CLOG, default_value=None) is None:
+            self._set_data(
+                key=Keys.CLOG, value=LoggerClient(), set_default_type=LoggerClient
+            )
+        return self._get_data(key=Keys.CLOG)  # type: ignore
 
     @logs.setter
     def logs(self, logs: LoggerClient) -> None:
         """Set LoggerClient."""
-        if not isinstance(logs, LoggerClient):
-            raise Raise.error(
-                f"Expected LoggerClient type, received: '{type(logs)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self._data[Keys.CLOG] = logs
+        self._set_data(key=Keys.CLOG, value=logs, set_default_type=LoggerClient)
 
 
-class BCom(BClasses):
+class BCom(BData):
     """Base class for communication queue."""
 
     @property
     def qcom(self) -> Optional[Queue]:
         """Return Queue object or None."""
-        if Keys.QCOM not in self._data:
-            self._data[Keys.QCOM] = None
-        return self._data[Keys.QCOM]
+        return self._get_data(key=Keys.QCOM, default_value=None)
 
     @qcom.setter
     def qcom(self, queue: Queue) -> None:
         """Set communication queue."""
-        if not isinstance(queue, Queue):
-            raise Raise.error(
-                f"Expected Queue type, received: '{type(queue)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self._data[Keys.QCOM] = queue
+        self._set_data(key=Keys.QCOM, value=queue, set_default_type=Queue)
 
 
-class BConfig(BClasses):
+class BConfig(BData):
     """Base class for Config property."""
 
     from libs.conf import Config
@@ -228,23 +210,14 @@ class BConfig(BClasses):
     @property
     def conf(self) -> Optional[Config]:
         """Return Config class object."""
-        if Keys.CONF not in self._data:
-            self._data[Keys.CONF] = None
-        return self._data[Keys.CONF]
+        return self._get_data(key=Keys.CONF, default_value=None)
 
     @conf.setter
-    def conf(self, conf_obj: Config) -> None:
+    def conf(self, conf: Config) -> None:
         """Set Config class object."""
         from libs.conf import Config
 
-        if not isinstance(conf_obj, Config):
-            raise Raise.error(
-                f"Expected Config class type, received: '{type(conf_obj)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self._data[Keys.CONF] = conf_obj
+        self._set_data(key=Keys.CONF, value=conf, set_default_type=Config)
 
 
 class BProjectClass(BLogs, BConfig):
@@ -270,72 +243,78 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
     - qcom: Queue
     """
 
+    class Keys(object, metaclass=ReadOnlyClass):
+        """Keys definition container class."""
+
+        DEBUG: str = "debug"
+        VERBOSE: str = "verbose"
+
     @property
     def _debug(self) -> bool:
         """Return debug flag."""
-        if Keys.DEBUG not in self._data:
-            self._data[Keys.DEBUG] = False
+        if self._get_data(key=Keys.DEBUG, default_value=None) is None:
+            self._set_data(key=Keys.DEBUG, value=False, set_default_type=bool)
         if (
             self._cfh
             and self._section
-            and self._cfh.get(self._section, "debug") is not None
+            and self._cfh.get(self._section, BModule.Keys.DEBUG) is not None
         ):
-            return self._cfh.get(self._section, "debug") or self._data[Keys.DEBUG]
-        return self._data[Keys.DEBUG]
+            return self._cfh.get(self._section, BModule.Keys.DEBUG) or self._get_data(key=Keys.DEBUG)  # type: ignore
+        return self._get_data(key=Keys.DEBUG)  # type: ignore
 
     @_debug.setter
     def _debug(self, debug: bool) -> None:
         """Set debug flag."""
-        self._data[Keys.DEBUG] = debug
+        self._set_data(key=Keys.DEBUG, value=debug, set_default_type=bool)
 
     @property
     def _verbose(self) -> bool:
         """Return verbose flag."""
-        if Keys.VERBOSE not in self._data:
-            self._data[Keys.VERBOSE] = False
+        if self._get_data(key=Keys.VERBOSE, default_value=None) is None:
+            self._set_data(key=Keys.VERBOSE, value=False, set_default_type=bool)
         if (
             self._cfh
             and self._section
-            and self._cfh.get(self._section, "verbose") is not None
+            and self._cfh.get(self._section, BModule.Keys.VERBOSE) is not None
         ):
-            return self._cfh.get(self._section, "verbose") or self._data[Keys.VERBOSE]
-        return self._data[Keys.VERBOSE]
+            return self._cfh.get(self._section, BModule.Keys.VERBOSE) or self._get_data(key=Keys.VERBOSE)  # type: ignore
+        return self._get_data(key=Keys.VERBOSE)  # type: ignore
 
     @_verbose.setter
     def _verbose(self, verbose: bool) -> None:
         """Set verbose flag."""
-        self._data[Keys.VERBOSE] = verbose
+        self._set_data(key=Keys.VERBOSE, value=verbose, set_default_type=bool)
 
 
-class BDebug(BClasses):
+class BDebug(BData):
     """Base class for debug flags."""
 
     @property
     def _debug(self) -> bool:
         """Return debug flag."""
-        if Keys.DEBUG not in self._data:
-            self._data[Keys.DEBUG] = False
-        return self._data[Keys.DEBUG]
+        return self._get_data(key=Keys.DEBUG, default_value=False)  # type: ignore
 
     @_debug.setter
     def _debug(self, debug: bool) -> None:
         """Set debug flag."""
-        self._data[Keys.DEBUG] = debug
+        self._set_data(key=Keys.DEBUG, value=debug, set_default_type=bool)
+
+
+class BVerbose(BData):
+    """Base class for verbose flags."""
 
     @property
     def _verbose(self) -> bool:
         """Return verbose flag."""
-        if Keys.VERBOSE not in self._data:
-            self._data[Keys.VERBOSE] = False
-        return self._data[Keys.VERBOSE]
+        return self._get_data(key=Keys.VERBOSE, default_value=False)  # type: ignore
 
     @_verbose.setter
     def _verbose(self, verbose: bool) -> None:
         """Set verbose flag."""
-        self._data[Keys.VERBOSE] = verbose
+        self._set_data(key=Keys.VERBOSE, value=verbose, set_default_type=bool)
 
 
-class BThProcessor(BCom, BDebug, BLogs):
+class BThProcessor(BCom, BVerbose, BLogs):
     """Base class for ThProcessor."""
 
 

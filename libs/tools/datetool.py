@@ -16,33 +16,28 @@ from inspect import currentframe
 
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import DateTime
-
-from libs.base.classes import BClasses
+from jsktoolbox.basetool.data import BData
 
 
 class MDateTime(DateTime):
     """DateTime class to generate datetime string in various format."""
 
     @classmethod
-    @property
-    def datenow(cls) -> str:
+    def date_now(cls) -> str:
         """Return current date as %Y-%m-%d format."""
         return f"{date.today().isoformat()}"
 
     @classmethod
-    @property
-    def datetimenow(cls) -> str:
+    def datetime_now(cls) -> str:
         """Return datetime string in isoformat."""
-        return f"{date.today().isoformat()} {cls.now().strftime('%H:%M:%S')}"
+        return f"{cls.date_now()} {cls.now().strftime('%H:%M:%S')}"
 
     @classmethod
-    @property
     def email_date(cls) -> str:
         """Return email date formatted string."""
         return cls.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S %z")
 
     @classmethod
-    @property
     def mfi_date(cls) -> Dict:
         """Return MFI date formatted dict."""
         now: datetime = cls.now()
@@ -52,13 +47,12 @@ class MDateTime(DateTime):
         }
 
     @classmethod
-    @property
     def zfs_snapshot_date(cls) -> str:
         """Return datetime string for zfs snapshot name."""
         return cls.now().strftime("%Y%m%d-%H%M%S")
 
 
-class MIntervals(BClasses):
+class MIntervals(BData):
     """Intervals converter class."""
 
     __name: str = ""
