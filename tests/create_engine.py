@@ -26,7 +26,7 @@ from sqlalchemy.pool import QueuePool
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine import URL, engine_from_config
 
-from jsktoolbox.libs.base_th import ThBaseObject
+from jsktoolbox.basetool.threads import ThBaseObject
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.stringtool.crypto import SimpleCrypto
@@ -61,15 +61,15 @@ def heap_results():
     print(h)
 
 
-def get_session(dblist: List) -> Session:
+def get_session(db_list: List) -> Session:
     """."""
-    session = None
-    for dbh in dblist:
+    session:Session = None # type: ignore
+    for dbh in db_list:
         try:
             session = Session(dbh)
             session.query(func.max(mlms.MCustomer.id))
         except:
-            session = None
+            session = None # type: ignore
             continue
 
     return session

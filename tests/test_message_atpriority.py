@@ -15,7 +15,7 @@ from libs.com.message import AtChannel
 class TestAtChannel(unittest.TestCase):
     """Tests for AtChannel class."""
 
-    def test_01_create_object(self):
+    def test_01_create_object(self) -> None:
         """Test nr 01."""
         try:
             AtChannel(["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"])
@@ -24,7 +24,7 @@ class TestAtChannel(unittest.TestCase):
                 f"Creating an AtChannel object resulted in en exception: {ex}"
             )
 
-    def test_02_channels_list(self):
+    def test_02_channels_list(self) -> None:
         """Test nr 02."""
         obj = AtChannel(["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"])
         self.assertIsInstance(obj.channels, List)
