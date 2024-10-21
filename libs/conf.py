@@ -123,7 +123,7 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         self._data[_Keys.MAIN] = dict()
         self._data[_Keys.MODULES] = dict()
         # starting timestamp
-        self._data[_Keys.MAIN][_Keys.START_TIME] = Timestamp.now
+        self._data[_Keys.MAIN][_Keys.START_TIME] = Timestamp.now()
         # self.module_conf
         self._data[_Keys.MODCONF] = None
         # config file main section name

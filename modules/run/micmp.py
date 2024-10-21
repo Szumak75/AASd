@@ -20,7 +20,7 @@ from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import Timestamp
 
-from libs.base.classes import BModule, BClasses
+from libs.base.classes import BModule, BData
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.templates.modules import TemplateConfigItem
@@ -59,13 +59,13 @@ class _ModuleConf(BModuleConfig):
         return var
 
 
-class Ipv4Test(BClasses):
+class Ipv4Test(BData):
     """Ipv4 container class."""
 
     def __init__(self, address: Address) -> None:
         """Constructor."""
         self._data[_Keys.IP] = address
-        now: int = Timestamp.now()
+        now = Timestamp.now()
         self._data[_Keys.LAST_UP] = now
         self._data[_Keys.LAST_DOWN] = now
         self._data[_Keys.CHANGE] = False
@@ -107,12 +107,12 @@ class Ipv4Test(BClasses):
             if self.last_up <= self.last_down:
                 if self.last_up < self.last_down:
                     self._data[_Keys.CHANGE] = True
-                self._data[_Keys.LAST_UP] = Timestamp.now
+                self._data[_Keys.LAST_UP] = Timestamp.now()
         else:
             if self.last_up >= self.last_down:
                 if self.last_up > self.last_down:
                     self._data[_Keys.CHANGE] = True
-                self._data[_Keys.LAST_DOWN] = Timestamp.now
+                self._data[_Keys.LAST_DOWN] = Timestamp.now()
 
 
 class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
