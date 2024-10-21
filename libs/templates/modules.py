@@ -11,14 +11,19 @@ from typing import Dict, Union, List, Optional
 
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.basetool.data import BData
+from jsktoolbox.attribtool import ReadOnlyClass
+
+
+class _Keys(object, metaclass=ReadOnlyClass):
+    """Keys for configuration elements."""
+
+    DESC: str = "__desc__"
+    VALUE: str = "__val__"
+    VARNAME: str = "__var__"
 
 
 class TemplateConfigItem(BData):
     """Template item for config generator."""
-
-    __var: Optional[str] = None
-    __val: Optional[Union[str, int, float, bool, List]] = None
-    __desc: Optional[str] = None
 
     def __init__(
         self,
@@ -41,53 +46,40 @@ class TemplateConfigItem(BData):
     @property
     def desc(self) -> Optional[str]:
         """Return description."""
-        return self.__desc
+        return self._get_data(key=_Keys.DESC, default_value=None)
 
     @desc.setter
     def desc(self, string: str) -> None:
         """Set description."""
-        if not isinstance(string, str):
-            raise Raise.error(
-                f"Expected String type, received: '{type(string)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__desc = string
+        self._set_data(key=_Keys.DESC, value=string, set_default_type=str)
 
     @property
     def value(self) -> Optional[Union[str, int, float, bool, List]]:
         """Return value."""
-        return self.__val
+        return self._get_data(key=_Keys.VALUE, default_value=None)
 
     @value.setter
     def value(self, value: Union[str, int, float, bool, List]) -> None:
         """Set value."""
-        if not isinstance(value, (str, int, float, bool, list)):
-            raise Raise.error(
-                f"Expected Union[str, int, float, bool, list] type, received: '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__val = value
+        self._set_data(
+            key=_Keys.VALUE,
+            value=value,
+            set_default_type=Union[str, int, float, bool, List],
+        )
 
     @property
     def varname(self) -> Optional[str]:
         """Return varname."""
-        return self.__var
+        return self._get_data(key=_Keys.VARNAME, default_value=None)
 
     @varname.setter
     def varname(self, name: str) -> None:
         """Set varname."""
-        if not isinstance(name, str):
-            raise Raise.error(
-                f"Expected String type, received: '{type(name)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__var = name
+        self._set_data(
+            key=_Keys.VARNAME,
+            value=name,
+            set_default_type=str,
+        )
 
 
 # #[EOF]#######################################################################
