@@ -16,6 +16,7 @@ from jsktoolbox.raisetool import Raise
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.stringtool.crypto import SimpleCrypto
+from jsktoolbox.basetool.data import BData
 
 from libs.base.classes import (
     BLogs,
@@ -42,12 +43,12 @@ class _Keys(object, metaclass=ReadOnlyClass):
     CONF_UPDATE: str = "__config_update__"
     DEBUG: str = "__DEBUG__"
     MAIN: str = "__MAIN__"
-    MODCONF: str = "__MODULE_CONF__"
+    MODULE_CONF: str = "__MODULE_CONF__"
     MODULES: str = "__MODULES__"
     NAME: str = "__NAME__"
     PASSWORD: str = "__password__"
-    PASS_SECTION: str = "__pass_section__"
-    PASS_VAR: str = "__pass_var__"
+    PASSWORD_SECTION: str = "__pass_section__"
+    PASSWORD_VARNAME: str = "__pass_var__"
     START_TIME: str = "__start_time__"
     VERBOSE: str = "__VERBOSE__"
     VERSION: str = "__VERSION__"
@@ -120,16 +121,23 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
 
         self.logs.message_info = "Config initialization..."
         # initialization data structure
-        self._data[_Keys.MAIN] = dict()
-        self._data[_Keys.MODULES] = dict()
+        self._set_data(key=_Keys.MAIN, value=BData(), set_default_type=BData)
+        self._set_data(key=_Keys.MODULES, value={}, set_default_type=Dict)
         # starting timestamp
-        self._data[_Keys.MAIN][_Keys.START_TIME] = Timestamp.now()
+        self.__main._set_data(
+            key=_Keys.START_TIME, value=Timestamp.now(), set_default_type=int
+        )
         # self.module_conf
-        self._data[_Keys.MODCONF] = None
+        self._set_data(
+            key=_Keys.MODULE_CONF, value=None, set_default_type=Optional[_ModuleConf]
+        )
         # config file main section name
         self.app_name = app_name
         # config file handler
-        self._data[_Keys.CF] = None
+        self._set_data(
+            key=_Keys.CF,
+            value=None,
+        )
 
         # constructor complete
         self.logs.message_info = "... complete"
@@ -147,7 +155,9 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         if self._cfh is None:
             config = ConfigTool(self.config_file, self._section)
             self._cfh = config
-            self._data[_Keys.MODCONF] = _ModuleConf(config, self._section)
+            self._set_data(
+                key=_Keys.MODULE_CONF, value=_ModuleConf(config, self._section)
+            )
             if not config.file_exists:
                 self.logs.message_warning = (
                     f"config file '{self.config_file}' does not exist"
@@ -361,21 +371,12 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     @property
     def app_name(self) -> Optional[str]:
         """Returns app name."""
-        if _Keys.APP_NAME not in self.__main:
-            self.__main[_Keys.APP_NAME] = None
-        return self.__main[_Keys.APP_NAME]
+        return self.__main._get_data(key=_Keys.APP_NAME, default_value=None)
 
     @app_name.setter
     def app_name(self, value: str) -> None:
         """Sets app name string."""
-        if not isinstance(value, str):
-            raise Raise.error(
-                f"Expected string type",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__main[_Keys.APP_NAME] = value
+        self.__main._set_data(key=_Keys.APP_NAME, value=value, set_default_type=str)
         self._section = value
 
     @property
@@ -384,57 +385,48 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
         return self._cfh
 
     @property
-    def __main(self) -> Dict:
-        """Return MAIN dict."""
-        return self._data[_Keys.MAIN]
+    def __main(self) -> BData:
+        """Return MAIN data container."""
+        return self._get_data(key=_Keys.MAIN)  # type: ignore
 
     @property
     def __modules(self) -> Dict:
         """Return MODULES dict."""
-        return self._data[_Keys.MODULES]
+        return self._get_data(key=_Keys.MODULES)  # type: ignore
 
     @property
     def config_file(self) -> Optional[str]:
         """Return config_file path string."""
-        if _Keys.CONF_FILE not in self.__main:
-            self.__main[_Keys.CONF_FILE] = None
-        return self.__main[_Keys.CONF_FILE]
+        return self.__main._get_data(
+            key=_Keys.CONF_FILE,
+            default_value=None,
+        )
 
     @config_file.setter
     def config_file(self, value: str) -> None:
         """Set config_file path string."""
-        if not isinstance(value, str):
-            raise Raise.error(
-                f"Expected String type, received: '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__main[_Keys.CONF_FILE] = value
+        self.__main._set_data(
+            key=_Keys.CONF_FILE,
+            value=value,
+            set_default_type=str,
+        )
 
     @property
     def debug(self) -> bool:
         """Return debug flag."""
-        if _Keys.DEBUG not in self.__main:
-            self.__main[_Keys.DEBUG] = False
+        if self.__main._get_data(key=_Keys.DEBUG, default_value=None) is None:
+            self.__main._set_data(key=_Keys.DEBUG, value=False, set_default_type=bool)
         if self._cfh and self._section:
             if self._cfh.get(self._section, _Keys.MC_DEBUG):
                 return True
-        return self.__main[_Keys.DEBUG]
+        return self.__main._get_data(key=_Keys.DEBUG)  # type: ignore
 
     @debug.setter
     def debug(self, value: bool) -> None:
         """Set debug flag."""
-        if not isinstance(value, bool):
-            raise Raise.error(
-                f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__main[_Keys.DEBUG] = value
+        self.__main._set_data(key=_Keys.DEBUG, value=value, set_default_type=bool)
 
-    def __get_modules_list(self, package: str) -> List:
+    def __get_modules_list(self, package: str) -> List[Union[IRunModule, IComModule]]:
         """Get configured modules list."""
         out = []
         if self.module_conf and self.module_conf.modules:
@@ -466,135 +458,92 @@ class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
     def get_com_modules(self) -> List[IComModule]:
         """Get configured communication modules list."""
         import_from = "modules.com"
-        return self.__get_modules_list(import_from)
+        return self.__get_modules_list(import_from)  # type: ignore
 
     @property
     def get_run_modules(self) -> List[IRunModule]:
         """Get configured running modules list."""
         import_from = "modules.run"
-        return self.__get_modules_list(import_from)
+        return self.__get_modules_list(import_from)  # type: ignore
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_Keys.MODCONF]
+        return self._get_data(key=_Keys.MODULE_CONF, default_value=None)
 
     @property
     def password(self) -> bool:
         """Return password flag."""
-        if _Keys.PASSWORD not in self.__main:
-            self.__main[_Keys.PASSWORD] = False
-        return self.__main[_Keys.PASSWORD]
+        return self.__main._get_data(key=_Keys.PASSWORD, default_value=False)  # type: ignore
 
     @password.setter
     def password(self, value: bool) -> None:
         """Set password flag."""
-        if not isinstance(value, bool):
-            raise Raise.error(
-                f"Expected boolean type, received '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__main[_Keys.PASSWORD] = value
+        self.__main._set_data(key=_Keys.PASSWORD, value=value, set_default_type=bool)
 
     @property
     def _password_section(self) -> Optional[str]:
         """Return password section string."""
-        if _Keys.PASS_SECTION not in self.__main:
-            return None
-        return self.__main[_Keys.PASS_SECTION]
+        return self.__main._get_data(key=_Keys.PASSWORD_SECTION, default_value=None)
 
     @_password_section.setter
     def _password_section(self, value: str) -> None:
         """Set password section string."""
-        if not isinstance(value, str):
-            raise Raise.error(
-                f"Expected string type, received '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__main[_Keys.PASS_SECTION] = value
+        self.__main._set_data(
+            key=_Keys.PASSWORD_SECTION, value=value, set_default_type=str
+        )
 
     @property
     def _password_varname(self) -> Optional[str]:
         """Return password varname string."""
-        if _Keys.PASS_VAR not in self.__main:
-            return None
-        return self.__main[_Keys.PASS_VAR]
+        return self.__main._get_data(
+            key=_Keys.PASSWORD_VARNAME,
+            default_value=None,
+        )
 
     @_password_varname.setter
     def _password_varname(self, value: str) -> None:
         """Set password varname string."""
-        if not isinstance(value, str):
-            raise Raise.error(
-                f"Expected string type, received '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__main[_Keys.PASS_VAR] = value
+        self.__main._set_data(
+            key=_Keys.PASSWORD_VARNAME, value=value, set_default_type=str
+        )
 
     @property
     def update(self) -> bool:
         """Return update flag."""
-        if _Keys.CONF_UPDATE not in self.__main:
-            self.__main[_Keys.CONF_UPDATE] = False
-        return self.__main[_Keys.CONF_UPDATE]
+        return self.__main._get_data(key=_Keys.CONF_UPDATE, default_value=False)  # type: ignore
 
     @update.setter
     def update(self, value: bool) -> None:
         """Set update flag."""
-        if not isinstance(value, bool):
-            raise Raise.error(
-                f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__main[_Keys.CONF_UPDATE] = value
+        self.__main._set_data(key=_Keys.CONF_UPDATE, value=value, set_default_type=bool)
 
     @property
     def verbose(self) -> bool:
         """Return verbose flag."""
-        if _Keys.VERBOSE not in self.__main:
-            self.__main[_Keys.VERBOSE] = False
+        if self.__main._get_data(key=_Keys.VERBOSE, default_value=None) is None:
+            self.__main._set_data(key=_Keys.VERBOSE, value=False, set_default_type=bool)
         if self._cfh and self._section:
             if self._cfh.get(self._section, _Keys.MC_VERBOSE):
                 return True
-        return self.__main[_Keys.VERBOSE]
+        return self.__main._get_data(
+            key=_Keys.VERBOSE,
+        )  # type: ignore
 
     @verbose.setter
     def verbose(self, value: bool) -> None:
         """Set verbose flag."""
-        if not isinstance(value, bool):
-            raise Raise.error(
-                f"Expected Boolean type, received: '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__main[_Keys.VERBOSE] = value
+        self.__main._set_data(key=_Keys.VERBOSE, value=value, set_default_type=bool)
 
     @property
     def version(self) -> Optional[str]:
         """Return version string."""
-        if _Keys.VERSION not in self.__main:
-            self.__main[_Keys.VERSION] = None
-        return self.__main[_Keys.VERSION]
+        return self.__main._get_data(key=_Keys.VERSION, default_value=None)
 
     @version.setter
     def version(self, value: str) -> None:
         """Set version string."""
-        if not isinstance(value, str):
-            raise Raise.error(
-                f"Expected String type, received: '{type(value)}'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        self.__main[_Keys.VERSION] = value
+        self.__main._set_data(key=_Keys.VERSION, value=value, set_default_type=str)
 
 
 # #[EOF]#######################################################################
