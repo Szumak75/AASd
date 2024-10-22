@@ -64,7 +64,7 @@ class BModuleConfig(BConfigHandler, BConfigSection):
 
         CHANNEL: str = "channel"
         MESSAGE_CHANNEL: str = "message_channel"
-        MODCONF: str = "__MODULE_CONF__"
+        MODULE_CONF: str = "__MODULE_CONF__"
         SLEEP_PERIOD: str = "sleep_period"
 
     def __init__(self, cfh: ConfigTool, section: Optional[str]) -> None:
@@ -266,6 +266,22 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
     def _debug(self, debug: bool) -> None:
         """Set debug flag."""
         self._set_data(key=Keys.DEBUG, value=debug, set_default_type=bool)
+
+    @property
+    def _module_conf(self) -> Optional[BModuleConfig]:
+        """Return module configuration."""
+        return self._get_data(
+            key=BModuleConfig.Keys.MODULE_CONF, default_value=None
+        )  # type: ignore
+
+    @_module_conf.setter
+    def _module_conf(self, value: BModuleConfig) -> None:
+        """Set module configuration."""
+        self._set_data(
+            key=BModuleConfig.Keys.MODULE_CONF,
+            value=value,
+            set_default_type=BModuleConfig,
+        )
 
     @property
     def _verbose(self) -> bool:

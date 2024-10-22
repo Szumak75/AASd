@@ -61,7 +61,7 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_ModuleConf.Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+        self._module_conf = _ModuleConf(self._cfh, self._section)
 
         # logging level
         self._debug = debug
@@ -160,7 +160,7 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
     @property
     def stopped(self) -> bool:
         """Return stop flag."""
-        
+
         if self._stop_event:
             return self._stop_event.is_set()
         return True
@@ -180,10 +180,7 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._get_data(
-            key=_ModuleConf.Keys.MODCONF,
-            default_value=None
-        )
+        return self._module_conf  # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:

@@ -58,7 +58,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_ModuleConf.Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+        self._data[_ModuleConf.Keys.MODULE_CONF] = _ModuleConf(self._cfh, self._section)
 
         # logging level
         self._debug = debug
@@ -182,7 +182,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_ModuleConf.Keys.MODCONF]
+        return self._data[_ModuleConf.Keys.MODULE_CONF]
 
     @classmethod
     def template_module_name(cls) -> str:
