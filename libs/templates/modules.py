@@ -6,10 +6,8 @@
   Purpose: Template class for configuration elements.
 """
 
-from inspect import currentframe
-from typing import Dict, Union, List, Optional
+from typing import Union, List, Optional
 
-from jsktoolbox.raisetool import Raise
 from jsktoolbox.basetool.data import BData
 from jsktoolbox.attribtool import ReadOnlyClass
 
