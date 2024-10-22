@@ -195,7 +195,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Emailtest configuration module."))
+        out.append(TemplateConfigItem(desc="Email test configuration module."))
         out.append(
             TemplateConfigItem(
                 desc=f"'{_ModuleConf.Keys.SLEEP_PERIOD}' [float], which determines the length of the break"

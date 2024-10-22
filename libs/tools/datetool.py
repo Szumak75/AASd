@@ -81,7 +81,7 @@ class MIntervals(BData):
         Arguments:
         value [str] - value to convert, format: (d)w: weeks, (d)d: days, (d)h: hours, (d)m: minutes, (d)s: seconds
         """
-        _re:Pattern[str]=self._get_data(key=_Keys.RE) # type: ignore
+        _re: Pattern[str] = self._get_data(key=_Keys.RE)  # type: ignore
         match: Optional[Match[str]] = _re.match(value)
 
         if match is None:
