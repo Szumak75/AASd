@@ -9,7 +9,7 @@
 import socket
 
 from inspect import currentframe
-from typing import Dict, Optional, List, Any, Union, Tuple
+from typing import Dict, Optional, List, Union, Tuple
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise

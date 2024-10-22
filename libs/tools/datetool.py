@@ -10,13 +10,21 @@
 import re
 from re import Pattern, Match
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 from typing import Dict, Optional
 from inspect import currentframe
 
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import DateTime
 from jsktoolbox.basetool.data import BData
+from jsktoolbox.attribtool import ReadOnlyClass
+
+
+class _Keys(object, metaclass=ReadOnlyClass):
+    """Keys for date and time operations classes."""
+
+    RE: str = "__re__"
+    NAME: str = "__name__"
 
 
 class MDateTime(DateTime):
@@ -55,13 +63,17 @@ class MDateTime(DateTime):
 class MIntervals(BData):
     """Intervals converter class."""
 
-    __name: str = ""
-    __re: Optional[Pattern[str]] = None
+    # __name: str = ""
+    # __re: Optional[Pattern[str]] = None
 
     def __init__(self, module_name: str) -> None:
         """Constructor."""
-        self.__name = module_name
-        self.__re = re.compile(r"(\d+)\s*([wdhms])", re.IGNORECASE)
+        self._set_data(key=_Keys.NAME, value=module_name, set_default_type=str)
+        self._set_data(
+            key=_Keys.RE,
+            value=re.compile(r"(\d+)\s*([wdhms])", re.IGNORECASE),
+            set_default_type=Pattern[str],
+        )
 
     def convert(self, value: str) -> int:
         """Convert string value to seconds.
@@ -69,9 +81,8 @@ class MIntervals(BData):
         Arguments:
         value [str] - value to convert, format: (d)w: weeks, (d)d: days, (d)h: hours, (d)m: minutes, (d)s: seconds
         """
-        match: Optional[Match[str]] = None
-        if self.__re is not None:
-            match = self.__re.match(value)
+        _re:Pattern[str]=self._get_data(key=_Keys.RE) # type: ignore
+        match: Optional[Match[str]] = _re.match(value)
 
         if match is None:
             raise Raise.error(
