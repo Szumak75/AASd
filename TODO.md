@@ -1,5 +1,9 @@
 # TODO
 
+## [refactoring]
+
+check proper usage thread stopped flag and update jsktoolbox
+
 ## [templates with Mako]
 
 [Mako Templates](https://docs.makotemplates.org/en/latest/)

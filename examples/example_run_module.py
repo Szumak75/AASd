@@ -58,7 +58,7 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_ModuleConf.Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+        self._module_conf = _ModuleConf(self._cfh, self._section)
 
         # logging level
         self._debug = debug
@@ -148,7 +148,7 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_ModuleConf.Keys.MODCONF]
+        return self._module_conf # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:

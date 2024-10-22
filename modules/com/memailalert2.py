@@ -155,7 +155,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_ModuleConf.Keys.MODCONF] = _ModuleConf(self._cfh, self._section)
+        self._data[_ModuleConf.Keys.MODULE_CONF] = _ModuleConf(self._cfh, self._section)
         self._data[_Keys.SMTP_PORT] = None
 
         # logging level
@@ -538,7 +538,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_ModuleConf.Keys.MODCONF]
+        return self._data[_ModuleConf.Keys.MODULE_CONF]
 
     @classmethod
     def template_module_name(cls) -> str:
