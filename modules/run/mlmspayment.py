@@ -865,7 +865,7 @@ PIN: {customer_pin}
         mes.channel = channel
         mes.subject = "[AIR-NET] Informacja o zaległej płatności."
         mes.messages = template.format(
-            current_date=MDateTime.date_now,
+            current_date=MDateTime.date_now(),
             debt=customer.balance,
             cutoff=cutoff.days,
             cutoff_suffix="dzień" if cutoff.days == 1 else "dni",

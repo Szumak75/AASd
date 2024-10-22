@@ -316,7 +316,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
                 msg.add_header("Bcc", ", ".join(bcc))
 
         msg.add_header("Message-Id", make_msgid())
-        msg.add_header("Date", MDateTime.email_date)
+        msg.add_header("Date", MDateTime.email_date())
 
         # add email content
         if message.mmessages is not None:
@@ -416,7 +416,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         """Main loop."""
         # initialize local vars
         deferred_shift: int = 15 * 60  # 15 minutes
-        deferred: int = deferred_shift + Timestamp.now()
+        deferred = deferred_shift + Timestamp.now()
         deferred_count: int = 7 * 24 * 4  # 7 days every 15 minutes
         deferred_queue = Queue(maxsize=1500)
 
