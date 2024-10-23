@@ -155,8 +155,8 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_ModuleConf.Keys.MODULE_CONF] = _ModuleConf(self._cfh, self._section)
-        self._data[_Keys.SMTP_PORT] = None
+        self._module_conf = _ModuleConf(self._cfh, self._section)
+        self._set_data(key=_Keys.SMTP_PORT, value=None, set_default_type=Optional[int])
 
         # logging level
         self._debug = debug
@@ -218,10 +218,10 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         if self.module_conf is None or self.module_conf.smtp_server is None:
             return None
         smtp = None
-        if self._data[_Keys.SMTP_PORT] is None:
-            ports: list[int] = [587, 465, 25]
+        if self._get_data(key=_Keys.SMTP_PORT) is None:
+            ports: List[int] = [587, 465, 25]
         else:
-            ports = [self._data[_Keys.SMTP_PORT]]
+            ports = [self._get_data(key=_Keys.SMTP_PORT)]  # type: ignore
 
         for port in ports:
             if port == 465:
@@ -231,7 +231,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                         port=port,
                         context=ssl.create_default_context(),
                     )
-                    self._data[_Keys.SMTP_PORT] = port
+                    self._set_data(key=_Keys.SMTP_PORT, value=port)
                     break
                 except ConnectionRefusedError:
                     continue
@@ -242,7 +242,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
             else:
                 try:
                     smtp = smtplib.SMTP(host=self.module_conf.smtp_server, port=port)
-                    self._data[_Keys.SMTP_PORT] = port
+                    self._set_data(key=_Keys.SMTP_PORT, value=port)
                     break
                 except ConnectionRefusedError:
                     continue
@@ -368,10 +368,10 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
 
         # try to send message
         try:
-            if self._data[_Keys.SMTP_PORT] == 587:
+            if self._get_data(key=_Keys.SMTP_PORT) == 587:
                 smtp.ehlo()
                 smtp.starttls()
-            if self._data[_Keys.SMTP_PORT] != 25:
+            if self._get_data(key=_Keys.SMTP_PORT) != 25:
                 salt: int = self._cfh.get(self._cfh.main_section_name, "salt")
                 if salt is not None:
                     password: str = SimpleCrypto.multiple_decrypt(
@@ -543,7 +543,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_ModuleConf.Keys.MODULE_CONF]
+        return self._module_conf  # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:
