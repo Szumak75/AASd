@@ -106,25 +106,35 @@ class _Database(BDebug, BLogs):
         self._verbose = verbose
 
         # config variables
-        self._data[_Keys.SQL_SERVER] = config[_Keys.SQL_SERVER]
-        self._data[_Keys.SQL_DATABASE] = config[_Keys.SQL_DATABASE]
-        self._data[_Keys.SQL_USER] = config[_Keys.SQL_USER]
-        self._data[_Keys.SQL_PASS] = config[_Keys.SQL_PASS]
+        self._set_data(
+            key=_Keys.SQL_SERVER, value=config[_Keys.SQL_SERVER], set_default_type=List
+        )
+        self._set_data(
+            key=_Keys.SQL_DATABASE,
+            value=config[_Keys.SQL_DATABASE],
+            set_default_type=str,
+        )
+        self._set_data(
+            key=_Keys.SQL_USER, value=config[_Keys.SQL_USER], set_default_type=str
+        )
+        self._set_data(
+            key=_Keys.SQL_PASS, value=config[_Keys.SQL_PASS], set_default_type=str
+        )
 
         # connection pool
-        self._data[_Keys.DB_POOL] = []
+        self._set_data(key=_Keys.DB_POOL, value=[], set_default_type=List[Engine])
 
     def create_connections(self) -> bool:
         """Create connection pool, second variant."""
         for dialect, fail in ("pymysql", False), ("mysqlconnector", True):
             if not fail:
-                for ip in self._data[_Keys.SQL_SERVER]:
+                for ip in self._get_data(key=_Keys.SQL_SERVER):  # type: ignore
                     url: URL = URL.create(
                         f"mysql+{dialect}",
-                        username=self._data[_Keys.SQL_USER],
-                        password=self._data[_Keys.SQL_PASS],
+                        username=self._get_data(key=_Keys.SQL_USER),
+                        password=self._get_data(key=_Keys.SQL_PASS),
                         host=ip,
-                        database=self._data[_Keys.SQL_DATABASE],
+                        database=self._get_data(key=_Keys.SQL_DATABASE),
                         port=3306,
                         query=immutabledict(
                             {
@@ -146,16 +156,16 @@ class _Database(BDebug, BLogs):
                             connection.execute(text("SELECT 1"))
                         if self._debug:
                             self.logs.message_notice = f"add connection to server: {ip} with backend: {dialect}"
-                        self._data[_Keys.DB_POOL].append(engine)
+                        self.__pool.append(engine)
                     except Exception as ex:
                         self.logs.message_warning = f"connect to server: {ip} with backend: {dialect} error: {ex}"
             else:
                 url: URL = URL.create(
                     f"mysql+{dialect}",
-                    username=self._data[_Keys.SQL_USER],
-                    password=self._data[_Keys.SQL_PASS],
-                    host=self._data[_Keys.SQL_SERVER][0],
-                    database=self._data[_Keys.SQL_DATABASE],
+                    username=self._get_data(key=_Keys.SQL_USER),
+                    password=self._get_data(key=_Keys.SQL_PASS),
+                    host=self._get_data(key=_Keys.SQL_SERVER)[0], # type: ignore
+                    database=self._get_data(key=_Keys.SQL_DATABASE),
                     port=3306,
                     query=immutabledict(
                         {
@@ -166,14 +176,14 @@ class _Database(BDebug, BLogs):
                 connection_args: Dict[str, Any] = {}
                 connection_args["connect_timeout"] = 600
                 connection_args["failover"] = []
-                for ip in self._data[_Keys.SQL_SERVER][1:]:
+                for ip in self._get_data(key=_Keys.SQL_SERVER)[1:]: # type: ignore
                     connection_args["failover"].append(
                         {
-                            "user": self._data[_Keys.SQL_USER],
-                            "password": self._data[_Keys.SQL_PASS],
+                            "user": self._get_data(key=_Keys.SQL_USER),
+                            "password": self._get_data(key=_Keys.SQL_PASS),
                             "host": ip,
                             "port": 3306,
-                            "database": self._data[_Keys.SQL_DATABASE],
+                            "database": self._get_data(key=_Keys.SQL_DATABASE),
                             "pool_size": 5,
                             "pool_name": ip,
                         }
@@ -189,12 +199,12 @@ class _Database(BDebug, BLogs):
                     with engine.connect() as connection:
                         connection.execute(text("SELECT 1"))
                     if self._debug:
-                        self.logs.message_notice = f"add connection to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect}"
-                    self._data[_Keys.DB_POOL].append(engine)
+                        self.logs.message_notice = f"add connection to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect}" # type: ignore
+                    self.__pool.append(engine)
                 except Exception as ex:
-                    self.logs.message_warning = f"connect to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect} error: {ex}"
+                    self.logs.message_warning = f"connect to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect} error: {ex}" # type: ignore
 
-        if self._data[_Keys.DB_POOL] is not None and len(self._data[_Keys.DB_POOL]) > 0:
+        if self.__pool is not None and len(self.__pool) > 0:
             return True
         return False
 
@@ -220,10 +230,10 @@ class _Database(BDebug, BLogs):
         for dialect, fail in ("mysqlconnector", True), ("pymysql", False):
             url = URL(
                 f"mysql+{dialect}",
-                username=self._data[_Keys.SQL_USER],
-                password=self._data[_Keys.SQL_PASS],
-                host=self._data[_Keys.SQL_SERVER][0],
-                database=self._data[_Keys.SQL_DATABASE],
+                username=self._get_data(key=_Keys.SQL_USER),
+                password=self._get_data(key=_Keys.SQL_PASS),
+                host=self._get_data(key=_Keys.SQL_SERVER)[0], # type: ignore
+                database=self._get_data(key=_Keys.SQL_DATABASE),
                 port=3306,
                 query=immutabledict(
                     {
@@ -240,14 +250,14 @@ class _Database(BDebug, BLogs):
                     connection_args["connect_timeout"] = 600
                     # connection_args["raise_on_warnings"] = True
                     connection_args["failover"] = []
-                    for ip in self._data[_Keys.SQL_SERVER][1:]:
+                    for ip in self._get_data(key=_Keys.SQL_SERVER)[1:]: # type: ignore
                         connection_args["failover"].append(
                             {
-                                "user": self._data[_Keys.SQL_USER],
-                                "password": self._data[_Keys.SQL_PASS],
+                                "user": self._get_data(key=_Keys.SQL_USER),
+                                "password": self._get_data(key=_Keys.SQL_PASS),
                                 "host": ip,
                                 "port": 3306,
-                                "database": self._data[_Keys.SQL_DATABASE],
+                                "database": self._get_data(key=_Keys.SQL_DATABASE),
                                 "pool_size": 5,
                                 "pool_name": ip,
                             }
@@ -266,14 +276,14 @@ class _Database(BDebug, BLogs):
                 with engine.connect() as connection:
                     connection.execute(text("SELECT 1"))
                 if self._debug:
-                    self.logs.message_debug = f"add connection to server: {self._data[_Keys.SQL_SERVER][0]} with backend: {dialect}"
-                self._data[_Keys.DB_POOL].append(engine)
+                    self.logs.message_debug = f"add connection to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect}" # type: ignore
+                self.__pool.append(engine)
                 break
             except Exception as ex:
                 if self._debug:
                     self.logs.message_debug = f"Create engine thrown exception: {ex}"
 
-        if len(self._data[_Keys.DB_POOL]) > 0:
+        if len(self.__pool) > 0:
             return True
 
         return False
@@ -282,7 +292,7 @@ class _Database(BDebug, BLogs):
     def session(self) -> Optional[Session]:
         """Returns db session."""
         session = None
-        for item in self._data[_Keys.DB_POOL]:
+        for item in self.__pool:
             engine: Engine = item
             try:
                 session = Session(engine)
@@ -297,6 +307,11 @@ class _Database(BDebug, BLogs):
                 break
 
         return session
+
+    @property
+    def __pool(self) -> List[Engine]:
+        """Returns db pool."""
+        return self._get_data(key=_Keys.DB_POOL)  # type: ignore
 
 
 class _ModuleConf(BModuleConfig):
@@ -479,7 +494,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         # configuration section name
         self._section = self._c_name
         self._cfh = conf
-        self._data[_ModuleConf.Keys.MODULE_CONF] = _ModuleConf(self._cfh, self._section)
+        self._module_conf = _ModuleConf(self._cfh, self._section)
 
         # logging level
         self._debug = debug
@@ -492,15 +507,27 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         self.qcom = qcom
 
         # init internal buffer
-        self._data[_Keys.DIAG_DEBT] = []
-        self._data[_Keys.DIAG_CONT] = []
-        self._data[_Keys.DIAG_TARIFF] = []
+        self._set_data(key=_Keys.DIAG_DEBT,value=[],set_default_type=List)
+        self._set_data(key=_Keys.DIAG_CONT,value=[],set_default_type=List)
+        self._set_data(key=_Keys.DIAG_TARIFF, value=[], set_default_type=List)
+
+    @property
+    def __diag_cont(self)->List:
+        return self._get_data(key=_Keys.DIAG_CONT) # type: ignore
+
+    @property
+    def __diag_debt(self)->List:
+        return self._get_data(key=_Keys.DIAG_DEBT) # type: ignore
+
+    @property
+    def __diag_tariff(self) -> List:
+        return self._get_data(key=_Keys.DIAG_TARIFF)  # type: ignore
 
     def __clean_diagnostic(self) -> None:
         """Initialize diagnostic data buffer."""
-        self._data[_Keys.DIAG_DEBT].clear()
-        self._data[_Keys.DIAG_CONT].clear()
-        self._data[_Keys.DIAG_TARIFF].clear()
+        self.__diag_cont.clear()
+        self.__diag_debt.clear()
+        self.__diag_tariff.clear()
 
     def _apply_config(self) -> bool:
         """Apply config from module_conf"""
@@ -918,7 +945,7 @@ PIN: {customer_pin}
         disabled: int = _Keys.CONTACT_DISABLED
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{bilans}</td><td>{od}</td><td>{info}</td></tr>"
         info = ""
-        count: int = len(self._data[_Keys.DIAG_DEBT]) + 1
+        count: int = len(self.__diag_debt) + 1
         # uwagi
         has_email = False
         has_nemail = False
@@ -938,7 +965,7 @@ PIN: {customer_pin}
             info += "brak taryf, "
         info: str = info.strip()[:-1]
 
-        self._data[_Keys.DIAG_DEBT].append(
+        self.__diag_debt.append(
             template.format(
                 nr=count,
                 cid=customer.id,
@@ -957,9 +984,9 @@ PIN: {customer_pin}
             return None
 
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
-        count: int = len(self._data[_Keys.DIAG_CONT]) + 1
+        count: int = len(self.__diag_cont) + 1
         info: str = ""
-        self._data[_Keys.DIAG_CONT].append(
+        self.__diag_cont.append(
             template.format(
                 nr=count,
                 cid=customer.id,
@@ -976,13 +1003,13 @@ PIN: {customer_pin}
             return None
 
         template = "<tr><td>{nr}</td><td><a href='{url}{cid}'>{cid}</a></td><td>{nazwa}</td><td>{info}</td></tr>"
-        count: int = len(self._data[_Keys.DIAG_TARIFF]) + 1
+        count: int = len(self.__diag_tariff) + 1
         # uwagi
         info: str = ""
         if customer.has_active_node is not None and customer.has_active_node == True:
             info += "aktywna usługa, "
         info = info.strip()[:-1]
-        self._data[_Keys.DIAG_TARIFF].append(
+        self.__diag_tariff.append(
             template.format(
                 nr=count,
                 cid=customer.id,
@@ -1018,7 +1045,7 @@ div.centered { text-align: center; }
 div.centered table { margin: 0 auto; text-align: left; }
 </style>"""
         # debt
-        if self._data[_Keys.DIAG_DEBT]:
+        if self.__diag_debt:
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci zadłużeni powyżej 30 dni."
@@ -1034,7 +1061,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<table>",
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>bilans:</th><th>od:</th><th>uwagi:</th></tr>",
             ]
-            for item in self._data[_Keys.DIAG_DEBT]:
+            for item in self.__diag_debt:
                 tmp[Multipart.HTML].append(item)
             # foot
             tmp[Multipart.HTML].extend(
@@ -1051,7 +1078,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             self.qcom.put(mes)
 
         # contacts
-        if self._data[_Keys.DIAG_CONT]:
+        if self.__diag_cont:
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez zgody na kontakt."
@@ -1067,7 +1094,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<table>",
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
             ]
-            for item in self._data[_Keys.DIAG_CONT]:
+            for item in self.__diag_cont:
                 tmp[Multipart.HTML].append(item)
             # foot
             tmp[Multipart.HTML].extend(
@@ -1084,7 +1111,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             self.qcom.put(mes)
 
         # tariff
-        if self._data[_Keys.DIAG_TARIFF]:
+        if self.__diag_tariff:
             mes = Message()
             mes.channel = channel
             mes.subject = "[AIR-NET] Klienci bez taryf."
@@ -1100,7 +1127,7 @@ div.centered table { margin: 0 auto; text-align: left; }
                 "<table>",
                 "<tr><th>nr:</th><th>cid:</th><th>nazwa:</th><th>uwagi:</th></tr>",
             ]
-            for item in self._data[_Keys.DIAG_TARIFF]:
+            for item in self.__diag_tariff:
                 tmp[Multipart.HTML].append(item)
             # foot
             tmp[Multipart.HTML].extend(
@@ -1242,7 +1269,7 @@ div.centered table { margin: 0 auto; text-align: left; }
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._data[_ModuleConf.Keys.MODULE_CONF]
+        return self._module_conf # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:
