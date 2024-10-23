@@ -64,34 +64,36 @@ class Ipv4Test(BData):
 
     def __init__(self, address: Address) -> None:
         """Constructor."""
-        self._data[_Keys.IP] = address
+        self._set_data(key=_Keys.IP, value=address, set_default_type=Address)
         now = Timestamp.now()
-        self._data[_Keys.LAST_UP] = now
-        self._data[_Keys.LAST_DOWN] = now
-        self._data[_Keys.CHANGE] = False
+        self._set_data(key=_Keys.LAST_UP, value=now, set_default_type=Union[int, float])
+        self._set_data(
+            key=_Keys.LAST_DOWN, value=now, set_default_type=Union[int, float]
+        )
+        self._set_data(key=_Keys.CHANGE, value=False, set_default_type=bool)
 
     @property
     def address(self) -> str:
         """Returns ipv4 address object."""
-        return str(self._data[_Keys.IP])
+        return str(self._get_data(key=_Keys.IP))
 
     @property
     def change(self) -> bool:
         """Returns True if change is set."""
-        if self._data[_Keys.CHANGE]:
-            self._data[_Keys.CHANGE] = False
+        if self._get_data(key=_Keys.CHANGE):
+            self._set_data(key=_Keys.CHANGE, value=False)
             return True
         return False
 
     @property
     def last_up(self) -> int:
         """Last UP timestamp."""
-        return self._data[_Keys.LAST_UP]
+        return self._get_data(key=_Keys.LAST_UP)  # type: ignore
 
     @property
     def last_down(self) -> int:
         """Last down timestamp."""
-        return self._data[_Keys.LAST_DOWN]
+        return self._get_data(key=_Keys.LAST_DOWN)  # type: ignore
 
     @property
     def result(self) -> bool:
@@ -106,13 +108,13 @@ class Ipv4Test(BData):
         if value:
             if self.last_up <= self.last_down:
                 if self.last_up < self.last_down:
-                    self._data[_Keys.CHANGE] = True
-                self._data[_Keys.LAST_UP] = Timestamp.now()
+                    self._set_data(key=_Keys.CHANGE, value=True)
+                self._set_data(key=_Keys.LAST_UP, value=Timestamp.now())
         else:
             if self.last_up >= self.last_down:
                 if self.last_up > self.last_down:
-                    self._data[_Keys.CHANGE] = True
-                self._data[_Keys.LAST_DOWN] = Timestamp.now()
+                    self._set_data(key=_Keys.CHANGE, value=True)
+                self._set_data(key=_Keys.LAST_DOWN, value=Timestamp.now())
 
 
 class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
