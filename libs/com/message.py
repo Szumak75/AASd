@@ -539,7 +539,7 @@ class ThDispatcher(Thread, ThBaseObject, BThProcessor):
             self.logs.message_debug = "entering to the main loop"
 
         if self.qcom is not None:
-            while not self.is_stopped:
+            while self.stopped != True:
                 try:
                     message: Message = self.qcom.get(block=True, timeout=0.1)
                     if message is None:

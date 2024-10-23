@@ -434,11 +434,11 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         if self.qcom is None:
             return None
 
-        while not self.stopped:
+        while not self._stopped:
             # read from deferred queue
             if deferred < Timestamp.now():
                 tmp: List[Message] = []
-                while not self.stopped:
+                while not self._stopped:
                     try:
                         message: Message = deferred_queue.get_nowait()
                         if message is None:
@@ -506,7 +506,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
     def sleep(self) -> None:
         """Sleep interval for main loop."""
         sleep_break: float = Timestamp.now() + self.sleep_period
-        while not self.stopped and sleep_break > Timestamp.now():
+        while not self._stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:
@@ -529,11 +529,16 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         return self._verbose
 
     @property
-    def stopped(self) -> bool:
+    def _stopped(self) -> bool:
         """Return stop flag."""
         if self._stop_event:
             return self._stop_event.is_set()
         return True
+
+    @property
+    def module_stopped(self) -> bool:
+        """Return stop flag."""
+        return self._is_stopped  # type: ignore
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:

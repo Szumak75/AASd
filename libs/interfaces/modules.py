@@ -43,8 +43,13 @@ class __IModule(ABC):
 
     @property
     @abstractmethod
-    def stopped(self) -> bool:
-        """Return stop flag."""
+    def _stopped(self) -> bool:
+        """Return stop event flag."""
+
+    @property
+    @abstractmethod
+    def module_stopped(self) -> bool:
+        """Return stopped status for main process."""
 
     @classmethod
     @abstractmethod
