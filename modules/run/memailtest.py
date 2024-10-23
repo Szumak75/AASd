@@ -102,7 +102,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         # starting module loop
         if self.debug:
             self.logs.message_debug = "entering to the main loop"
-        while not self.stopped:
+        while not self._stopped:
             if channel.check:
                 if self.debug:
                     self.logs.message_debug = "expired channel found"
@@ -150,7 +150,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
     def sleep(self) -> None:
         """Sleep interval for main loop."""
         sleep_break: float = Timestamp.now() + self.sleep_period
-        while not self.stopped and sleep_break > Timestamp.now():
+        while not self._stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:
@@ -173,11 +173,16 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         return self._verbose
 
     @property
-    def stopped(self) -> bool:
+    def _stopped(self) -> bool:
         """Return stop flag."""
         if self._stop_event:
             return self._stop_event.is_set()
         return True
+
+    @property
+    def module_stopped(self) -> bool:
+        """Return stop flag."""
+        return self._is_stopped  # type: ignore
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:

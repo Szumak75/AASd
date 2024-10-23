@@ -586,7 +586,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         max_id: int = row[0] if row is not None else 0
         count_from: int = 0
         count_to = STEEP
-        time_start: int = Timestamp.now()
+        time_start = Timestamp.now()
 
         # excluded group
         group: Subquery = (
@@ -685,7 +685,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         max_id: int = row[0] if row is not None else 0
         cfrom: int = 0
         cto: int = STEEP
-        time_start: int = Timestamp.now()
+        time_start = Timestamp.now()
 
         # excluded group
         group: Subquery = (
@@ -1180,7 +1180,7 @@ div.centered table { margin: 0 auto; text-align: left; }
             self.logs.message_debug = "entering to the main loop"
 
         # starting module loop
-        while not self.stopped:
+        while not self._stopped:
             if channel and channel.check:
                 if self.debug:
                     self.logs.message_debug = "expired channel found"
@@ -1205,7 +1205,7 @@ div.centered table { margin: 0 auto; text-align: left; }
     def sleep(self) -> None:
         """Sleep interval for main loop."""
         sleep_break: float = Timestamp.now() + self.sleep_period
-        while not self.stopped and sleep_break > Timestamp.now():
+        while not self._stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:
@@ -1228,11 +1228,16 @@ div.centered table { margin: 0 auto; text-align: left; }
         return self._verbose
 
     @property
-    def stopped(self) -> bool:
+    def _stopped(self) -> bool:
         """Return stop flag."""
         if self._stop_event:
             return self._stop_event.is_set()
         return True
+
+    @property
+    def module_stopped(self) -> bool:
+        """Return stop flag."""
+        return self._is_stopped  # type: ignore
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:

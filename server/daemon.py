@@ -196,21 +196,22 @@ class AASd(BProjectClass, BImporter):
         # stopping & joining running modules
         for mod in run_mods:
             mod.stop()
-            while mod.stopped != True:  
+            while mod.module_stopped != True:
                 mod.join()  # type: ignore
                 time.sleep(0.1)
         # stopping & joining communication modules
         for mod in com_mods:
             mod.stop()
-            while mod.stopped != True:  
+            while mod.module_stopped != True:
                 mod.join()  # type: ignore
                 time.sleep(0.1)
 
         # dispatcher processor
         dispatch.stop()
-        while dispatch.is_stopped != True:
+        while dispatch._is_stopped != True:
             dispatch.join()
             time.sleep(0.1)
+        dispatch.join()
 
     def run(self) -> None:
         """Start daemon."""
@@ -240,7 +241,7 @@ class AASd(BProjectClass, BImporter):
         # logger processor
         self.logs_processor.stop()
         time.sleep(2.0)
-        while self.logs_processor.is_stopped != True:
+        while self.logs_processor._is_stopped != True:
             self.logs_processor.join()
             time.sleep(0.1)
 

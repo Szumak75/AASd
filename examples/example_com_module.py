@@ -115,7 +115,7 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
             self.logs.message_debug = "entering to the main loop"
 
         # starting module loop
-        while not self.stopped:
+        while not self._stopped:
             # read from queue, process message if received
             try:
                 message: Message = self.qcom.get(block=True, timeout=0.1)
@@ -147,7 +147,7 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
     def sleep(self) -> None:
         """Sleep interval for main loop."""
         sleep_break: float = Timestamp.now() + self.sleep_period
-        while not self.stopped and sleep_break > Timestamp.now():
+        while not self._stopped and sleep_break > Timestamp.now():
             self._sleep(0.2)
 
     def stop(self) -> None:
@@ -158,12 +158,16 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
             self._stop_event.set()
 
     @property
-    def stopped(self) -> bool:
+    def _stopped(self) -> bool:
         """Return stop flag."""
-
         if self._stop_event:
             return self._stop_event.is_set()
         return True
+
+    @property
+    def module_stopped(self) -> bool:
+        """Return stop flag."""
+        return self._is_stopped  # type: ignore
 
     @property
     def debug(self) -> bool:
