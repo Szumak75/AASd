@@ -9,7 +9,7 @@ class Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    BUFFERED = "__buffered__"
+    BUFFERED: str = "__buffered__"
 
 
 example = {}
@@ -19,9 +19,9 @@ print(example)
 
 # Nie można zmienić wartości właściwości
 
-Keys.BUFFERED = 1
+Keys.BUFFERED = "1"
 print(Keys.BUFFERED)
 
 a = Keys()
 print(a.BUFFERED)
-a.BUFFERED = 7
+a.BUFFERED = "7"
