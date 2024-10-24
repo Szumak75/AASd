@@ -340,7 +340,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="ICMP configuration for module."))
+        out.append(TemplateConfigItem(desc="ICMP configuration module."))
         out.append(
             TemplateConfigItem(
                 desc=f"'{_ModuleConf.Keys.SLEEP_PERIOD}' [float], which determines the length of the break"

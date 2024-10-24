@@ -1,9 +1,10 @@
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 23.11.2023
-
-  Purpose: Example working module.
+  mzfssnapshot.py
+  Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+  Created: 24.10.2024, 09:58:51
+  
+  Purpose: 
 """
 
 import time
@@ -32,13 +33,70 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
+    S_FREE_SPACE: str = "min_free_space"
+    S_INTERVAL: str = "snapshot_interval"
+    S_MAX_COUNT: str = "max_snapshot_count"
+    S_VOLUMES: str = "volumes"
+
 
 class _ModuleConf(BModuleConfig):
     """Module Config private class."""
 
+    @property
+    def min_free_space(self) -> Optional[int]:
+        """Minimum free space in percent."""
+        var = self._get(varname=_Keys.S_FREE_SPACE)
+        if var is not None and not isinstance(var, int):
+            raise Raise.error(
+                "Expected integer value for min_free_space",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
 
-class MExample(Thread, ThBaseObject, BModule, IRunModule):
-    """Example module."""
+    @property
+    def snapshot_interval(self) -> Optional[str]:
+        """Snapshot interval."""
+        var = self._get(varname=_Keys.S_INTERVAL)
+        if var is not None and not isinstance(var, str):
+            raise Raise.error(
+                "Expected string value for snapshot_interval",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
+    def max_snapshot_count(self) -> Optional[int]:
+        """Maximum snapshot count."""
+        var = self._get(varname=_Keys.S_MAX_COUNT)
+        if var is not None and not isinstance(var, int):
+            raise Raise.error(
+                "Expected integer value for max_snapshot_count",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+    @property
+    def volumes(self) -> Optional[List[str]]:
+        """List of ZFS volumes."""
+        var = self._get(varname=_Keys.S_VOLUMES)
+        if var is not None and not isinstance(var, List):
+            raise Raise.error(
+                "Expected list value for ZFS volumes",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
+
+class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
+    """MZfssnapshot module."""
 
     def __init__(
         self,
@@ -166,7 +224,53 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Example configuration for module."))
+        out.append(
+            TemplateConfigItem(desc="ZFS Snapshot automation configuration module.")
+        )
+        out.append(TemplateConfigItem(desc="Variables:"))
+        out.append(
+            TemplateConfigItem(
+                desc=f"'{_Keys.S_VOLUMES}' [List[str]] - List of ZFS volumes to monitor,"
+            )
+        )
+        out.append(
+            TemplateConfigItem(desc="for example:  ['tank/volume1', 'tank/volume2'].")
+        )
+        out.append(
+            TemplateConfigItem(
+                desc=f"'{_Keys.S_INTERVAL}' [str] - how often to take the snapshot,"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="this is an integer representing 'seconds' or a numerical value with the suffix 's|m|h|d|w'.",
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc=f"'{_Keys.S_MAX_COUNT}' [int] - maximum number of snapshots for rotation procedure."
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc=f"'{_Keys.S_FREE_SPACE}' [int] - minimum percentage of free space needed to trigger a snapshot."
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="After exceeding the above occupancy, a warning message will be generated"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="if a communication channel has been configured for the module."
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="Optional variables:"
+            )
+        )
         out.append(
             TemplateConfigItem(
                 desc=f"'{_ModuleConf.Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
@@ -200,13 +304,26 @@ class MExample(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                varname=_ModuleConf.Keys.SLEEP_PERIOD, value=3.25, desc="[second]"
+                varname=_Keys.S_VOLUMES,
+                value=[],
+                desc="[List[str]]",
             )
         )
         out.append(
             TemplateConfigItem(
-                varname=_ModuleConf.Keys.MESSAGE_CHANNEL,
-                value=["1"],
+                varname=_Keys.S_MAX_COUNT,
+                value=24,
+                desc="[int]",
+            )
+        )
+        out.append(
+            TemplateConfigItem(varname=_Keys.S_INTERVAL, value="1h", desc="[int|str]")
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.S_FREE_SPACE,
+                value=20,
+                desc="[int]",
             )
         )
         return out

@@ -150,7 +150,7 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Example configuration for test module."))
+        out.append(TemplateConfigItem(desc="Example configuration module."))
         out.append(TemplateConfigItem(desc="This module is for testing purposes only."))
         out.append(
             TemplateConfigItem(
