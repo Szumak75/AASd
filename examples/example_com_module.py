@@ -192,9 +192,9 @@ class MExample(Thread, ThBaseObject, BModule, IComModule):
         return cls.__name__.lower()
 
     @classmethod
-    def template_module_variables(cls) -> List:
+    def template_module_variables(cls) -> List[TemplateConfigItem]:
         """Return configuration variables template."""
-        out = []
+        out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()
         out.append(TemplateConfigItem(desc="Example alert configuration module."))

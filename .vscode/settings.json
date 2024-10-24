@@ -5,6 +5,7 @@
         "basetool",
         "systemtool",
         "updateconf",
-        "wdhms"
+        "wdhms",
+        "Zfssnapshot"
     ]
 }
