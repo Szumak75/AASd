@@ -8,12 +8,15 @@
 """
 
 import time
+import subprocess
+import re
 from inspect import currentframe
 from typing import Dict, List, Optional, Any, Union
 from threading import Thread, Event
 from queue import Queue
 
-from jsktoolbox.libs.base_th import ThBaseObject
+from jsktoolbox.basetool.threads import ThBaseObject
+from jsktoolbox.basetool.data import BData
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
@@ -25,6 +28,7 @@ from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Channel
+from libs.tools.datetool import MDateTime, MIntervals
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -37,6 +41,12 @@ class _Keys(object, metaclass=ReadOnlyClass):
     S_INTERVAL: str = "snapshot_interval"
     S_MAX_COUNT: str = "max_snapshot_count"
     S_VOLUMES: str = "volumes"
+
+    ZP_VOLUME: str = "__zfs_volume__"
+    ZP_MESSAGE: str = "__messages__"
+
+    ZD_DATA: str = "__zfs_data__"
+    ZD_ERROR: str = "__zfs_error__"
 
 
 class _ModuleConf(BModuleConfig):
@@ -93,6 +103,77 @@ class _ModuleConf(BModuleConfig):
                 currentframe(),
             )
         return var
+
+
+class ZfsData(BData):
+    """ZFS data."""
+
+    def __init__(self, data: str) -> None:
+        """Initialize ZFS data."""
+        self._set_data(key=_Keys.ZD_DATA, value={}, set_default_type=Dict)
+        self._set_data(
+            key=_Keys.ZD_ERROR, value=self.__parser(data), set_default_type=bool
+        )
+
+    def __parser(self, data: str) -> bool:
+        """Parse ZFS data."""
+        pa = re.compile("")
+        return False
+
+    @property
+    def error(self) -> bool:
+        """ZFS data error."""
+        return not self._get_data(key=_Keys.ZD_ERROR)
+
+
+class ZfsProcessor(BData):
+    """ZFS processor."""
+
+    def __init__(self, volume: str) -> None:
+        """Initialize ZFS processor."""
+        # volume to  process
+        self._set_data(key=_Keys.ZP_VOLUME, value=volume, set_default_type=str)
+        # messages container
+        self._set_data(key=_Keys.ZP_MESSAGE, value=[], set_default_type=List)
+
+    def check_volume(self) -> bool:
+        """Check if zfs volume exists."""
+        # check if variable is correct
+        if not self.__volume:
+            self.__messages.append("invalid volume received as empty string")
+            return False
+        # check if volume exists
+        with subprocess.Popen(
+            ["zfs", "list", "-Hp", self.__volume],
+            stdout=subprocess.PIPE,
+            env={"PATH": "/sbin"},
+        ) as proc:
+            # process output
+            pass
+        return False
+
+    def clear(self) -> None:
+        """Clear messages."""
+        if self.__messages:
+            self.__messages.clear()
+
+    @property
+    def __volume(self) -> str:
+        """ZFS volume."""
+        return self._get_data(_Keys.ZP_VOLUME)  # type: ignore
+
+    @property
+    def __messages(self) -> List[str]:
+        """List of messages."""
+        return self._get_data(varname=_Keys.ZP_MESSAGE)  # type: ignore
+
+    @property
+    def messages(self) -> Optional[List[str]]:
+        """Return messages list."""
+        msg = self.__messages
+        if msg:
+            return msg
+        return None
 
 
 class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
@@ -268,21 +349,6 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
         )
         out.append(
             TemplateConfigItem(
-                desc="Optional variables:"
-            )
-        )
-        out.append(
-            TemplateConfigItem(
-                desc=f"'{_ModuleConf.Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
-            )
-        )
-        out.append(
-            TemplateConfigItem(
-                desc="between subsequent executions of the program's main loop"
-            )
-        )
-        out.append(
-            TemplateConfigItem(
                 desc=f"'{_ModuleConf.Keys.MESSAGE_CHANNEL}' [List[str]], comma separated communication channels list,"
             )
         )
@@ -300,6 +366,23 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
         out.append(
             TemplateConfigItem(
                 desc="seconds or a numerical value with the suffix 's|m|h|d|w'"
+            )
+        )
+        out.append(TemplateConfigItem(desc="Optional variables:"))
+        out.append(
+            TemplateConfigItem(
+                desc=f"'{_ModuleConf.Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                desc="between subsequent executions of the program's main loop"
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_ModuleConf.Keys.MESSAGE_CHANNEL,
+                value=["1"],
             )
         )
         out.append(

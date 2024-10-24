@@ -12,7 +12,8 @@ from typing import Dict, List, Optional, Any, Union
 from threading import Thread, Event
 from queue import Queue
 
-from jsktoolbox.libs.base_th import ThBaseObject
+from jsktoolbox.basetool.threads import ThBaseObject
+from jsktoolbox.basetool.data import BData
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass

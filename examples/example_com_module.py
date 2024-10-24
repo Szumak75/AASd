@@ -15,7 +15,8 @@ from queue import Queue, Empty, Full
 from email.message import EmailMessage
 from email.utils import make_msgid
 
-from jsktoolbox.libs.base_th import ThBaseObject
+from jsktoolbox.basetool.threads import ThBaseObject
+from jsktoolbox.basetool.data import BData
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
