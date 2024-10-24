@@ -63,9 +63,6 @@ class MDateTime(DateTime):
 class MIntervals(BData):
     """Intervals converter class."""
 
-    # __name: str = ""
-    # __re: Optional[Pattern[str]] = None
-
     def __init__(self, module_name: str) -> None:
         """Constructor."""
         self._set_data(key=_Keys.NAME, value=module_name, set_default_type=str)

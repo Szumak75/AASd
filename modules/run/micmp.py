@@ -195,8 +195,6 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
 
         # starting module loop
         while not self._stopped:
-            # TODO: not implemented
-            # TODO: do something, build a message if necessary, put it in the qcom queue
             # test
             for host in hosts:
                 host.result = ping.is_alive(host.address)
@@ -216,29 +214,28 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
 
             # down_now - build message now
             for host in down_now:
+                tmp_msg = f"{host.address} is down at {MDateTime.datetime_from_timestamp(host.last_down)}"
                 for chan in channel.channels:
                     message = Message()
                     message.channel = int(chan)
-                    message.messages = f"{host.address} is down at {MDateTime.datetime_from_timestamp(host.last_down)}"
+                    message.messages = tmp_msg
                     msg.append(message)
-                self.logs.message_notice = f"{host.address} is down at {MDateTime.datetime_from_timestamp(host.last_down)}"
+                self.logs.message_notice = tmp_msg
                 # reset channels timeout
                 channel.get
 
             # up_now - build message now
             for host in up_now:
-                for chan in channel.channels:
-                    message = Message()
-                    message.channel = int(chan)
-                    message.messages = (
-                        f"{host.address} is up now"
-                        f" after {MDateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
-                    )
-                    msg.append(message)
-                self.logs.message_notice = (
+                tmp_msg = (
                     f"{host.address} is up now"
                     f" after {MDateTime.elapsed_time_from_seconds(host.last_up - host.last_down)}"
                 )
+                for chan in channel.channels:
+                    message = Message()
+                    message.channel = int(chan)
+                    message.messages = tmp_msg
+                    msg.append(message)
+                self.logs.message_notice = tmp_msg
 
             # down - build message if channel has expired timeout
             if channel.check and down:
@@ -246,21 +243,19 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                     self.logs.message_debug = "expired channel found"
                 for chan in channel.get:
                     for host in down:
+                        tmp_msg = (
+                            f"{host.address} is down"
+                            f" since {MDateTime.elapsed_time_from_seconds(Timestamp.now() - host.last_down)}"
+                        )
                         if self.debug:
                             self.logs.message_debug = (
                                 f"create message for channel: '{chan}'"
                             )
                             message = Message()
                             message.channel = int(chan)
-                            message.messages = (
-                                f"{host.address} is down"
-                                f" since {MDateTime.elapsed_time_from_seconds(Timestamp.now() - host.last_down)}"
-                            )
+                            message.messages = tmp_msg
                             msg.append(message)
-                        self.logs.message_notice = (
-                            f"{host.address} is down"
-                            f" since {MDateTime.elapsed_time_from_seconds(Timestamp.now() - host.last_down)}"
-                        )
+                        self.logs.message_notice = tmp_msg
             # build and send message
             if msg:
                 # build channels dict
