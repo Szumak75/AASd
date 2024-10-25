@@ -30,6 +30,7 @@ class TestZfsData(unittest.TestCase):
         self.assertEqual(zfs_data.used, 214411292672)
         self.assertEqual(zfs_data.available, 5192832966656)
         self.assertEqual(zfs_data.mount_point, "/logs/2024/01")
+        self.assertEqual(zfs_data.volume_root, "tank")
         self.assertIsNone(zfs_data.snapshot_root)
         self.assertIsNone(zfs_data.snapshot_name)
 
@@ -50,6 +51,7 @@ class TestZfsData(unittest.TestCase):
         self.assertEqual(zfs_data.snapshot_name, "20241024015108")
         self.assertEqual(zfs_data.available, -1)
         self.assertEqual(zfs_data.mount_point, "-")
+        self.assertEqual(zfs_data.volume_root, "zroot")
 
 
 # #[EOF]#######################################################################

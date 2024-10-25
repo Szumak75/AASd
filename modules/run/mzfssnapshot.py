@@ -10,6 +10,7 @@
 import time
 import subprocess
 import re
+import os
 from inspect import currentframe
 from typing import Dict, List, Optional, Any, Union
 from threading import Thread, Event
@@ -120,6 +121,15 @@ class ZfsData(BData):
     def __data(self) -> Dict[str, str]:
         """Data."""
         return self._get_data(key=_Keys.ZD_DATA)  # type: ignore
+
+    @property
+    def volume_root(self) -> Optional[str]:
+        """Root of the volume."""
+        if self.volume:
+            tmp: List[str] = self.volume.split(os.path.sep)
+            if len(tmp) > 0:
+                return tmp[0]
+        return None
 
     @property
     def volume(self) -> Optional[str]:
