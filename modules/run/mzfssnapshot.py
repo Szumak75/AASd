@@ -43,6 +43,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     S_VOLUMES: str = "volumes"
 
     ZP_VOLUME: str = "__zfs_volume__"
+    ZP_ROOT_VOLUME: str = "__zfs_root_volume__"
     ZP_MESSAGE: str = "__messages__"
 
     ZD_DATA: str = "__zfs_data__"
@@ -115,9 +116,76 @@ class ZfsData(BData):
             key=_Keys.ZD_ERROR, value=self.__parser(data), set_default_type=bool
         )
 
+    @property
+    def __data(self) -> Dict[str, str]:
+        """Data."""
+        return self._get_data(key=_Keys.ZD_DATA)  # type: ignore
+
+    @property
+    def volume(self) -> Optional[str]:
+        """ZFS volume."""
+        if self.__data:
+            return self.__data["volume"]
+        return None
+
+    @property
+    def used(self) -> Optional[int]:
+        """Used space."""
+        if self.__data:
+            return int(self.__data["used"]) if self.__data["used"] != "-" else -1
+        return None
+
+    @property
+    def available(self) -> Optional[int]:
+        """Available space."""
+        if self.__data:
+            return (
+                int(self.__data["available"]) if self.__data["available"] != "-" else -1
+            )
+        return None
+
+    @property
+    def mount_point(self) -> Optional[str]:
+        """ZFS  mountpoint."""
+        if self.__data:
+            return self.__data["mount_point"]
+        return None
+
+    @property
+    def snapshot_root(self) -> Optional[str]:
+        """ZFS snapshot root."""
+        if self.__data:
+            return (
+                self.__data["snapshot_root"] if "snapshot_root" in self.__data else None
+            )
+        return None
+
+    @property
+    def snapshot_name(self) -> Optional[str]:
+        """ZFS snapshot name."""
+        if self.__data:
+            return (
+                self.__data["snapshot_name"] if "snapshot_name" in self.__data else None
+            )
+        return None
+
     def __parser(self, data: str) -> bool:
         """Parse ZFS data."""
-        pa = re.compile("")
+        pa: re.Pattern[str] = re.compile(r"^(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+(\S+)$")
+        pa_snap: re.Pattern[str] = re.compile(r"(\S+)@([\d]{14})")
+        match: Optional[re.Match[str]] = pa.match(data)
+        if match:
+            vol: Dict[str, str] = {}
+            vol["volume"] = match.group(1)
+            vol["used"] = match.group(2)
+            vol["available"] = match.group(3)
+            vol["mount_point"] = match.group(4)
+            match_snap: Optional[re.Match[str]] = pa_snap.match(vol["volume"])
+            if match_snap:
+                vol["snapshot_root"] = match_snap.group(1)
+                vol["snapshot_name"] = match_snap.group(2)
+            self.__data.update(vol)
+            return True
         return False
 
     @property
@@ -149,7 +217,26 @@ class ZfsProcessor(BData):
             env={"PATH": "/sbin"},
         ) as proc:
             # process output
-            pass
+            if proc.stdout:
+                for line in proc.stdout:
+                    if line:
+                        tmp = ZfsData(line.decode("utf-8"))
+                        if tmp.error:
+                            self.__messages.append(
+                                f"Invalid zfs volume: {self.__volume}"
+                            )
+                            return False
+                        # check  if volume is proper
+                        if (
+                            tmp.volume != self.__volume
+                            and tmp.mount_point == self.__volume
+                        ):
+                            self._set_data(key=_Keys.ZP_VOLUME, value=tmp.volume)
+                            self.__messages.append(
+                                f"Volume updated to: {self.__volume}"
+                            )
+                        return True
+        self.__messages.append(f"ZFS volume is missing: {self.__volume}")
         return False
 
     def clear(self) -> None:

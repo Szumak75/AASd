@@ -3,9 +3,13 @@
     "cSpell.words": [
         "aasd",
         "basetool",
+        "mountpoint",
+        "mydb",
+        "mzfssnapshot",
         "systemtool",
         "updateconf",
         "wdhms",
-        "Zfssnapshot"
+        "Zfssnapshot",
+        "zroot"
     ]
 }
