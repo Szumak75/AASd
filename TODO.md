@@ -1,8 +1,8 @@
 # TODO
 
-## [refactoring]
+## [init config]
 
-check proper usage thread stopped flag and update jsktoolbox
+if the configuration file does not exist, running the command with the -U flag incorrectly creates a duplicate copy of the description in each section.
 
 ## [templates with Mako]
 
