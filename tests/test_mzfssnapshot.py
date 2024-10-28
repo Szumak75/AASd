@@ -75,6 +75,8 @@ class TestZfsProcessor(unittest.TestCase):
             self.assertFalse(zp2.check_volume())
             self.assertIsNotNone(zp2.messages)
             self.assertTrue(len(zp2.messages), 1)  # type: ignore
+            zp2.clear()
+            self.assertIsNone(zp2.messages)
 
 
 # #[EOF]#######################################################################
