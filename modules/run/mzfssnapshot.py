@@ -242,6 +242,20 @@ class ZfsProcessor(BData):
         self.__messages.append(f"ZFS volume is missing: {self.volume}")
         return False
 
+    def get_volume(self, volume: Optional[str] = None) -> Optional[ZfsData]:
+        """Get zfs volume information."""
+
+    def create_snapshot(self) -> bool:
+        """Create zfs snapshot."""
+        return False
+
+    def cleanup_snapshots(self, max_count: Optional[int] = None) -> None:
+        """Cleanup zfs snapshots."""
+
+    def check_free_space(self) -> bool:
+        """Check free space on root zfs volume."""
+        return False
+
     def clear(self) -> None:
         """Clear messages."""
         if self.__messages:
