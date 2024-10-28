@@ -217,12 +217,12 @@ class ZfsProcessor(BData):
     def check_volume(self) -> bool:
         """Check if zfs volume exists."""
         # check if variable is correct
-        if not self.__volume:
+        if not self.volume:
             self.__messages.append("invalid volume received as empty string")
             return False
         # check if volume exists
         with subprocess.Popen(
-            ["zfs", "list", "-Hp", self.__volume],
+            ["zfs", "list", "-Hp", self.volume],
             stdout=subprocess.PIPE,
             env={"PATH": "/sbin"},
         ) as proc:
@@ -232,21 +232,14 @@ class ZfsProcessor(BData):
                     if line:
                         tmp = ZfsData(line.decode("utf-8"))
                         if tmp.error:
-                            self.__messages.append(
-                                f"Invalid zfs volume: {self.__volume}"
-                            )
+                            self.__messages.append(f"Invalid zfs volume: {self.volume}")
                             return False
                         # check  if volume is proper
-                        if (
-                            tmp.volume != self.__volume
-                            and tmp.mount_point == self.__volume
-                        ):
+                        if tmp.volume != self.volume and tmp.mount_point == self.volume:
                             self._set_data(key=_Keys.ZP_VOLUME, value=tmp.volume)
-                            self.__messages.append(
-                                f"Volume updated to: {self.__volume}"
-                            )
+                            self.__messages.append(f"Volume updated to: {self.volume}")
                         return True
-        self.__messages.append(f"ZFS volume is missing: {self.__volume}")
+        self.__messages.append(f"ZFS volume is missing: {self.volume}")
         return False
 
     def clear(self) -> None:
@@ -255,7 +248,7 @@ class ZfsProcessor(BData):
             self.__messages.clear()
 
     @property
-    def __volume(self) -> str:
+    def volume(self) -> str:
         """ZFS volume."""
         return self._get_data(key=_Keys.ZP_VOLUME)  # type: ignore
 

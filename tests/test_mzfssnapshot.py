@@ -63,7 +63,7 @@ class TestZfsProcessor(unittest.TestCase):
         sys = os.uname()
         if sys.sysname == "FreeBSD":
 
-            vol1 = "zroot/tmp"
+            vol1 = "/tmp"  # vol: zroot/tmp
             vol2 = "zroot/tmp2"
             try:
                 zp1 = ZfsProcessor(vol1)
@@ -72,6 +72,8 @@ class TestZfsProcessor(unittest.TestCase):
                 self.fail(e)
 
             self.assertTrue(zp1.check_volume())
+            self.assertEqual(zp1.volume, "zroot/tmp")
+
             self.assertFalse(zp2.check_volume())
             self.assertIsNotNone(zp2.messages)
             self.assertTrue(len(zp2.messages), 1)  # type: ignore
