@@ -257,12 +257,12 @@ class ZfsProcessor(BData):
     @property
     def __volume(self) -> str:
         """ZFS volume."""
-        return self._get_data(_Keys.ZP_VOLUME)  # type: ignore
+        return self._get_data(key=_Keys.ZP_VOLUME)  # type: ignore
 
     @property
     def __messages(self) -> List[str]:
         """List of messages."""
-        return self._get_data(varname=_Keys.ZP_MESSAGE)  # type: ignore
+        return self._get_data(key=_Keys.ZP_MESSAGE)  # type: ignore
 
     @property
     def messages(self) -> Optional[List[str]]:
@@ -270,6 +270,7 @@ class ZfsProcessor(BData):
         msg = self.__messages
         if msg:
             return msg
+        # if list is empty return None
         return None
 
 
