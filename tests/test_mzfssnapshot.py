@@ -63,13 +63,16 @@ class TestZfsProcessor(unittest.TestCase):
         sys = os.uname()
         if sys.sysname == "FreeBSD":
 
-            vol = "zroot/tmp"
+            vol1 = "zroot/tmp"
+            vol2 = "zroot/tmp2"
             try:
-                zp = ZfsProcessor(vol)
+                zp1 = ZfsProcessor(vol1)
+                zp2 = ZfsProcessor(vol2)
             except Exception as e:
                 self.fail(e)
 
-            self.assertTrue(zp.check_volume())
+            self.assertTrue(zp1.check_volume())
+            self.assertFalse(zp2.check_volume())
 
 
 # #[EOF]#######################################################################
