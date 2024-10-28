@@ -9,9 +9,10 @@
 
 
 import unittest
+import os
 from typing import List
 
-from modules.run.mzfssnapshot import ZfsData
+from modules.run.mzfssnapshot import ZfsData, ZfsProcessor
 
 
 class TestZfsData(unittest.TestCase):
@@ -52,6 +53,23 @@ class TestZfsData(unittest.TestCase):
         self.assertEqual(zfs_data.available, -1)
         self.assertEqual(zfs_data.mount_point, "-")
         self.assertEqual(zfs_data.volume_root, "zroot")
+
+
+class TestZfsProcessor(unittest.TestCase):
+    """Tests for ZfsProcessor class."""
+
+    def test_01_zfs_processor(self) -> None:
+        """Test nr 01."""
+        sys = os.uname()
+        if sys.sysname == "FreeBSD":
+
+            vol = "zroot/tmp"
+            try:
+                zp = ZfsProcessor(vol)
+            except Exception as e:
+                self.fail(e)
+
+            self.assertTrue(zp.check_volume())
 
 
 # #[EOF]#######################################################################
