@@ -114,5 +114,18 @@ class TestZfsProcessor(unittest.TestCase):
             else:
                 self.fail("get_volume() for 'zroot' returned None")
 
+    def test_03_free_space(self) -> None:
+        """Test nr 03."""
+        sys = os.uname()
+        if sys.sysname == "FreeBSD":
+            vol1 = "/tmp"  # vol: zroot/tmp
+            try:
+                zp1 = ZfsProcessor(vol1)
+            except Exception as e:
+                self.fail(e)
+
+            self.assertTrue(zp1.check_volume())
+            self.assertTrue(zp1.check_free_space())
+
 
 # #[EOF]#######################################################################

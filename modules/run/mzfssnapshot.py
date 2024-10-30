@@ -271,7 +271,23 @@ class ZfsProcessor(BData):
         """Cleanup zfs snapshots."""
 
     def check_free_space(self) -> bool:
-        """Check free space on root zfs volume."""
+        """Check free space on root zfs volume.
+
+        Below 20%: False
+        Above 20%: True
+        """
+        vol = self.get_volume()
+        if not vol:
+            self.__messages.append(f"Missing volume: {self.volume}")
+            return False
+        root_vol = self.get_volume(vol.volume_root)
+        if root_vol:
+            free_space = root_vol.available
+            used_space = root_vol.used
+            if free_space is not None and used_space is not None:
+                free_space_percent = (free_space / (free_space + used_space)) * 100
+                if free_space_percent > 20:
+                    return True
         return False
 
     def clear(self) -> None:
