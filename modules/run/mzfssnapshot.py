@@ -225,47 +225,66 @@ class ZfsProcessor(BData):
             self.__messages.append("invalid volume received as empty string")
             return False
         # check if volume exists
-        with subprocess.Popen(
-            ["zfs", "list", "-Hp", self.volume],
-            stdout=subprocess.PIPE,
-            env={"PATH": "/sbin"},
-        ) as proc:
-            # process output
-            if proc.stdout:
-                for line in proc.stdout:
-                    if line:
-                        tmp = ZfsData(line.decode("utf-8"))
-                        if tmp.error:
-                            self.__messages.append(f"Invalid zfs volume: {self.volume}")
-                            return False
-                        # check  if volume is proper
-                        if tmp.volume != self.volume and tmp.mount_point == self.volume:
-                            self._set_data(key=_Keys.ZP_VOLUME, value=tmp.volume)
-                            self.__messages.append(f"Volume updated to: {self.volume}")
-                        return True
-        self.__messages.append(f"ZFS volume is missing: {self.volume}")
-        return False
+        out = False
+        try:
+            with subprocess.Popen(
+                ["zfs", "list", "-Hp", self.volume],
+                stdout=subprocess.PIPE,
+                env={"PATH": "/sbin"},
+            ) as proc:
+                # process output
+                if proc.stdout:
+                    for line in proc.stdout:
+                        if line:
+                            tmp = ZfsData(line.decode("utf-8"))
+                            if tmp.error:
+                                self.__messages.append(
+                                    f"Invalid zfs volume: {self.volume}"
+                                )
+                                return False
+                            # check  if volume is proper
+                            if (
+                                tmp.volume != self.volume
+                                and tmp.mount_point == self.volume
+                            ):
+                                self._set_data(key=_Keys.ZP_VOLUME, value=tmp.volume)
+                                self.__messages.append(
+                                    f"Volume updated to: {self.volume}"
+                                )
+                            return True
+        except Exception:
+            pass
+        if not out:
+            self.__messages.append(f"ZFS volume is missing: {self.volume}")
+        return out
 
     def get_volume(self, volume: Optional[str] = None) -> Optional[ZfsData]:
         """Get zfs volume information."""
         if not volume:
             volume = self.volume
         # check if volume exists
-        with subprocess.Popen(
-            ["zfs", "list", "-Hp", volume],
-            stdout=subprocess.PIPE,
-            env={"PATH": "/sbin"},
-        ) as proc:
-            # process output
-            if proc.stdout:
-                for line in proc.stdout:
-                    if line:
-                        tmp = ZfsData(line.decode("utf-8"))
-                        if tmp.error:
-                            self.__messages.append(f"Invalid zfs volume: {self.volume}")
-                            return None
-                        return tmp
-        self.__messages.append(f"ZFS volume is missing: {self.volume}")
+        out = None
+        try:
+            with subprocess.Popen(
+                ["zfs", "list", "-Hp", volume],
+                stdout=subprocess.PIPE,
+                env={"PATH": "/sbin"},
+            ) as proc:
+                # process output
+                if proc.stdout:
+                    for line in proc.stdout:
+                        if line:
+                            out = ZfsData(line.decode("utf-8"))
+                            if out.error:
+                                self.__messages.append(
+                                    f"Invalid zfs volume: {self.volume}"
+                                )
+                                return None
+        except Exception:
+            pass
+        if not out:
+            self.__messages.append(f"ZFS volume is missing: {self.volume}")
+        return out
 
     def get_volumes(self, volume: Optional[str] = None) -> List[ZfsData]:
         """Get all zfs volumes."""
@@ -273,20 +292,25 @@ class ZfsProcessor(BData):
         if not volume:
             volume = self.volume
 
-        with subprocess.Popen(
-            ["zfs", "list", "-Hpr", "-tall", volume],
-            stdout=subprocess.PIPE,
-            env={"PATH": "/sbin"},
-        ) as proc:
-            # process output
-            if proc.stdout:
-                for line in proc.stdout:
-                    if line:
-                        tmp = ZfsData(line.decode("utf-8"))
-                        if tmp.error:
-                            self.__messages.append(f"Invalid zfs volume: {self.volume}")
-                        else:
-                            output.append(tmp)
+        try:
+            with subprocess.Popen(
+                ["zfs", "list", "-Hpr", "-tall", volume],
+                stdout=subprocess.PIPE,
+                env={"PATH": "/sbin"},
+            ) as proc:
+                # process output
+                if proc.stdout:
+                    for line in proc.stdout:
+                        if line:
+                            tmp = ZfsData(line.decode("utf-8"))
+                            if tmp.error:
+                                self.__messages.append(
+                                    f"Invalid zfs volume: {self.volume}"
+                                )
+                            else:
+                                output.append(tmp)
+        except Exception:
+            pass
         return output
 
     def create_snapshot(self, snapshot_name: Optional[str] = None) -> bool:
