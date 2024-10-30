@@ -22,7 +22,7 @@ from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
-from jsktoolbox.datetool import Timestamp
+from jsktoolbox.datetool import Timestamp, DateTime
 
 from libs.base.classes import BModule
 from libs.interfaces.modules import IRunModule
@@ -289,8 +289,40 @@ class ZfsProcessor(BData):
                             output.append(tmp)
         return output
 
-    def create_snapshot(self) -> bool:
-        """Create zfs snapshot."""
+    def create_snapshot(self, snapshot_name: Optional[str] = None) -> bool:
+        """Create zfs snapshot.
+
+        Args:
+        snapshot_name (str): Name of the snapshot to create (suffix after '@').
+        """
+        if not snapshot_name:
+            snapshot_name = DateTime.now().strftime("%Y%m%d%H%M%S")
+
+        # check if snapshot  exists
+        out = self.get_volume(f"{self.volume}@{snapshot_name}")
+        if out:
+            self.__messages.append(
+                f"Snapshot already exists: {self.volume}@{snapshot_name}"
+            )
+            return False
+        # create snapshot
+        with subprocess.Popen(
+            ["zfs", "snapshot", f"{self.volume}@{snapshot_name}"],
+            stdout=subprocess.PIPE,
+            env={"PATH": "/sbin"},
+        ) as proc:
+            # process output
+            if proc.stdout:
+                for line in proc.stdout:
+                    if line:
+                        tmp = line.decode("utf-8")
+                        if tmp:
+                            self.__messages.append(tmp)
+                            return True
+                        return False
+                    return False
+                return False
+            return False
         return False
 
     def cleanup_snapshots(self, max_count: Optional[int] = None) -> None:
