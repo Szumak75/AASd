@@ -104,6 +104,15 @@ class TestZfsProcessor(unittest.TestCase):
                 self.assertEqual(data.volume_root, "zroot")
             else:
                 self.fail("get_volume() returned None")
+            try:
+                root_data: Optional[ZfsData] = zp1.get_volume(data.volume_root)
+            except Exception as e:
+                self.fail(e)
+            if root_data:
+                self.assertEqual(root_data.volume, "zroot")
+                self.assertEqual(root_data.volume_root, "zroot")
+            else:
+                self.fail("get_volume() for 'zroot' returned None")
 
 
 # #[EOF]#######################################################################
