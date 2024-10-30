@@ -126,6 +126,7 @@ class TestZfsProcessor(unittest.TestCase):
 
             self.assertTrue(zp1.check_volume())
             self.assertTrue(zp1.check_free_space())
+            self.assertGreater(zp1.get_free_space(), -1)
 
 
 # #[EOF]#######################################################################

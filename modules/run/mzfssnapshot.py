@@ -46,6 +46,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     ZP_VOLUME: str = "__zfs_volume__"
     ZP_ROOT_VOLUME: str = "__zfs_root_volume__"
     ZP_MESSAGE: str = "__messages__"
+    ZP_FREE_SPACE: str = "__free_space__"
 
     ZD_DATA: str = "__zfs_data__"
     ZD_ERROR: str = "__zfs_error__"
@@ -213,6 +214,8 @@ class ZfsProcessor(BData):
         self._set_data(key=_Keys.ZP_VOLUME, value=volume, set_default_type=str)
         # messages container
         self._set_data(key=_Keys.ZP_MESSAGE, value=[], set_default_type=List)
+        # free space in percent (stored by check_free_space method)
+        self._set_data(key=_Keys.ZP_FREE_SPACE, value=-1, set_default_type=int)
 
     def check_volume(self) -> bool:
         """Check if zfs volume exists."""
@@ -286,9 +289,16 @@ class ZfsProcessor(BData):
             used_space = root_vol.used
             if free_space is not None and used_space is not None:
                 free_space_percent = (free_space / (free_space + used_space)) * 100
+                self._set_data(key=_Keys.ZP_FREE_SPACE, value=int(free_space_percent))
                 if free_space_percent > 20:
                     return True
         return False
+
+    def get_free_space(self) -> int:
+        """Get free space on root zfs volume."""
+        if self._get_data(key=_Keys.ZP_FREE_SPACE) == -1:
+            self.check_free_space()
+        return self._get_data(key=_Keys.ZP_FREE_SPACE)  # type: ignore
 
     def clear(self) -> None:
         """Clear messages."""
