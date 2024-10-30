@@ -244,6 +244,24 @@ class ZfsProcessor(BData):
 
     def get_volume(self, volume: Optional[str] = None) -> Optional[ZfsData]:
         """Get zfs volume information."""
+        if not volume:
+            volume = self.volume
+        # check if volume exists
+        with subprocess.Popen(
+            ["zfs", "list", "-Hp", volume],
+            stdout=subprocess.PIPE,
+            env={"PATH": "/sbin"},
+        ) as proc:
+            # process output
+            if proc.stdout:
+                for line in proc.stdout:
+                    if line:
+                        tmp = ZfsData(line.decode("utf-8"))
+                        if tmp.error:
+                            self.__messages.append(f"Invalid zfs volume: {self.volume}")
+                            return None
+                        return tmp
+        self.__messages.append(f"ZFS volume is missing: {self.volume}")
 
     def create_snapshot(self) -> bool:
         """Create zfs snapshot."""

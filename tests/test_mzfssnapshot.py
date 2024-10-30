@@ -10,7 +10,7 @@
 
 import unittest
 import os
-from typing import List
+from typing import List, Optional
 
 from modules.run.mzfssnapshot import ZfsData, ZfsProcessor
 
@@ -81,6 +81,29 @@ class TestZfsProcessor(unittest.TestCase):
             self.assertTrue(len(zp2.messages), 1)  # type: ignore
             zp2.clear()
             self.assertIsNone(zp2.messages)
+
+    def test_02_get_volume(self) -> None:
+        """Test nr 02."""
+        sys = os.uname()
+        if sys.sysname == "FreeBSD":
+            vol1 = "/tmp"  # vol: zroot/tmp
+            try:
+                zp1 = ZfsProcessor(vol1)
+            except Exception as e:
+                self.fail(e)
+
+            self.assertTrue(zp1.check_volume())
+            self.assertEqual(zp1.volume, "zroot/tmp")
+            self.assertIsNotNone(zp1.get_volume())
+            try:
+                data: Optional[ZfsData] = zp1.get_volume()
+            except Exception as e:
+                self.fail(e)
+            if data:
+                self.assertEqual(data.volume, "zroot/tmp")
+                self.assertEqual(data.volume_root, "zroot")
+            else:
+                self.fail("get_volume() returned None")
 
 
 # #[EOF]#######################################################################
