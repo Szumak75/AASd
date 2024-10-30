@@ -128,10 +128,10 @@ class TestZfsProcessor(unittest.TestCase):
             except Exception as e:
                 self.fail(e)
 
-            self.assertIsNotNone(zp1.messages)
-            zp1.clear()
             self.assertIsNone(zp1.messages)
             self.assertTrue(zp1.check_volume())
+            self.assertIsNotNone(zp1.messages)
+            zp1.clear()
             self.assertIsNone(zp1.messages)
             self.assertTrue(zp1.check_free_space())
             self.assertIsNone(zp1.messages)
