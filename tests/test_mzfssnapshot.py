@@ -93,6 +93,8 @@ class TestZfsProcessor(unittest.TestCase):
                 self.fail(e)
 
             self.assertTrue(zp1.check_volume())
+            self.assertIsNotNone(zp1.messages)
+            zp1.clear()
             self.assertEqual(zp1.volume, "zroot/tmp")
             self.assertIsNotNone(zp1.get_volume())
             try:
@@ -107,6 +109,7 @@ class TestZfsProcessor(unittest.TestCase):
                 self.fail("get_volume() returned None")
             try:
                 root_data: Optional[ZfsData] = zp1.get_volume(data.volume_root)
+                self.assertIsNone(zp1.messages)
             except Exception as e:
                 self.fail(e)
             if root_data:
@@ -125,6 +128,8 @@ class TestZfsProcessor(unittest.TestCase):
             except Exception as e:
                 self.fail(e)
 
+            self.assertIsNotNone(zp1.messages)
+            zp1.clear()
             self.assertIsNone(zp1.messages)
             self.assertTrue(zp1.check_volume())
             self.assertIsNone(zp1.messages)
