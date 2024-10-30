@@ -183,7 +183,8 @@ class ZfsData(BData):
     def __parser(self, data: str) -> bool:
         """Parse ZFS data."""
         pa: re.Pattern[str] = re.compile(r"^(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+(\S+)$")
-        pa_snap: re.Pattern[str] = re.compile(r"(\S+)@([\d]{14})")
+        # pa_snap: re.Pattern[str] = re.compile(r"(\S+)@([\d]{14})")
+        pa_snap: re.Pattern[str] = re.compile(r"(\S+)@(\S+)")
         match: Optional[re.Match[str]] = pa.match(data)
         if match:
             vol: Dict[str, str] = {}
@@ -265,6 +266,28 @@ class ZfsProcessor(BData):
                             return None
                         return tmp
         self.__messages.append(f"ZFS volume is missing: {self.volume}")
+
+    def get_volumes(self, volume: Optional[str] = None) -> List[ZfsData]:
+        """Get all zfs volumes."""
+        output: List[ZfsData] = []
+        if not volume:
+            volume = self.volume
+
+        with subprocess.Popen(
+            ["zfs", "list", "-Hpr", "-tall", volume],
+            stdout=subprocess.PIPE,
+            env={"PATH": "/sbin"},
+        ) as proc:
+            # process output
+            if proc.stdout:
+                for line in proc.stdout:
+                    if line:
+                        tmp = ZfsData(line.decode("utf-8"))
+                        if tmp.error:
+                            self.__messages.append(f"Invalid zfs volume: {self.volume}")
+                        else:
+                            output.append(tmp)
+        return output
 
     def create_snapshot(self) -> bool:
         """Create zfs snapshot."""

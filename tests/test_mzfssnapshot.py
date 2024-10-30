@@ -138,5 +138,25 @@ class TestZfsProcessor(unittest.TestCase):
             self.assertGreater(zp1.get_free_space(), -1)
             self.assertIsNone(zp1.messages)
 
+    def test_04_get_volumes(self) -> None:
+        """Test nr 04."""
+        sys = os.uname()
+        if sys.sysname == "FreeBSD":
+            vol1 = "zroot"
+            try:
+                zp1 = ZfsProcessor(vol1)
+            except Exception as e:
+                self.fail(e)
+
+            self.assertIsNone(zp1.messages)
+            self.assertTrue(zp1.check_volume())
+            self.assertIsNone(zp1.messages)
+            try:
+                data = zp1.get_volumes()
+            except Exception as e:
+                self.fail(e)
+            self.assertTrue(data)
+            self.assertTrue(len(data) > 0)
+
 
 # #[EOF]#######################################################################
