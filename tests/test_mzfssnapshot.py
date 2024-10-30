@@ -97,6 +97,7 @@ class TestZfsProcessor(unittest.TestCase):
             self.assertIsNotNone(zp1.get_volume())
             try:
                 data: Optional[ZfsData] = zp1.get_volume()
+                self.assertIsNone(zp1.messages)
             except Exception as e:
                 self.fail(e)
             if data:
@@ -124,9 +125,13 @@ class TestZfsProcessor(unittest.TestCase):
             except Exception as e:
                 self.fail(e)
 
+            self.assertIsNone(zp1.messages)
             self.assertTrue(zp1.check_volume())
+            self.assertIsNone(zp1.messages)
             self.assertTrue(zp1.check_free_space())
+            self.assertIsNone(zp1.messages)
             self.assertGreater(zp1.get_free_space(), -1)
+            self.assertIsNone(zp1.messages)
 
 
 # #[EOF]#######################################################################
