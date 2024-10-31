@@ -256,7 +256,7 @@ class ZfsProcessor(BData):
         # check if volume exists
         out = None
         result: subprocess.CompletedProcess[bytes] = subprocess.run(
-            ["zfs", "list", "-Hp", self.volume],
+            ["zfs", "list", "-Hp", volume],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env={"PATH": "/sbin"},
