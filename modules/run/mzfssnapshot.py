@@ -298,6 +298,17 @@ class ZfsProcessor(BData):
                     self.__messages.append(line.decode("utf-8"))
         return output
 
+    def get_snapshots(self, volume: Optional[str] = None) -> List[ZfsData]:
+        """Get all zfs snapshots."""
+        output: List[ZfsData] = []
+        if not volume:
+            volume = self.volume
+        out: List[ZfsData] = self.get_volumes(volume)
+        for item in out:
+            if item.snapshot_name:
+                output.append(item)
+        return output
+
     def create_snapshot(self, snapshot_name: Optional[str] = None) -> bool:
         """Create zfs snapshot.
 
