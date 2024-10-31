@@ -174,6 +174,7 @@ class TestZfsProcessor(unittest.TestCase):
                 out = zp1.create_snapshot()
             except Exception as e:
                 self.fail(e)
+            self.assertIsNone(zp1.messages)
             self.assertTrue(out)
 
 
