@@ -177,6 +177,7 @@ class TestZfsProcessor(unittest.TestCase):
             self.assertIsNone(zp1.messages)
             self.assertTrue(out)
             self.assertTrue(len(zp1.get_snapshots()) > 0)
+            self.fail(zp1.get_snapshots())
 
 
 # #[EOF]#######################################################################
