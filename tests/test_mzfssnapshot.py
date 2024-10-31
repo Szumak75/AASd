@@ -177,7 +177,24 @@ class TestZfsProcessor(unittest.TestCase):
             self.assertIsNone(zp1.messages)
             self.assertTrue(out)
             self.assertTrue(len(zp1.get_snapshots()) > 0)
-            self.fail(zp1.get_snapshots())
+
+    def test_06_cleanup_snapshots(self) -> None:
+        """Test nr 06."""
+        sys = os.uname()
+        if sys.sysname == "FreeBSD":
+            vol1 = "zroot/tmp"
+            try:
+                zp1 = ZfsProcessor(vol1)
+            except Exception as e:
+                self.fail(e)
+            self.assertIsNone(zp1.messages)
+            self.assertTrue(zp1.check_volume())
+            self.assertIsNone(zp1.messages)
+            try:
+                out = zp1.cleanup_snapshots(max_count=1)
+            except Exception as e:
+                self.fail(e)
+            self.fail(out)
 
 
 # #[EOF]#######################################################################

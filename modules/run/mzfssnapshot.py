@@ -143,7 +143,7 @@ class ZfsData(BData):
     def used(self) -> Optional[int]:
         """Used space."""
         if self.__data:
-            return int(self.__data["used"]) if self.__data["used"] != "-" else -1
+            return int(self.__data["used"]) if self.__data["used"] != "-" else None
         return None
 
     @property
@@ -151,7 +151,9 @@ class ZfsData(BData):
         """Available space."""
         if self.__data:
             return (
-                int(self.__data["available"]) if self.__data["available"] != "-" else -1
+                int(self.__data["available"])
+                if self.__data["available"] != "-"
+                else None
             )
         return None
 
@@ -225,7 +227,7 @@ class ZfsProcessor(BData):
             self.__messages.append("invalid volume received as empty string")
             return False
         # check if volume exists
-        out = False
+        out: bool = False
         result: subprocess.CompletedProcess[bytes] = subprocess.run(
             ["zfs", "list", "-Hp", self.volume],
             stdout=subprocess.PIPE,
@@ -254,7 +256,7 @@ class ZfsProcessor(BData):
         if not volume:
             volume = self.volume
         # check if volume exists
-        out = None
+        out: Optional[ZfsData] = None
         result: subprocess.CompletedProcess[bytes] = subprocess.run(
             ["zfs", "list", "-Hp", volume],
             stdout=subprocess.PIPE,
@@ -340,8 +342,46 @@ class ZfsProcessor(BData):
             self.__messages.append(result.stderr.decode("utf-8"))
         return False
 
-    def cleanup_snapshots(self, max_count: Optional[int] = None) -> None:
+    def cleanup_snapshots(
+        self,
+        volume: Optional[str] = None,
+        max_count: Optional[int] = None,
+        snapshot_name: Optional[str] = None,
+    ) -> bool:
         """Cleanup zfs snapshots."""
+        pa_snap: re.Pattern[str] = re.compile(r"([\d]{14})")
+        if not volume:
+            volume = self.volume
+        if snapshot_name:
+            out: Optional[ZfsData] = self.get_volume(f"{volume}@{snapshot_name}")
+            if out:
+                result: subprocess.CompletedProcess[bytes] = subprocess.run(
+                    ["zfs", "destroy", f"{volume}@{snapshot_name}"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    env={"PATH": "/sbin"},
+                )
+                if result.returncode == 0:
+                    return True
+            return False
+        else:
+            snapshots: List[ZfsData] = []
+            cleanup: List[str] = []
+            if not max_count:
+                max_count = 10
+            tmp = self.get_volumes(volume)
+            if tmp:
+                for item in tmp:
+                    if item.snapshot_name and pa_snap.match(item.snapshot_name):
+                        snapshots.append(item)
+                if snapshots and len(snapshots) > max_count:
+                    count = len(snapshots) - max_count
+                    for i in range(count):
+                        cleanup.append(
+                            f"{snapshots[i].snapshot_root}@{snapshots[i].snapshot_name}"
+                        )
+            return cleanup
+        return False
 
     def check_free_space(self) -> bool:
         """Check free space on root zfs volume.
@@ -349,16 +389,18 @@ class ZfsProcessor(BData):
         Below 20%: False
         Above 20%: True
         """
-        vol = self.get_volume()
+        vol: Optional[ZfsData] = self.get_volume()
         if not vol:
             self.__messages.append(f"Missing volume: {self.volume}")
             return False
-        root_vol = self.get_volume(vol.volume_root)
+        root_vol: Optional[ZfsData] = self.get_volume(vol.volume_root)
         if root_vol:
-            free_space = root_vol.available
-            used_space = root_vol.used
+            free_space: Optional[int] = root_vol.available
+            used_space: Optional[int] = root_vol.used
             if free_space is not None and used_space is not None:
-                free_space_percent = (free_space / (free_space + used_space)) * 100
+                free_space_percent: float = (
+                    free_space / (free_space + used_space)
+                ) * 100
                 self._set_data(key=_Keys.ZP_FREE_SPACE, value=int(free_space_percent))
                 if free_space_percent > 20:
                     return True
