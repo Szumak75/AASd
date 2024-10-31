@@ -380,8 +380,20 @@ class ZfsProcessor(BData):
                         cleanup.append(
                             f"{snapshots[i].snapshot_root}@{snapshots[i].snapshot_name}"
                         )
-            return cleanup
-        return False
+                if cleanup:
+                    clean_out = True
+                    for item in cleanup:
+                        result: subprocess.CompletedProcess[bytes] = subprocess.run(
+                            ["zfs", "destroy", item],
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            env={"PATH": "/sbin"},
+                        )
+                        if result.returncode != 0:
+                            self.__messages.append(result.stderr.decode("utf-8"))
+                            clean_out = False
+                    return clean_out
+            return True
 
     def check_free_space(self) -> bool:
         """Check free space on root zfs volume.

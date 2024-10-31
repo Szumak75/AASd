@@ -50,7 +50,7 @@ class TestZfsData(unittest.TestCase):
             zfs_data.snapshot_root, "zroot/iocage/jails/mydb/root/mysql/mysql"
         )
         self.assertEqual(zfs_data.snapshot_name, "20241024015108")
-        self.assertEqual(zfs_data.available, -1)
+        self.assertIsNone(zfs_data.available)
         self.assertEqual(zfs_data.mount_point, "-")
         self.assertEqual(zfs_data.volume_root, "zroot")
 
@@ -194,7 +194,7 @@ class TestZfsProcessor(unittest.TestCase):
                 out = zp1.cleanup_snapshots(max_count=1)
             except Exception as e:
                 self.fail(e)
-            self.fail(out)
+            self.assertTrue(out)
 
 
 # #[EOF]#######################################################################
