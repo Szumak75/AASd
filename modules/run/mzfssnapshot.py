@@ -314,19 +314,19 @@ class ZfsProcessor(BData):
                 f"Snapshot already exists: {self.volume}@{snapshot_name}"
             )
             return False
+        else:
+            self.clear()
         # create snapshot
-        with subprocess.Popen(
+        result: subprocess.CompletedProcess[bytes] = subprocess.run(
             ["zfs", "snapshot", f"{self.volume}@{snapshot_name}"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env={"PATH": "/sbin"},
-        ) as proc:
-            # process output
-            if proc.stderr:
-                for line in proc.stderr:
-                    self.__messages.append(line.decode("utf-8"))
-            else:
-                return True
+        )
+        if result.returncode == 0:
+            return True
+        else:
+            self.__messages.append(result.stderr.decode("utf-8"))
         return False
 
     def cleanup_snapshots(self, max_count: Optional[int] = None) -> None:
