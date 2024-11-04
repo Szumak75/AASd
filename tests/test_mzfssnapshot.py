@@ -4,7 +4,7 @@
   Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
   Created: 25.10.2024, 16:30:34
   
-  Purpose: 
+  Purpose: Tests for mzfssnapshot module.
 """
 
 
