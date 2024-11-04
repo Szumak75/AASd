@@ -538,6 +538,7 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
 
         # initialization local variables
         channel = Channel(self.module_conf.message_channel)
+        next_run = Timestamp.now()
 
         # initialization variables from config file
         if not self._apply_config():
@@ -550,8 +551,15 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
 
         # starting module loop
         while not self._stopped:
-            # TODO: not implemented
             # TODO: do something, build a message if necessary, put it in the qcom queue
+
+            if Timestamp.now() < next_run:
+                # sleep time
+                self.sleep()
+                continue
+
+            # set next time to run
+            next_run = Timestamp.now() + self._snapshot_interval
 
             # process volume from config list
             for volume in self._volumes:
@@ -604,9 +612,6 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
                 else:
                     self.logs.message_critical = f"free space on volume '{volume}' is less than {self._min_free_space}% and is {zp.get_free_space()}%"
                     # TODO: send  message to qcom queue
-
-            # sleep time
-            self.sleep()
 
         # exiting from loop
         self.logs.message_notice = "exit"
