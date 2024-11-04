@@ -395,7 +395,7 @@ class ZfsProcessor(BData):
                     return clean_out
             return True
 
-    def check_free_space(self) -> bool:
+    def check_free_space(self, percent: int = 20) -> bool:
         """Check free space on root zfs volume.
 
         Below 20%: False
@@ -414,7 +414,7 @@ class ZfsProcessor(BData):
                     free_space / (free_space + used_space)
                 ) * 100
                 self._set_data(key=_Keys.ZP_FREE_SPACE, value=int(free_space_percent))
-                if free_space_percent > 20:
+                if free_space_percent > percent:
                     return True
         return False
 
@@ -564,11 +564,46 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
                 if not zp.check_volume():
                     if zp.messages:
                         for item in zp.messages:
-                            self.logs.message_warning = item
+                            self.logs.message_error = item
                     else:
-                        self.logs.message_warning = f"some error for '{volume}' volume"
+                        self.logs.message_error = f"some error for '{volume}' volume"
                     continue
+
+                # check messages
+                if zp.messages:
+                    for item in zp.messages:
+                        self.logs.message_error = item
+                    zp.clear()
+
                 # check free space
+                if zp.check_free_space(self._min_free_space):
+                    # create snapshot
+                    if not zp.create_snapshot():
+                        self.logs.message_error = (
+                            f"create snapshot for '{volume}' volume failed"
+                        )
+
+                    # check messages
+                    if zp.messages:
+                        for item in zp.messages:
+                            self.logs.message_error = item
+                        zp.clear()
+
+                    # destroy old snapshots
+                    if not zp.cleanup_snapshots(max_count=self._max_snapshot_count):
+                        self.logs.message_error = (
+                            f"cleanup snapshots for '{volume}' volume failed"
+                        )
+
+                    # check messages
+                    if zp.messages:
+                        for item in zp.messages:
+                            self.logs.message_error = item
+                        zp.clear()
+
+                else:
+                    self.logs.message_critical = f"free space on volume '{volume}' is less than {self._min_free_space}% and is {zp.get_free_space()}%"
+                    # TODO: send  message to qcom queue
 
             # sleep time
             self.sleep()
