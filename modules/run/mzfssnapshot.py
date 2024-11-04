@@ -553,6 +553,12 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
             # TODO: not implemented
             # TODO: do something, build a message if necessary, put it in the qcom queue
 
+            # process volume from config list
+            for volume in self._volumes:
+                if not volume:
+                    self.logs.message_warning = f"check '{_Keys.S_VOLUMES}' variable in configuration file, i have got empty string."
+                    continue
+
             # sleep time
             self.sleep()
 
