@@ -64,5 +64,10 @@ class TestIntervals(unittest.TestCase):
         """Test nr 06."""
         self.assertEqual(self.mi.convert("30"), 30)
 
+    def test_07_interval_error(self) -> None:
+        """Test nr 07."""
+        with self.assertRaises(ValueError):
+            self.mi.convert("abc")
+
 
 # #[EOF]#######################################################################

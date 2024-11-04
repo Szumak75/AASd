@@ -69,12 +69,12 @@ class _ModuleConf(BModuleConfig):
         return var
 
     @property
-    def snapshot_interval(self) -> Optional[str]:
+    def snapshot_interval(self) -> Optional[Union[str, int]]:
         """Snapshot interval."""
         var = self._get(varname=_Keys.S_INTERVAL)
-        if var is not None and not isinstance(var, str):
+        if var is not None and not isinstance(var, Union[str, int]):
             raise Raise.error(
-                "Expected string value for snapshot_interval",
+                "Expected string or integer value for snapshot_interval",
                 TypeError,
                 self._c_name,
                 currentframe(),
@@ -534,6 +534,44 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
         if not self._apply_config():
             self.logs.message_error = "configuration error."
             return
+
+        # snapshot intervals
+        snapshot_intervals: int = -1
+        if self.module_conf.snapshot_interval:
+            tmp = self.module_conf.snapshot_interval
+            if isinstance(tmp, Union[str, int]):
+                try:
+                    snapshot_intervals = MIntervals(self._c_name).convert(f"{tmp}")
+                except ValueError as e:
+                    self.logs.message_critical = f"{e}"
+                    self.stop()
+        if snapshot_intervals == -1:
+            self.stop()
+            self.logs.message_error = f"'{_Keys.S_INTERVAL}' value is not valid."
+
+        # max snapshots count
+        max_snapshots_count: int = -1
+        if self.module_conf.max_snapshot_count:
+            tmp = self.module_conf.max_snapshot_count
+            if isinstance(tmp, int):
+                max_snapshots_count = tmp
+        if max_snapshots_count == -1:
+            self.stop()
+            self.logs.message_error = (
+                f"'{_Keys.S_MAX_COUNT}' value must be set to a positive integer."
+            )
+
+        # minimum free space in percent
+        min_free_space: int = -1
+        if self.module_conf.min_free_space:
+            tmp = self.module_conf.min_free_space
+            if isinstance(tmp, int):
+                min_free_space = tmp
+        if min_free_space == -1:
+            self.stop()
+            self.logs.message_error = (
+                f"'{_Keys.S_FREE_SPACE}' value must be set to a positive integer."
+            )
 
         if self.debug:
             self.logs.message_debug = "configuration processing complete"
