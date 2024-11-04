@@ -488,11 +488,36 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
             return False
 
         try:
+            # config checks #
+            #################
             if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
+            # channel
+            if self.module_conf.channel is None:
+                self.logs.message_critical = (
+                    f"'{_ModuleConf.Keys.CHANNEL}' not set, exiting..."
+                )
+                self.stop()
+            # volumes
+            if not self.module_conf.volumes:
+                self.logs.message_critical = f"No '{_Keys.S_VOLUMES}' specified."
+                self.stop()
+            # max_snapshot_count
+            if not self.module_conf.max_snapshot_count:
+                self.logs.message_critical = f"No '{_Keys.S_MAX_COUNT}' specified."
+                self.stop()
+            # snapshot_interval
+            if not self.module_conf.snapshot_interval:
+                self.logs.message_critical = f"No '{_Keys.S_INTERVAL}' specified."
+                self.stop()
+            # min_free_space
+            if not self.module_conf.min_free_space:
+                self.logs.message_critical = f"No '{_Keys.S_FREE_SPACE}' specified."
+                self.stop()
         except Exception as ex:
             self.logs.message_critical = f"{ex}"
             return False
+
         return True
 
     def run(self) -> None:
