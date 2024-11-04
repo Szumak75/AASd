@@ -559,6 +559,17 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
                     self.logs.message_warning = f"check '{_Keys.S_VOLUMES}' variable in configuration file, i have got empty string."
                     continue
 
+                # zfs processor
+                zp = ZfsProcessor(volume)
+                if not zp.check_volume():
+                    if zp.messages:
+                        for item in zp.messages:
+                            self.logs.message_warning = item
+                    else:
+                        self.logs.message_warning = f"some error for '{volume}' volume"
+                    continue
+                # check free space
+
             # sleep time
             self.sleep()
 
