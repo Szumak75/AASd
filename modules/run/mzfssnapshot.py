@@ -590,6 +590,8 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
                         self.logs.message_error = (
                             f"create snapshot for '{volume}' volume failed"
                         )
+                    else:
+                        self.logs.message_info = f"snapshot for '{volume}' created,  free space: {zp.get_free_space()}%"
 
                     # check messages
                     if zp.messages:
