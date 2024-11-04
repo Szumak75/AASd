@@ -502,18 +502,27 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
             if not self.module_conf.volumes:
                 self.logs.message_critical = f"No '{_Keys.S_VOLUMES}' specified."
                 self.stop()
+            else:
+                self._volumes = self.module_conf.volumes
             # max_snapshot_count
             if not self.module_conf.max_snapshot_count:
                 self.logs.message_critical = f"No '{_Keys.S_MAX_COUNT}' specified."
                 self.stop()
+            else:
+                self._max_snapshot_count = self.module_conf.max_snapshot_count
             # snapshot_interval
             if not self.module_conf.snapshot_interval:
                 self.logs.message_critical = f"No '{_Keys.S_INTERVAL}' specified."
                 self.stop()
+            else:
+                self._snapshot_interval = self.module_conf.snapshot_interval
             # min_free_space
             if not self.module_conf.min_free_space:
                 self.logs.message_critical = f"No '{_Keys.S_FREE_SPACE}' specified."
                 self.stop()
+            else:
+                # minimum free space in percent
+                self._min_free_space = self.module_conf.min_free_space
         except Exception as ex:
             self.logs.message_critical = f"{ex}"
             return False
@@ -534,44 +543,6 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
         if not self._apply_config():
             self.logs.message_error = "configuration error."
             return
-
-        # snapshot intervals
-        snapshot_intervals: int = -1
-        if self.module_conf.snapshot_interval:
-            tmp = self.module_conf.snapshot_interval
-            if isinstance(tmp, Union[str, int]):
-                try:
-                    snapshot_intervals = MIntervals(self._c_name).convert(f"{tmp}")
-                except ValueError as e:
-                    self.logs.message_critical = f"{e}"
-                    self.stop()
-        if snapshot_intervals == -1:
-            self.stop()
-            self.logs.message_error = f"'{_Keys.S_INTERVAL}' value is not valid."
-
-        # max snapshots count
-        max_snapshots_count: int = -1
-        if self.module_conf.max_snapshot_count:
-            tmp = self.module_conf.max_snapshot_count
-            if isinstance(tmp, int):
-                max_snapshots_count = tmp
-        if max_snapshots_count == -1:
-            self.stop()
-            self.logs.message_error = (
-                f"'{_Keys.S_MAX_COUNT}' value must be set to a positive integer."
-            )
-
-        # minimum free space in percent
-        min_free_space: int = -1
-        if self.module_conf.min_free_space:
-            tmp = self.module_conf.min_free_space
-            if isinstance(tmp, int):
-                min_free_space = tmp
-        if min_free_space == -1:
-            self.stop()
-            self.logs.message_error = (
-                f"'{_Keys.S_FREE_SPACE}' value must be set to a positive integer."
-            )
 
         if self.debug:
             self.logs.message_debug = "configuration processing complete"
@@ -600,6 +571,42 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
             self.logs.message_debug = "stop signal received"
         if self._stop_event:
             self._stop_event.set()
+
+    @property
+    def _min_free_space(self) -> int:
+        return self._get_data(key=_Keys.S_FREE_SPACE)  # type: ignore
+
+    @_min_free_space.setter
+    def _min_free_space(self, value: int) -> None:
+        self._set_data(key=_Keys.S_FREE_SPACE, value=value, set_default_type=int)
+
+    @property
+    def _snapshot_interval(self) -> int:
+        return self._get_data(key=_Keys.S_INTERVAL)  # type: ignore
+
+    @_snapshot_interval.setter
+    def _snapshot_interval(self, value: Union[int, str]) -> None:
+        self._set_data(
+            key=_Keys.S_INTERVAL,
+            value=MIntervals(self._c_name).convert(f"{value}"),
+            set_default_type=int,
+        )
+
+    @property
+    def _max_snapshot_count(self) -> int:
+        return self._get_data(key=_Keys.S_MAX_COUNT)  # type: ignore
+
+    @_max_snapshot_count.setter
+    def _max_snapshot_count(self, value: int) -> None:
+        self._set_data(key=_Keys.S_MAX_COUNT, value=value, set_default_type=int)
+
+    @property
+    def _volumes(self) -> List[str]:
+        return self._get_data(key=_Keys.S_VOLUMES)  # type: ignore
+
+    @_volumes.setter
+    def _volumes(self, value: List[str]) -> None:
+        self._set_data(key=_Keys.S_VOLUMES, value=value, set_default_type=List)
 
     @property
     def _stopped(self) -> bool:
