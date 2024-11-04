@@ -492,10 +492,10 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
             #################
             if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
-            # channel
-            if self.module_conf.channel is None:
+            # message channel
+            if self.module_conf.message_channel is None:
                 self.logs.message_critical = (
-                    f"'{_ModuleConf.Keys.CHANNEL}' not set, exiting..."
+                    f"'{_ModuleConf.Keys.MESSAGE_CHANNEL}' not set, exiting..."
                 )
                 self.stop()
             # volumes
