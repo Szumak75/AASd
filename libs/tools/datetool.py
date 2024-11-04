@@ -68,8 +68,8 @@ class MIntervals(BData):
         self._set_data(key=_Keys.NAME, value=module_name, set_default_type=str)
         self._set_data(
             key=_Keys.RE,
-            value=re.compile(r"(\d+)\s*([wdhms])", re.IGNORECASE),
-            set_default_type=Pattern[str],
+            value=re.compile(r"(\d+)\s*([wdhms]*)", re.IGNORECASE),
+            set_default_type=Pattern,
         )
 
     def convert(self, value: str) -> int:
