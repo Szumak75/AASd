@@ -40,6 +40,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     MSG_CHANNEL: str = "__channel__"
     MSG_COM_QUEUES: str = "__com_q__"
     MSG_COUNTER: str = "__counter__"
+    MSG_FOOTER: str = "__foot__"
     MSG_MESS: str = "__message__"
     MSG_MULTIPART: str = "__m_message__"
     MSG_REPLY: str = "__reply__"
@@ -370,6 +371,16 @@ class Message(BData):
             key=_Keys.MSG_CHANNEL,
             value=value,
         )
+
+    @property
+    def footer(self) -> Optional[str]:
+        """Return footer."""
+        return self._get_data(key=_Keys.MSG_FOOTER, default_value=None)
+
+    @footer.setter
+    def footer(self, value: str) -> None:
+        """Set message footer."""
+        self._set_data(key=_Keys.MSG_FOOTER, value=value, set_default_type=str)
 
     @property
     def reply_to(self) -> Optional[str]:
