@@ -616,7 +616,15 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
 
                 else:
                     self.logs.message_critical = f"free space on volume '{volume}' is less than {self._min_free_space}% and is {zp.get_free_space()}%"
-                    # TODO: send  message to qcom queue
+                    # send message to qcom queue
+                    if channel.check and self.qcom:
+                        for chan in channel.get:
+                            message = Message()
+                            message.channel = int(chan)
+                            message.subject = f"[{self.application.app_name}] {self._c_name}: free space WARNING."
+                            message.messages = f"Free space on volume '{volume}' is less than {self._min_free_space}% and is {zp.get_free_space()}%"
+                            message.footer = f"{self.application.app_name} {self.application.app_version} on {self.application.app_host_name}"
+                            self.qcom.put(message)
 
         # exiting from loop
         self.logs.message_notice = "exit"
