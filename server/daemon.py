@@ -40,8 +40,9 @@ from jsktoolbox.stringtool.crypto import SimpleCrypto
 from libs.base.classes import BProjectClass, BImporter
 from libs.interfaces.modules import IRunModule, IComModule
 from libs.keys import Keys
-from libs.conf import Config
+from libs.conf import AppConfig
 from libs.com.message import ThDispatcher
+from libs.app import AppName
 
 
 class AASd(BProjectClass, BImporter):
@@ -51,6 +52,9 @@ class AASd(BProjectClass, BImporter):
         """Constructor."""
         # self.c_name - class name property derived from BClasses
         # self.f_name - current method name property derived from BClasses
+
+        # application name
+        self.application = AppName(app_name=self._c_name, app_version="1.0.DEV")
 
         # loop flag init
         self.loop = True
@@ -77,8 +81,8 @@ class AASd(BProjectClass, BImporter):
 
         # add config handler
         if self.conf is None:
-            self.conf = Config(qlog=log_queue, app_name=self._c_name)
-        self.conf.version = "1.0.DEV"
+            self.conf = AppConfig(qlog=log_queue, app_name=self._c_name)
+        self.conf.version = self.application.app_version
         self.conf.debug = False
         # the default config file path can be overwritten with the command line argument '-f'.
         conf_ver: Optional[str] = self.conf.version
@@ -156,10 +160,11 @@ class AASd(BProjectClass, BImporter):
         for com_mod in self.conf.get_com_modules:
             try:
                 obj_mod = com_mod(
-                    self.conf.cf,
-                    self.logs.logs_queue,
-                    self.conf.verbose,
-                    self.conf.debug,
+                    app_name=self.application,
+                    conf=self.conf.cf,
+                    qlog=self.logs.logs_queue,
+                    verbose=self.conf.verbose,
+                    debug=self.conf.debug,
                 )  # type: ignore
                 obj_mod.qcom = dispatch.register_queue(obj_mod.module_conf.channel)
                 obj_mod.start()
@@ -173,11 +178,12 @@ class AASd(BProjectClass, BImporter):
         for run_mod in self.conf.get_run_modules:
             try:
                 obj_mod = run_mod(
-                    self.conf.cf,
-                    self.logs.logs_queue,
-                    qcom,
-                    self.conf.verbose,
-                    self.conf.debug,
+                    app_name=self.application,
+                    conf=self.conf.cf,
+                    qlog=self.logs.logs_queue,
+                    qcom=qcom,
+                    verbose=self.conf.verbose,
+                    debug=self.conf.debug,
                 )  # type: ignore
                 obj_mod.start()
                 run_mods.append(obj_mod)

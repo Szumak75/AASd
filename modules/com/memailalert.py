@@ -32,6 +32,7 @@ from libs.base.classes import BModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart
 from libs.tools.datetool import MDateTime
+from libs.app import AppName
 
 # https://realpython.com/python-send-email/
 # https://docs.python.org/3/library/email.examples.html#email-examples
@@ -140,6 +141,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
 
     def __init__(
         self,
+        app_name: AppName,
         conf: ConfigTool,
         qlog: LoggerQueue,
         verbose: bool = False,
@@ -153,6 +155,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         self.sleep_period = 5.0
 
         # configuration section name
+        self.application = app_name
         self._section = self._c_name
         self._cfh = conf
         self._module_conf = _ModuleConf(self._cfh, self._section)
@@ -543,7 +546,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._module_conf # type: ignore
+        return self._module_conf  # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:

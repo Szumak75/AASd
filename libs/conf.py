@@ -109,7 +109,7 @@ class _ModuleConf(BModuleConfig):
         return self._get(_Keys.MC_SALT)
 
 
-class Config(BLogs, BConfigHandler, BConfigSection, BImporter):
+class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
     """Configuration container class."""
 
     def __init__(self, qlog: LoggerQueue, app_name: str) -> None:

@@ -37,6 +37,7 @@ from libs.base.classes import BModuleConfig
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, AtChannel
 from libs.tools.datetool import MDateTime
+from libs.app import AppName
 
 import libs.db_models.mlms as mlms
 import libs.db_models.lms as lms
@@ -478,6 +479,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
     def __init__(
         self,
+        app_name:AppName,
         conf: ConfigTool,
         qlog: LoggerQueue,
         qcom: Queue,
@@ -492,6 +494,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         self.sleep_period = 45.0
 
         # configuration section name
+        self.application=app_name
         self._section = self._c_name
         self._cfh = conf
         self._module_conf = _ModuleConf(self._cfh, self._section)

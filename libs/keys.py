@@ -15,6 +15,7 @@ class Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
+    APP_NAME: str = "__app_name__"
     CFH: str = "__config_handler__"
     CLOG: str = "__clog__"
     CONF: str = "__configuration_object__"

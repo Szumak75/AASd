@@ -27,6 +27,7 @@ from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Channel
 from libs.tools.icmp import Pinger
 from libs.tools.datetool import MDateTime
+from libs.app import AppName
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -122,6 +123,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
 
     def __init__(
         self,
+        app_name: AppName,
         conf: ConfigTool,
         qlog: LoggerQueue,
         qcom: Queue,
@@ -136,6 +138,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         self.sleep_period = 5.0
 
         # configuration section name
+        self.application = app_name
         self._section = self._c_name
         self._cfh = conf
         self._module_conf = _ModuleConf(self._cfh, self._section)

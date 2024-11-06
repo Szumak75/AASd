@@ -19,6 +19,21 @@ from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
 
 from libs.keys import Keys
+from libs.app import AppName
+
+
+class BAppName(BData):
+    """Base class for application name."""
+
+    @property
+    def application(self) -> AppName:
+        """Application name."""
+        return self._get_data(key=Keys.APP_NAME)  # type: ignore
+
+    @application.setter
+    def application(self, value: AppName) -> None:
+        """Set application name."""
+        self._set_data(key=Keys.APP_NAME, value=value, set_default_type=AppName)
 
 
 class BConfigHandler(BData):
@@ -205,22 +220,22 @@ class BCom(BData):
 class BConfig(BData):
     """Base class for Config property."""
 
-    from libs.conf import Config
+    from libs.conf import AppConfig
 
     @property
-    def conf(self) -> Optional[Config]:
+    def conf(self) -> Optional[AppConfig]:
         """Return Config class object."""
         return self._get_data(key=Keys.CONF, default_value=None)
 
     @conf.setter
-    def conf(self, conf: Config) -> None:
+    def conf(self, conf: AppConfig) -> None:
         """Set Config class object."""
-        from libs.conf import Config
+        from libs.conf import AppConfig
 
-        self._set_data(key=Keys.CONF, value=conf, set_default_type=Config)
+        self._set_data(key=Keys.CONF, value=conf, set_default_type=AppConfig)
 
 
-class BProjectClass(BLogs, BConfig):
+class BProjectClass(BLogs, BConfig, BAppName):
     """Base Project class.
 
     Properties:
@@ -231,7 +246,7 @@ class BProjectClass(BLogs, BConfig):
     """
 
 
-class BModule(BConfigHandler, BConfigSection, BLogs, BCom):
+class BModule(BConfigHandler, BConfigSection, BLogs, BCom, BAppName):
     """Base class for module classes.
 
     Properties:
