@@ -335,6 +335,8 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
                         f"the message format cannot be recognize"
                     )
                     return out
+                if message.footer:
+                    tmp += "\n-- \n" + message.footer + "\n"
                 msg.set_content(tmp, subtype="plain", charset="utf-8")
             if Multipart.HTML in message.mmessages:
                 tmp: str = ""
@@ -354,6 +356,8 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
             if isinstance(message.messages, List):
                 for line in message.messages:
                     tmp += f"{line}\n"
+                if message.footer:
+                    tmp += "\n-- \n" + message.footer + "\n"
             else:
                 self.logs.message_critical = f"the message format cannot be recognize"
                 return out
