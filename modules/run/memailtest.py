@@ -121,7 +121,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
                     message.to = "Szumak <szumak@virthost.pl>"
                     message.to = "Test <test@net-s.pl>"
                     message.to = "JK <jacek.kotlarski@air-net.gda.pl>"
-                    # message.footer=f"{self}"
+                    message.footer = f"{self.application.app_name} {self.application.app_version} on {self.application.app_host_name}"
                     # message.messages = (
                     # "To jest wiadomość testowa z polskimi znakami."
                     # )

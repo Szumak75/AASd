@@ -7,6 +7,8 @@
   Purpose: Application name container class.
 """
 
+import platform
+import socket
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.basetool.data import BData
 
@@ -35,6 +37,17 @@ class AppName(BData):
     def app_version(self) -> str:
         """Get the application version."""
         return self._get_data(key=_Keys.APP_VERSION)  # type: ignore
+
+    @property
+    def app_host_name(self) -> str:
+        """Get the application host name."""
+        app = platform.node()
+        if app:
+            return app
+        app = socket.gethostname()
+        if app:
+            return app
+        return "unknown host"
 
 
 # #[EOF]#######################################################################
