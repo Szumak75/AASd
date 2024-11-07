@@ -621,7 +621,7 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
                         for chan in channel.get:
                             message = Message()
                             message.channel = int(chan)
-                            message.subject = f"[{self.application.app_name}] {self._c_name}: free space WARNING."
+                            message.subject = f"[{self.application.app_name}:{self._c_name}] Free space WARNING."
                             message.messages = f"Free space on volume '{volume}' is less than {self._min_free_space}% and is {zp.get_free_space()}%."
                             message.messages = "Snapshotting has been suspended."
                             message.footer = f"{self.application.app_name} {self.application.app_version} on {self.application.app_host_name}"
