@@ -26,3 +26,6 @@ Variables common to most modules are:
 
     A module compatible with the LMS panel, designed to generate notifications about overdue customer payments and summary reports for the customer service office.
 
+1. [mzfssnapshot](https://github.com/Szumak75/AASd/blob/master/docs/MZfsSnapshot.md)
+
+    A module designed to create and rotate snapshots of the ZFS file system.
