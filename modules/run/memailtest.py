@@ -117,26 +117,18 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
                     message = Message()
                     message.channel = int(chan)
                     message.subject = "This is example email."
-                    message.reply_to = "marauder@virthost.pl"
-                    message.to = "Szumak <szumak@virthost.pl>"
-                    message.to = "Test <test@net-s.pl>"
-                    message.to = "JK <jacek.kotlarski@air-net.gda.pl>"
                     message.footer = f"{self.application.app_name} {self.application.app_version} on {self.application.app_host_name}"
-                    # message.messages = (
-                    # "To jest wiadomość testowa z polskimi znakami."
-                    # )
-                    # message.messages = "Życzymy miłego dnia!"
                     message.mmessages = {
-                        Multipart.PLAIN: ["Wiadomość testowa."],
+                        Multipart.PLAIN: ["Test message."],
                         Multipart.HTML: [
                             "<html>",
                             "<head></head>",
                             "<body>",
-                            "<p>To jest wiadomość testowa,<br>",
-                            "prezentująca możliwości tworzenia i wysyłania<br>",
-                            "wiadomości mailowych typu <i>multipart alternative</i>,<br>",
-                            "z wykorzystaniem znaków kodowanych w 'UTF-8'.</p>",
-                            "<p><b>Prosimy nie odpowiadać na tą wiadomość.</b></p>",
+                            "<p>This is a test message,<br>",
+                            "presenting the possibilities of creating and sending<br>",
+                            "<i>multipart alternative</i> email messages,<br>",
+                            "using characters encoded in 'UTF-8'.</p>",
+                            "<p><b>Please do not reply to this message.</b></p>",
                             "</body>",
                             "</html>",
                         ],
