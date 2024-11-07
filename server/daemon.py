@@ -54,7 +54,7 @@ class AASd(BProjectClass, BImporter):
         # self.f_name - current method name property derived from BClasses
 
         # application name
-        self.application = AppName(app_name=self._c_name, app_version="1.0.DEV")
+        self.application = AppName(app_name=self._c_name, app_version="1.0.2-DEV")
 
         # loop flag init
         self.loop = True
