@@ -64,7 +64,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
         self._module_conf = _ModuleConf(self._cfh, self._section)
 
         # logging level
-        self._debug = debug
+        self._bm_debug = debug
         self._verbose = verbose
 
         # logger client initialization
@@ -148,7 +148,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
             self.sleep()
 
         # exiting from loop
-        if self._debug:
+        if self.debug:
             self.logs.message_debug = "exiting from loop."
 
     def sleep(self) -> None:
@@ -159,7 +159,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
 
     def stop(self) -> None:
         """Set stop event."""
-        if self._debug:
+        if self.debug:
             self.logs.message_debug = "stop signal received"
         if self._stop_event:
             self._stop_event.set()
@@ -167,8 +167,8 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
     @property
     def debug(self) -> bool:
         """Return debug flag."""
-        if self._debug is not None:
-            return self._debug
+        if self._bm_debug is not None:
+            return self._bm_debug
         return False
 
     @property

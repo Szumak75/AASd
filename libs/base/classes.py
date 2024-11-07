@@ -265,7 +265,7 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom, BAppName):
         VERBOSE: str = "verbose"
 
     @property
-    def _debug(self) -> bool:
+    def _bm_debug(self) -> bool:
         """Return debug flag."""
         if self._get_data(key=Keys.DEBUG, default_value=None) is None:
             self._set_data(key=Keys.DEBUG, value=False, set_default_type=bool)
@@ -277,8 +277,8 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom, BAppName):
             return self._cfh.get(self._section, BModule.Keys.DEBUG) or self._get_data(key=Keys.DEBUG)  # type: ignore
         return self._get_data(key=Keys.DEBUG)  # type: ignore
 
-    @_debug.setter
-    def _debug(self, debug: bool) -> None:
+    @_bm_debug.setter
+    def _bm_debug(self, debug: bool) -> None:
         """Set debug flag."""
         self._set_data(key=Keys.DEBUG, value=debug, set_default_type=bool)
 

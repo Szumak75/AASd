@@ -103,7 +103,7 @@ class _Database(BDebug, BLogs):
     ) -> None:
         """Constructor."""
         self.logs = LoggerClient(queue=qlog, name=self._c_name)
-        self._debug = debug
+        self._bm_debug = debug
         self._verbose = verbose
 
         # config variables
@@ -155,7 +155,7 @@ class _Database(BDebug, BLogs):
                     try:
                         with engine.connect() as connection:
                             connection.execute(text("SELECT 1"))
-                        if self._debug:
+                        if self.debug:
                             self.logs.message_notice = f"add connection to server: {ip} with backend: {dialect}"
                         self.__pool.append(engine)
                     except Exception as ex:
@@ -165,7 +165,7 @@ class _Database(BDebug, BLogs):
                     f"mysql+{dialect}",
                     username=self._get_data(key=_Keys.SQL_USER),
                     password=self._get_data(key=_Keys.SQL_PASS),
-                    host=self._get_data(key=_Keys.SQL_SERVER)[0], # type: ignore
+                    host=self._get_data(key=_Keys.SQL_SERVER)[0],  # type: ignore
                     database=self._get_data(key=_Keys.SQL_DATABASE),
                     port=3306,
                     query=immutabledict(
@@ -177,7 +177,7 @@ class _Database(BDebug, BLogs):
                 connection_args: Dict[str, Any] = {}
                 connection_args["connect_timeout"] = 600
                 connection_args["failover"] = []
-                for ip in self._get_data(key=_Keys.SQL_SERVER)[1:]: # type: ignore
+                for ip in self._get_data(key=_Keys.SQL_SERVER)[1:]:  # type: ignore
                     connection_args["failover"].append(
                         {
                             "user": self._get_data(key=_Keys.SQL_USER),
@@ -199,11 +199,11 @@ class _Database(BDebug, BLogs):
                 try:
                     with engine.connect() as connection:
                         connection.execute(text("SELECT 1"))
-                    if self._debug:
-                        self.logs.message_notice = f"add connection to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect}" # type: ignore
+                    if self.debug:
+                        self.logs.message_notice = f"add connection to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect}"  # type: ignore
                     self.__pool.append(engine)
                 except Exception as ex:
-                    self.logs.message_warning = f"connect to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect} error: {ex}" # type: ignore
+                    self.logs.message_warning = f"connect to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect} error: {ex}"  # type: ignore
 
         if self.__pool is not None and len(self.__pool) > 0:
             return True
@@ -233,7 +233,7 @@ class _Database(BDebug, BLogs):
                 f"mysql+{dialect}",
                 username=self._get_data(key=_Keys.SQL_USER),
                 password=self._get_data(key=_Keys.SQL_PASS),
-                host=self._get_data(key=_Keys.SQL_SERVER)[0], # type: ignore
+                host=self._get_data(key=_Keys.SQL_SERVER)[0],  # type: ignore
                 database=self._get_data(key=_Keys.SQL_DATABASE),
                 port=3306,
                 query=immutabledict(
@@ -251,7 +251,7 @@ class _Database(BDebug, BLogs):
                     connection_args["connect_timeout"] = 600
                     # connection_args["raise_on_warnings"] = True
                     connection_args["failover"] = []
-                    for ip in self._get_data(key=_Keys.SQL_SERVER)[1:]: # type: ignore
+                    for ip in self._get_data(key=_Keys.SQL_SERVER)[1:]:  # type: ignore
                         connection_args["failover"].append(
                             {
                                 "user": self._get_data(key=_Keys.SQL_USER),
@@ -276,12 +276,12 @@ class _Database(BDebug, BLogs):
 
                 with engine.connect() as connection:
                     connection.execute(text("SELECT 1"))
-                if self._debug:
-                    self.logs.message_debug = f"add connection to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect}" # type: ignore
+                if self.debug:
+                    self.logs.message_debug = f"add connection to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect}"  # type: ignore
                 self.__pool.append(engine)
                 break
             except Exception as ex:
-                if self._debug:
+                if self.debug:
                     self.logs.message_debug = f"Create engine thrown exception: {ex}"
 
         if len(self.__pool) > 0:
@@ -299,7 +299,7 @@ class _Database(BDebug, BLogs):
                 session = Session(engine)
                 var = session.query(func.max(mlms.MCustomer.id)).first()
                 # self.logs.message_notice = f"check query: {var}"
-                if self._debug:
+                if self.debug:
                     self.logs.message_debug = f"create session for {engine}"
 
             except:
@@ -308,6 +308,13 @@ class _Database(BDebug, BLogs):
                 break
 
         return session
+
+    @property
+    def debug(self) -> bool:
+        """Return debug flag."""
+        if self._bm_debug is not None:
+            return self._bm_debug
+        return False
 
     @property
     def __pool(self) -> List[Engine]:
@@ -479,7 +486,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
     def __init__(
         self,
-        app_name:AppName,
+        app_name: AppName,
         conf: ConfigTool,
         qlog: LoggerQueue,
         qcom: Queue,
@@ -494,13 +501,13 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         self.sleep_period = 45.0
 
         # configuration section name
-        self.application=app_name
+        self.application = app_name
         self._section = self._c_name
         self._cfh = conf
         self._module_conf = _ModuleConf(self._cfh, self._section)
 
         # logging level
-        self._debug = debug
+        self._bm_debug = debug
         self._verbose = verbose
 
         # logger client initialization
@@ -510,17 +517,17 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         self.qcom = qcom
 
         # init internal buffer
-        self._set_data(key=_Keys.DIAG_DEBT,value=[],set_default_type=List)
-        self._set_data(key=_Keys.DIAG_CONT,value=[],set_default_type=List)
+        self._set_data(key=_Keys.DIAG_DEBT, value=[], set_default_type=List)
+        self._set_data(key=_Keys.DIAG_CONT, value=[], set_default_type=List)
         self._set_data(key=_Keys.DIAG_TARIFF, value=[], set_default_type=List)
 
     @property
-    def __diag_cont(self)->List:
-        return self._get_data(key=_Keys.DIAG_CONT) # type: ignore
+    def __diag_cont(self) -> List:
+        return self._get_data(key=_Keys.DIAG_CONT)  # type: ignore
 
     @property
-    def __diag_debt(self)->List:
-        return self._get_data(key=_Keys.DIAG_DEBT) # type: ignore
+    def __diag_debt(self) -> List:
+        return self._get_data(key=_Keys.DIAG_DEBT)  # type: ignore
 
     @property
     def __diag_tariff(self) -> List:
@@ -1240,7 +1247,7 @@ div.centered table { margin: 0 auto; text-align: left; }
 
     def stop(self) -> None:
         """Set stop event."""
-        if self._debug:
+        if self.debug:
             self.logs.message_debug = "stop signal received"
         if self._stop_event:
             self._stop_event.set()
@@ -1248,8 +1255,8 @@ div.centered table { margin: 0 auto; text-align: left; }
     @property
     def debug(self) -> bool:
         """Return debug flag."""
-        if self._debug is not None:
-            return self._debug
+        if self._bm_debug is not None:
+            return self._bm_debug
         return False
 
     @property
@@ -1272,7 +1279,7 @@ div.centered table { margin: 0 auto; text-align: left; }
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
         """Return module conf object."""
-        return self._module_conf # type: ignore
+        return self._module_conf  # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:

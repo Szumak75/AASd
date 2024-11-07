@@ -1,15 +1,20 @@
 {
-    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.typeCheckingMode": "standard",
     "cSpell.words": [
         "aasd",
         "basetool",
+        "Emailtest",
         "gethostname",
+        "Lmspayment",
         "mountpoint",
         "mydb",
         "mzfssnapshot",
+        "paytime",
         "sysname",
         "systemtool",
+        "Tahoma",
         "updateconf",
+        "Verdana",
         "wdhms",
         "Zfssnapshot",
         "zroot"

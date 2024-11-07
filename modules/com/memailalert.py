@@ -162,7 +162,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         self._set_data(key=_Keys.SMTP_PORT, value=None, set_default_type=Optional[int])
 
         # logging level
-        self._debug = debug
+        self._bm_debug = debug
         self._verbose = verbose
 
         # logger client initialization
@@ -212,7 +212,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
         except Exception as ex:
             self.logs.message_critical = f"[{self._f_name}] {ex}"
             return False
-        if self._debug:
+        if self.debug:
             self.logs.message_debug = "configuration processing complete"
         return True
 
@@ -435,7 +435,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
             return
 
         # starting module loop
-        if self._debug:
+        if self.debug:
             self.logs.message_debug = "entering to the main loop"
 
         if self.qcom is None:
@@ -518,7 +518,7 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
 
     def stop(self) -> None:
         """Set stop event."""
-        if self._debug:
+        if self.debug:
             self.logs.message_debug = "stop signal received"
         if self._stop_event:
             self._stop_event.set()
@@ -526,8 +526,8 @@ class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
     @property
     def debug(self) -> bool:
         """Return debug flag."""
-        if self._debug is not None:
-            return self._debug
+        if self._bm_debug is not None:
+            return self._bm_debug
         return False
 
     @property
