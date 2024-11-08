@@ -271,7 +271,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
                 for key in tmp.keys():
                     message = Message()
                     message.channel = int(key)
-                    message.subject = f"[{self.application.app_name}:{self._c_name}] host reachability report."
+                    message.subject = f"[{self.application.app_name}:{self._c_name}] host reachability report from {self.application.app_host_name}."
                     message.footer = f"{self.application.app_name} {self.application.app_version} on {self.application.app_host_name}"
                     for item in tmp[key]:
                         tmp2: Message = item
