@@ -116,7 +116,7 @@ class MEmailtest(Thread, ThBaseObject, BModule, IRunModule):
                         )
                     message = Message()
                     message.channel = int(chan)
-                    message.subject = f"[{self.application.app_name}:{self._c_name}] This is example email."
+                    message.subject = f"[{self.application.app_name}:{self._c_name}] This is example email from {self.application.app_host_name}."
                     message.footer = f"{self.application.app_name} {self.application.app_version} on {self.application.app_host_name}"
                     message.mmessages = {
                         Multipart.PLAIN: ["Test message."],
