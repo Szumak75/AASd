@@ -28,6 +28,8 @@ from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import Timestamp
+from jsktoolbox.stringtool.crypto import SimpleCrypto
+
 
 from libs.base.classes import BModule, BLogs, BDebug
 from libs.interfaces.modules import IRunModule
@@ -420,16 +422,59 @@ class MLmsTariff(Thread, ThBaseObject, BModule, IRunModule):
         """Main loop."""
         self.logs.message_notice = "starting..."
 
-        if self.module_conf is None or self.module_conf.message_channel is None:
+        if (
+            self.module_conf is None
+            or self.module_conf.message_channel is None
+            or self.module_conf.at_channel is None
+            or self._cfh is None
+            or self._cfh.main_section_name is None
+            or self.logs is None
+            or self.logs.logs_queue is None
+        ):
             return None
 
         # initialization local variables
-        channel = Channel(self.module_conf.message_channel)
+        channel: Optional[AtChannel] = None
+        try:
+            channel = AtChannel(self.module_conf.at_channel)
+        except Exception as ex:
+            self.logs.message_critical = "channel configuration error"
+            if self.debug:
+                self.logs.message_debug = f"{ex}"
+            self.stop()
+
+        salt = self._cfh.get(self._cfh.main_section_name, "salt")
+        password: str = ""
+        if salt is not None:
+            password: str = SimpleCrypto.multiple_decrypt(
+                salt, self.module_conf.sql_pass
+            )
+        else:
+            password = self.module_conf.sql_pass
 
         # initialization variables from config file
         if not self._apply_config():
             self.logs.message_error = "configuration error."
             return
+
+        # database connection
+        dbh = _Database(
+            self.logs.logs_queue,
+            {
+                _Keys.SQL_SERVER: self.module_conf.sql_server,
+                _Keys.SQL_DATABASE: self.module_conf.sql_database,
+                _Keys.SQL_USER: self.module_conf.sql_user,
+                _Keys.SQL_PASS: password,
+            },
+            verbose=self._verbose,
+            debug=self.debug,
+        )
+        # set up connections
+        if dbh.create_connections():
+            self.logs.message_notice = "connected to database"
+        else:
+            self.logs.message_critical = "connection to database error, cannot continue"
+            self.stop()
 
         if self.debug:
             self.logs.message_debug = "configuration processing complete"
@@ -437,8 +482,17 @@ class MLmsTariff(Thread, ThBaseObject, BModule, IRunModule):
 
         # starting module loop
         while not self._stopped:
-            # TODO: not implemented
-            # TODO: do something, build a message if necessary, put it in the qcom queue
+            if channel and channel.check:
+                if self.debug:
+                    self.logs.message_debug = "expired channel found"
+                for chan in channel.get:
+                    # message channel
+                    if (
+                        self.module_conf.message_channel
+                        and chan in self.module_conf.message_channel
+                    ):
+                        # TODO: do something, build a message if necessary, put it in the qcom queue
+                        pass
 
             # sleep time
             self.sleep()
