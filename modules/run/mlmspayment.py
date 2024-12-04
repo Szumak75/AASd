@@ -486,8 +486,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
         row = session.query(func.max(mlms.MCustomer.id)).first()
         max_id: int = row[0] if row is not None else 0
-        cfrom: int = 0
-        cto: int = STEEP
+        c_from: int = 0
+        c_to: int = STEEP
         time_start = Timestamp.now()
 
         # excluded group
@@ -499,11 +499,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         )
 
         # customers query
-        while cfrom < max_id:
+        while c_from < max_id:
             if self.debug:
                 self.logs.message_notice = (
-                    f"Check customers from id: {cfrom}"
-                    f" to {cto},"
+                    f"Check customers from id: {c_from}"
+                    f" to {c_to},"
                     f" elapsed time: {MDateTime.elapsed_time_from_seconds(Timestamp.now()-time_start)}"
                 )
             customers: List[mlms.MCustomer] = (
@@ -516,8 +516,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 .filter(
                     mlms.MCustomer.deleted == 0,
                     mlms.MCustomer.mailingnotice == 1,
-                    mlms.MCustomer.id >= cfrom,
-                    mlms.MCustomer.id < cto,
+                    mlms.MCustomer.id >= c_from,
+                    mlms.MCustomer.id < c_to,
                     group.c.customerid == None,
                 )
                 .group_by(mlms.MCustomer.id)
@@ -526,8 +526,8 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
                 .all()
             )
             # increment search range
-            cfrom = cto
-            cto += STEEP
+            c_from = c_to
+            c_to += STEEP
             # analysis
             for customer in customers:
                 if customer.balance >= 0 or customer.debt_timestamp == 0:
@@ -715,7 +715,7 @@ PIN: {customer_pin}
         if self.module_conf is None:
             return None
 
-        nemail: int = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
+        n_email: int = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         email: int = _Keys.CONTACT_EMAIL
         # mobile = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled: int = _Keys.CONTACT_DISABLED
@@ -724,16 +724,16 @@ PIN: {customer_pin}
         count: int = len(self.__diag_debt) + 1
         # uwagi
         has_email = False
-        has_nemail = False
+        has_n_email = False
         for item2 in customer.contacts:
             contact: mlms.MCustomerContact = item2
             if contact.type & email == email and contact.type & disabled == 0:
                 has_email = True
-            if contact.type & nemail == nemail and contact.type & disabled == 0:
-                has_nemail = True
+            if contact.type & n_email == n_email and contact.type & disabled == 0:
+                has_n_email = True
         if not has_email:
             info += "brak email, "
-        elif not has_nemail:
+        elif not has_n_email:
             info += "brak zgody email, "
         if not customer.has_active_node:
             info += "blokada, "
