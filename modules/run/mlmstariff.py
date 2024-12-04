@@ -117,8 +117,8 @@ class _ModuleConf(BModuleConfig):
         return var
 
 
-class MLmsTariff(Thread, ThBaseObject, BModule, IRunModule):
-    """Example module."""
+class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
+    """MLmstariff module class."""
 
     def __init__(
         self,
