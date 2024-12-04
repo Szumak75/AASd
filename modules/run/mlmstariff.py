@@ -38,6 +38,7 @@ from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Channel, AtChannel
 from libs.app import AppName
 
+from libs.db_models.connectors import LmsMysqlDatabase
 import libs.db_models.mlms as mlms
 import libs.db_models.lms as lms
 
@@ -48,245 +49,12 @@ class _Keys(object, metaclass=ReadOnlyClass):
     For internal purpose only.
     """
 
-    # for database class
-    DB_POOL: str = "__connection_pool__"
     # for configuration
     AT_CHANNEL: str = "at_channel"
     SQL_DATABASE: str = "sql_database"
     SQL_PASS: str = "sql_password"
     SQL_SERVER: str = "sql_server"
     SQL_USER: str = "sql_user"
-
-
-class _Database(BDebug, BLogs):
-    """Database class."""
-
-    def __init__(
-        self,
-        qlog: LoggerQueue,
-        config: Dict,
-        verbose: bool = False,
-        debug: bool = False,
-    ) -> None:
-        """Constructor."""
-        self.logs = LoggerClient(queue=qlog, name=self._c_name)
-        self._bm_debug = debug
-        self._verbose = verbose
-
-        # config variables
-        self._set_data(
-            key=_Keys.SQL_SERVER, value=config[_Keys.SQL_SERVER], set_default_type=List
-        )
-        self._set_data(
-            key=_Keys.SQL_DATABASE,
-            value=config[_Keys.SQL_DATABASE],
-            set_default_type=str,
-        )
-        self._set_data(
-            key=_Keys.SQL_USER, value=config[_Keys.SQL_USER], set_default_type=str
-        )
-        self._set_data(
-            key=_Keys.SQL_PASS, value=config[_Keys.SQL_PASS], set_default_type=str
-        )
-
-        # connection pool
-        self._set_data(key=_Keys.DB_POOL, value=[], set_default_type=List[Engine])
-
-    def create_connections(self) -> bool:
-        """Create connection pool, second variant."""
-        for dialect, fail in ("pymysql", False), ("mysqlconnector", True):
-            if not fail:
-                for ip in self._get_data(key=_Keys.SQL_SERVER):  # type: ignore
-                    url: URL = URL.create(
-                        f"mysql+{dialect}",
-                        username=self._get_data(key=_Keys.SQL_USER),
-                        password=self._get_data(key=_Keys.SQL_PASS),
-                        host=ip,
-                        database=self._get_data(key=_Keys.SQL_DATABASE),
-                        port=3306,
-                        query=immutabledict(
-                            {
-                                "charset": "utf8mb4",
-                            }
-                        ),
-                    )
-                    connection_args: Dict[str, Any] = {}
-                    # connection_args["connect_timeout"] = 5
-                    # create engine
-                    engine: Engine = create_engine(
-                        url=url,
-                        connect_args=connection_args,
-                        pool_recycle=3600,
-                        poolclass=QueuePool,
-                    )
-                    try:
-                        with engine.connect() as connection:
-                            connection.execute(text("SELECT 1"))
-                        if self.debug:
-                            self.logs.message_notice = f"add connection to server: {ip} with backend: {dialect}"
-                        self.__pool.append(engine)
-                    except Exception as ex:
-                        self.logs.message_warning = f"connect to server: {ip} with backend: {dialect} error: {ex}"
-            else:
-                url: URL = URL.create(
-                    f"mysql+{dialect}",
-                    username=self._get_data(key=_Keys.SQL_USER),
-                    password=self._get_data(key=_Keys.SQL_PASS),
-                    host=self._get_data(key=_Keys.SQL_SERVER)[0],  # type: ignore
-                    database=self._get_data(key=_Keys.SQL_DATABASE),
-                    port=3306,
-                    query=immutabledict(
-                        {
-                            "charset": "utf8mb4",
-                        }
-                    ),
-                )
-                connection_args: Dict[str, Any] = {}
-                connection_args["connect_timeout"] = 600
-                connection_args["failover"] = []
-                for ip in self._get_data(key=_Keys.SQL_SERVER)[1:]:  # type: ignore
-                    connection_args["failover"].append(
-                        {
-                            "user": self._get_data(key=_Keys.SQL_USER),
-                            "password": self._get_data(key=_Keys.SQL_PASS),
-                            "host": ip,
-                            "port": 3306,
-                            "database": self._get_data(key=_Keys.SQL_DATABASE),
-                            "pool_size": 5,
-                            "pool_name": ip,
-                        }
-                    )
-                # create engine
-                engine: Engine = create_engine(
-                    url=url,
-                    connect_args=connection_args,
-                    pool_recycle=3600,
-                    poolclass=QueuePool,
-                )
-                try:
-                    with engine.connect() as connection:
-                        connection.execute(text("SELECT 1"))
-                    if self.debug:
-                        self.logs.message_notice = f"add connection to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect}"  # type: ignore
-                    self.__pool.append(engine)
-                except Exception as ex:
-                    self.logs.message_warning = f"connect to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect} error: {ex}"  # type: ignore
-
-        if self.__pool is not None and len(self.__pool) > 0:
-            return True
-        return False
-
-    def create_connections_failover(self) -> bool:
-        """Create connections pool.
-
-        WARNING: incredible slow
-        """
-        config = {
-            "db.url": None,
-            "db.echo": False,
-            "db.poolclass": QueuePool,
-            "db.pool_pre_ping": True,
-            "db.pool_size": 5,
-            "db.max_overflow": 10,
-            "db.pool_recycle": 120,
-            "db.echo_pool": True,
-            "db.query_cache_size": 500,
-            "db.pool_timeout": 5,
-            "db.pool_use_lifo": True,
-        }
-
-        for dialect, fail in ("mysqlconnector", True), ("pymysql", False):
-            url = URL(
-                f"mysql+{dialect}",
-                username=self._get_data(key=_Keys.SQL_USER),
-                password=self._get_data(key=_Keys.SQL_PASS),
-                host=self._get_data(key=_Keys.SQL_SERVER)[0],  # type: ignore
-                database=self._get_data(key=_Keys.SQL_DATABASE),
-                port=3306,
-                query=immutabledict(
-                    {
-                        "charset": "utf8mb4",
-                    }
-                ),
-            )
-            try:
-                config["db.url"] = url
-                engine: Engine
-
-                if fail:
-                    connection_args = {}
-                    connection_args["connect_timeout"] = 600
-                    # connection_args["raise_on_warnings"] = True
-                    connection_args["failover"] = []
-                    for ip in self._get_data(key=_Keys.SQL_SERVER)[1:]:  # type: ignore
-                        connection_args["failover"].append(
-                            {
-                                "user": self._get_data(key=_Keys.SQL_USER),
-                                "password": self._get_data(key=_Keys.SQL_PASS),
-                                "host": ip,
-                                "port": 3306,
-                                "database": self._get_data(key=_Keys.SQL_DATABASE),
-                                "pool_size": 5,
-                                "pool_name": ip,
-                            }
-                        )
-
-                    engine = engine_from_config(
-                        config, prefix="db.", connect_args=connection_args
-                    )
-                else:
-                    connection_args = {}
-                    connection_args["connect_timeout"] = 600
-                    engine = engine_from_config(
-                        config, prefix="db.", connect_args=connection_args
-                    )
-
-                with engine.connect() as connection:
-                    connection.execute(text("SELECT 1"))
-                if self.debug:
-                    self.logs.message_debug = f"add connection to server: {self._get_data(key=_Keys.SQL_SERVER)[0]} with backend: {dialect}"  # type: ignore
-                self.__pool.append(engine)
-                break
-            except Exception as ex:
-                if self.debug:
-                    self.logs.message_debug = f"Create engine thrown exception: {ex}"
-
-        if len(self.__pool) > 0:
-            return True
-
-        return False
-
-    @property
-    def session(self) -> Optional[Session]:
-        """Returns db session."""
-        session = None
-        for item in self.__pool:
-            engine: Engine = item
-            try:
-                session = Session(engine)
-                var = session.query(func.max(mlms.MCustomer.id)).first()
-                # self.logs.message_notice = f"check query: {var}"
-                if self.debug:
-                    self.logs.message_debug = f"create session for {engine}"
-
-            except:
-                session = None
-            else:
-                break
-
-        return session
-
-    @property
-    def debug(self) -> bool:
-        """Return debug flag."""
-        if self._bm_debug is not None:
-            return self._bm_debug
-        return False
-
-    @property
-    def __pool(self) -> List[Engine]:
-        """Returns db pool."""
-        return self._get_data(key=_Keys.DB_POOL)  # type: ignore
 
 
 class _ModuleConf(BModuleConfig):
@@ -458,7 +226,7 @@ class MLmsTariff(Thread, ThBaseObject, BModule, IRunModule):
             return
 
         # database connection
-        dbh = _Database(
+        dbh = LmsMysqlDatabase(
             self.logs.logs_queue,
             {
                 _Keys.SQL_SERVER: self.module_conf.sql_server,
