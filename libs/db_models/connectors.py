@@ -21,7 +21,7 @@ from sqlalchemy.util import immutabledict
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.attribtool import ReadOnlyClass
 
-from libs.base.classes import BLogs, BDebug
+from libs.base.classes import BLogs, BDebug, BVerbose
 
 import libs.db_models.mlms as mlms
 
@@ -40,7 +40,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SQL_USER: str = "sql_user"
 
 
-class LmsMysqlDatabase(BDebug, BLogs):
+class LmsMysqlDatabase(BDebug, BVerbose, BLogs):
     """Database class."""
 
     def __init__(
@@ -52,23 +52,37 @@ class LmsMysqlDatabase(BDebug, BLogs):
     ) -> None:
         """Constructor."""
         self.logs = LoggerClient(queue=qlog, name=self._c_name)
-        self._bm_debug = debug
+        self._debug = debug
         self._verbose = verbose
+
+        # check config
+        if (
+            not config
+            or not isinstance(config, dict)
+            or not config.get(_Keys.SQL_DATABASE)
+            or not config.get(_Keys.SQL_PASS)
+            or not config.get(_Keys.SQL_SERVER)
+            or not config.get(_Keys.SQL_USER)
+        ):
+            self.logs.message_critical = "invalid config for database connector"
+            return None
 
         # config variables
         self._set_data(
-            key=_Keys.SQL_SERVER, value=config[_Keys.SQL_SERVER], set_default_type=List
+            key=_Keys.SQL_SERVER,
+            value=config.get(_Keys.SQL_SERVER),
+            set_default_type=List,
         )
         self._set_data(
             key=_Keys.SQL_DATABASE,
-            value=config[_Keys.SQL_DATABASE],
+            value=config.get(_Keys.SQL_DATABASE),
             set_default_type=str,
         )
         self._set_data(
-            key=_Keys.SQL_USER, value=config[_Keys.SQL_USER], set_default_type=str
+            key=_Keys.SQL_USER, value=config.get(_Keys.SQL_USER), set_default_type=str
         )
         self._set_data(
-            key=_Keys.SQL_PASS, value=config[_Keys.SQL_PASS], set_default_type=str
+            key=_Keys.SQL_PASS, value=config.get(_Keys.SQL_PASS), set_default_type=str
         )
 
         # connection pool
@@ -261,8 +275,8 @@ class LmsMysqlDatabase(BDebug, BLogs):
     @property
     def debug(self) -> bool:
         """Return debug flag."""
-        if self._bm_debug is not None:
-            return self._bm_debug
+        if self._debug is not None:
+            return self._debug
         return False
 
     @property
