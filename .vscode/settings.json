@@ -7,6 +7,7 @@
         "gethostname",
         "Lmspayment",
         "Lmstariff",
+        "mlmstariff",
         "mountpoint",
         "mydb",
         "mzfssnapshot",
