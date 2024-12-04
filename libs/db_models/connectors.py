@@ -5,6 +5,8 @@
   Created: 4.12.2024, 14:00:55
   
   Purpose: Database connectors for the project.
+
+  WWW: https://lms.org.pl/
 """
 
 from typing import Dict, List, Optional, Any
