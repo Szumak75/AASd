@@ -54,7 +54,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SQL_PASS: str = "sql_password"
     SQL_SERVER: str = "sql_server"
     SQL_USER: str = "sql_user"
-    USER_URL: str = "user_url"
 
 
 class _Database(BDebug, BLogs):
@@ -500,47 +499,87 @@ class MLmsTariff(Thread, ThBaseObject, BModule, IRunModule):
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()
-        out.append(TemplateConfigItem(desc="Example configuration for module."))
+        out.append(TemplateConfigItem(desc="LMS tariff and node checker module."))
+        out.append(TemplateConfigItem(desc="Variables:"))
         out.append(
             TemplateConfigItem(
-                desc=f"'{_ModuleConf.Keys.SLEEP_PERIOD}' [float], which determines the length of the break"
+                desc=f"'{_Keys.AT_CHANNEL}' [List[str]], comma separated communication channels list ['nr1:at', 'nr2:at']"
             )
         )
         out.append(
             TemplateConfigItem(
-                desc="between subsequent executions of the program's main loop"
+                desc=" where 'at' means the date/time generating notifications for given channel"
+            )
+        )
+        out.append(
+            TemplateConfigItem(desc=" 'at' format: semicolon-separated numeric list")
+        )
+        out.append(
+            TemplateConfigItem(desc=" format: 'minute;hour;day-month;month;day-week'")
+        )
+        out.append(
+            TemplateConfigItem(
+                desc=" It is allowed to use '*' character, the '-' range separator and lists separated"
+            )
+        )
+        out.append(TemplateConfigItem(desc=" by '|' character as field values."))
+        out.append(TemplateConfigItem(desc=" All fields must be defined."))
+        out.append(
+            TemplateConfigItem(
+                desc=f"'{_ModuleConf.Keys.MESSAGE_CHANNEL}' [List[str]] - message channels for notifications sent to customers."
             )
         )
         out.append(
             TemplateConfigItem(
-                desc=f"'{_ModuleConf.Keys.MESSAGE_CHANNEL}' [List[str]], comma separated communication channels list,"
-            )
-        )
-        out.append(
-            TemplateConfigItem(desc="['nr(:default delay=0)'|'nr1:delay', 'nr2:delay']")
-        )
-        out.append(
-            TemplateConfigItem(desc="where 'delay' means the time between generating")
-        )
-        out.append(
-            TemplateConfigItem(
-                desc="subsequent notifications for a given channel and can be given in"
+                desc=f"'{_Keys.SQL_SERVER}' [List[str]] - list of SQL servers IP addresses"
             )
         )
         out.append(
             TemplateConfigItem(
-                desc="seconds or a numerical value with the suffix 's|m|h|d|w'"
+                desc=f"'{_Keys.SQL_DATABASE}' [str] - name of lms database."
             )
         )
         out.append(
             TemplateConfigItem(
-                varname=_ModuleConf.Keys.SLEEP_PERIOD, value=3.25, desc="[second]"
+                desc=f"'{_Keys.SQL_USER}' [str] - username for database connection."
             )
         )
         out.append(
             TemplateConfigItem(
-                varname=_ModuleConf.Keys.MESSAGE_CHANNEL,
-                value=["1"],
+                desc=f"'{_Keys.SQL_PASS}' [str] - password for database connection."
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.AT_CHANNEL,
+                value=["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"],
+            )
+        )
+        out.append(
+            TemplateConfigItem(varname=_ModuleConf.Keys.MESSAGE_CHANNEL, value=[1])
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.SQL_SERVER,
+                value=[],
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.SQL_DATABASE,
+                value=None,
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.SQL_USER,
+                value=None,
+            )
+        )
+        out.append(
+            TemplateConfigItem(
+                varname=_Keys.SQL_PASS,
+                value=None,
             )
         )
         return out
