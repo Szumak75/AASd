@@ -391,6 +391,7 @@ class MLmsTariff(Thread, ThBaseObject, BModule, IRunModule):
         try:
             if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
+            # check module configuration
             if not self.module_conf.at_channel:
                 self.logs.message_critical = f"'{_Keys.AT_CHANNEL}' not configured"
                 self.stop()

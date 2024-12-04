@@ -546,6 +546,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         try:
             if self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
+            # check module configuration
             if not self.module_conf.lms_url:
                 self.logs.message_critical = f"'{_Keys.LMS_URL}' not set"
                 self.stop()
