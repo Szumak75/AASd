@@ -103,15 +103,6 @@ class MCustomer(Customer):
             assignment: MAssignment = item
             if assignment.tariff:
                 out.append(assignment.tariff)
-        # for item in self.nodes:
-        # node: MNode = item
-        # if node.nodeassignment:
-        # for item2 in node.nodeassignment:
-        # nas: MNodeAssignment = item2
-        # if nas.assignment:
-        # asign: MAssignment = nas.assignment
-        # if asign.tariff:
-        # out.append(asign.tariff)
         return out
 
 
