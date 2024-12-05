@@ -86,7 +86,7 @@ class LmsMysqlDatabase(BDebug, BVerbose, BLogs):
         )
 
         # connection pool
-        self._set_data(key=_Keys.DB_POOL, value=[], set_default_type=List[Engine])
+        self._set_data(key=_Keys.DB_POOL, value=[], set_default_type=List)
 
     def create_connections(self) -> bool:
         """Create connection pool, second variant."""

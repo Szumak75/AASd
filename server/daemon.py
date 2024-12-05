@@ -44,6 +44,8 @@ from libs.conf import AppConfig
 from libs.com.message import ThDispatcher
 from libs.app import AppName
 
+import server
+
 
 class AASd(BProjectClass, BImporter):
     """AASd - Autonomous Administrative System daemon."""
@@ -54,7 +56,9 @@ class AASd(BProjectClass, BImporter):
         # self.f_name - current method name property derived from BClasses
 
         # application name
-        self.application = AppName(app_name=self._c_name, app_version="1.0.2-DEV")
+        self.application = AppName(
+            app_name=self._c_name, app_version=server.__version__
+        )
 
         # loop flag init
         self.loop = True

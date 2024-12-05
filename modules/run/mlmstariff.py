@@ -32,6 +32,8 @@ from jsktoolbox.stringtool.crypto import SimpleCrypto
 
 
 from libs.base.classes import BModule, BLogs, BDebug
+from libs.db_models.mlms.assignments import MAssignment
+from libs.db_models.mlms.nodeassignments import MNodeAssignment
 from libs.interfaces.modules import IRunModule
 from libs.base.classes import BModuleConfig
 from libs.templates.modules import TemplateConfigItem
@@ -243,6 +245,9 @@ class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
         else:
             self.logs.message_critical = "connection to database error, cannot continue"
             self.stop()
+        if dbh.session is None:
+            self.logs.message_critical = "session creation error"
+            self.stop()
 
         if self.debug:
             self.logs.message_debug = "configuration processing complete"
@@ -250,7 +255,8 @@ class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
 
         # starting module loop
         while not self._stopped:
-            if channel and channel.check:
+            if channel and channel.check and dbh.session:
+                now = Timestamp.now()
                 if self.debug:
                     self.logs.message_debug = "expired channel found"
                 for chan in channel.get:
@@ -259,6 +265,32 @@ class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
                         self.module_conf.message_channel
                         and chan in self.module_conf.message_channel
                     ):
+                        rows = (
+                            dbh.session.query(lms.Node, lms.Mac)
+                            .join(lms.Mac, lms.Node.id == lms.Mac.nodeid)
+                            .join(
+                                mlms.MNodeAssignment,
+                                lms.Node.id == mlms.MNodeAssignment.nodeid,
+                            )
+                            .join(
+                                mlms.MAssignment,
+                                mlms.MNodeAssignment.assignmentid
+                                == mlms.MAssignment.id,
+                            )
+                            .filter(
+                                and_(
+                                    or_(
+                                        and_(
+                                            mlms.MAssignment.period == 0,
+                                            mlms.MAssignment.at >= now,
+                                        )
+                                    )
+                                )
+                            )
+                            .all()
+                        )
+                        for item in rows:
+                            self.logs.message_info = f"{item}"
                         # TODO: do something, build a message if necessary, put it in the qcom queue
                         pass
 
