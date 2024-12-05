@@ -17,7 +17,7 @@ from libs.db_models.lms.tariffs import Tariff
 class MTariff(Tariff):
     """LMS tariffs table."""
 
-    assignments: Mapped[List["MAssignment"]] = relationship(back_populates="tariff")
+    assignments: Mapped[List["MAssignment"]] = relationship(back_populates="tariff") # type: ignore
 
 
 # #[EOF]#######################################################################
