@@ -322,7 +322,7 @@ class ZfsProcessor(BData):
             snapshot_name = DateTime.now().strftime("%Y%m%d%H%M%S")
 
         # check if snapshot  exists
-        out = self.get_volume(f"{self.volume}@{snapshot_name}")
+        out: Optional[ZfsData] = self.get_volume(f"{self.volume}@{snapshot_name}")
         if out:
             self.__messages.append(
                 f"Snapshot already exists: {self.volume}@{snapshot_name}"
@@ -370,7 +370,7 @@ class ZfsProcessor(BData):
             cleanup: List[str] = []
             if not max_count:
                 max_count = 10
-            tmp = self.get_volumes(volume)
+            tmp: List[ZfsData] = self.get_volumes(volume)
             if tmp:
                 for item in tmp:
                     if item.snapshot_name and pa_snap.match(item.snapshot_name):
