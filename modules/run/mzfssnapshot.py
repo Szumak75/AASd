@@ -112,6 +112,16 @@ class _ModuleConf(BModuleConfig):
 class ZfsData(BData):
     """ZFS data."""
 
+    class Keys(object, metaclass=ReadOnlyClass):
+        """ZFS data keys."""
+
+        AVAILABLE: str = "available"
+        MOUNT_POINT: str = "mount_point"
+        SNAPSHOT_NAME: str = "snapshot_name"
+        SNAPSHOT_ROOT: str = "snapshot_root"
+        USED: str = "used"
+        VOLUME: str = "volume"
+
     def __init__(self, data: str) -> None:
         """Initialize ZFS data."""
         self._set_data(key=_Keys.ZD_DATA, value={}, set_default_type=Dict)
@@ -137,14 +147,18 @@ class ZfsData(BData):
     def volume(self) -> Optional[str]:
         """ZFS volume."""
         if self.__data:
-            return self.__data["volume"]
+            return self.__data[ZfsData.Keys.VOLUME]
         return None
 
     @property
     def used(self) -> Optional[int]:
         """Used space."""
         if self.__data:
-            return int(self.__data["used"]) if self.__data["used"] != "-" else None
+            return (
+                int(self.__data[ZfsData.Keys.USED])
+                if self.__data[ZfsData.Keys.USED] != "-"
+                else None
+            )
         return None
 
     @property
@@ -152,8 +166,8 @@ class ZfsData(BData):
         """Available space."""
         if self.__data:
             return (
-                int(self.__data["available"])
-                if self.__data["available"] != "-"
+                int(self.__data[ZfsData.Keys.AVAILABLE])
+                if self.__data[ZfsData.Keys.AVAILABLE] != "-"
                 else None
             )
         return None
@@ -162,7 +176,7 @@ class ZfsData(BData):
     def mount_point(self) -> Optional[str]:
         """ZFS  mountpoint."""
         if self.__data:
-            return self.__data["mount_point"]
+            return self.__data[ZfsData.Keys.MOUNT_POINT]
         return None
 
     @property
@@ -170,7 +184,9 @@ class ZfsData(BData):
         """ZFS snapshot root."""
         if self.__data:
             return (
-                self.__data["snapshot_root"] if "snapshot_root" in self.__data else None
+                self.__data[ZfsData.Keys.SNAPSHOT_ROOT]
+                if ZfsData.Keys.SNAPSHOT_ROOT in self.__data
+                else None
             )
         return None
 
@@ -179,7 +195,9 @@ class ZfsData(BData):
         """ZFS snapshot name."""
         if self.__data:
             return (
-                self.__data["snapshot_name"] if "snapshot_name" in self.__data else None
+                self.__data[ZfsData.Keys.SNAPSHOT_NAME]
+                if ZfsData.Keys.SNAPSHOT_NAME in self.__data
+                else None
             )
         return None
 
@@ -191,14 +209,16 @@ class ZfsData(BData):
         match: Optional[re.Match[str]] = pa.match(data)
         if match:
             vol: Dict[str, str] = {}
-            vol["volume"] = match.group(1)
-            vol["used"] = match.group(2)
-            vol["available"] = match.group(3)
-            vol["mount_point"] = match.group(4)
-            match_snap: Optional[re.Match[str]] = pa_snap.match(vol["volume"])
+            vol[ZfsData.Keys.VOLUME] = match.group(1)
+            vol[ZfsData.Keys.USED] = match.group(2)
+            vol[ZfsData.Keys.AVAILABLE] = match.group(3)
+            vol[ZfsData.Keys.MOUNT_POINT] = match.group(4)
+            match_snap: Optional[re.Match[str]] = pa_snap.match(
+                vol[ZfsData.Keys.VOLUME]
+            )
             if match_snap:
-                vol["snapshot_root"] = match_snap.group(1)
-                vol["snapshot_name"] = match_snap.group(2)
+                vol[ZfsData.Keys.SNAPSHOT_ROOT] = match_snap.group(1)
+                vol[ZfsData.Keys.SNAPSHOT_NAME] = match_snap.group(2)
             self.__data.update(vol)
             return True
         return False
