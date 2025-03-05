@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 01.12.2023
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 01.12.2023
 
-  Purpose:
+Purpose:
 """
 
 import unittest
@@ -20,9 +20,7 @@ class TestAtChannel(unittest.TestCase):
         try:
             AtChannel(["1:0;0;7|10|12|13;*;*", "1:0;8|12|16|21;14;*;*"])
         except Exception as ex:
-            self.fail(
-                f"Creating an AtChannel object resulted in en exception: {ex}"
-            )
+            self.fail(f"Creating an AtChannel object resulted in en exception: {ex}")
 
     def test_02_channels_list(self) -> None:
         """Test nr 02."""

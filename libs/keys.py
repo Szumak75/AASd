@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 06.11.2023
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 06.11.2023
 
-  Purpose: Public keys container class definition.
+Purpose: Public keys container class definition.
 """
 
 from jsktoolbox.attribtool import ReadOnlyClass

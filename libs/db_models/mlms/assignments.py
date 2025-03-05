@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 01.12.2023
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 01.12.2023
 
-  Purpose: Redefine lms Assignment class.
+Purpose: Redefine lms Assignment class.
 """
 
 from typing import Optional

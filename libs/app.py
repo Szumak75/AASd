@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-  app.py
-  Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 6.11.2024, 15:34:07
-  
-  Purpose: Application name container class.
+app.py
+Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 6.11.2024, 15:34:07
+
+Purpose: Application name container class.
 """
 
 import platform

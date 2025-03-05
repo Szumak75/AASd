@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-  create_engine_failover.py.py
-  Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 10.01.2024, 14:56:46
-  
-  Purpose: 
+create_engine_failover.py.py
+Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 10.01.2024, 14:56:46
+
+Purpose:
 """
 
 

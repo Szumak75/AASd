@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 13.11.2023
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 13.11.2023
 
-  Purpose: ICMP testing tools.
+Purpose: ICMP testing tools.
 """
 
 import os
@@ -124,40 +124,38 @@ class Tracert(BData):
     def __init__(self) -> None:
         """Constructor."""
         self._set_data(key=_Keys.COMMANDS, value=[], set_default_type=List)
-        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
+        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-I -q2 -S -e -w1 -n -m 10",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
+        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-P UDP -q2 -S -e -w1 -n -m 10",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
+        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-I -q2 -e -w1 -n -m 10",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
+        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-U -q2 -e -w1 -n -m 10",
             }
         )
         self._set_data(
-            key=_Keys.COMMAND,
-            value=self.__is_tool,
-            set_default_type=Optional[Dict]
+            key=_Keys.COMMAND, value=self.__is_tool, set_default_type=Optional[Dict]
         )
 
     @property
     def __is_tool(self) -> Optional[Dict]:
         """Check system commend."""
-        for cmd in self._get_data(key=_Keys.COMMANDS): # type: ignore
+        for cmd in self._get_data(key=_Keys.COMMANDS):  # type: ignore
             if find_executable(cmd[_Keys.CMD]) is not None:
                 if (
                     os.system(
@@ -174,7 +172,7 @@ class Tracert(BData):
 
     def execute(self, ip: str) -> List[str]:
         """Traceroute to given IPv4 address."""
-        command:Optional[Dict]=self._get_data(key=_Keys.COMMAND)
+        command: Optional[Dict] = self._get_data(key=_Keys.COMMAND)
         if command is None:
             raise Raise.error(
                 "Command for testing ICMP echo not found.",

@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 14.11.2023
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 14.11.2023
 
-  Purpose: communication subsystem classes.
+Purpose: communication subsystem classes.
 """
 
 from datetime import datetime

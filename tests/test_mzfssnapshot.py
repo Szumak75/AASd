@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-  test_mzfssnapshot.py
-  Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 25.10.2024, 16:30:34
-  
-  Purpose: Tests for mzfssnapshot module.
+test_mzfssnapshot.py
+Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 25.10.2024, 16:30:34
+
+Purpose: Tests for mzfssnapshot module.
 """
 
 

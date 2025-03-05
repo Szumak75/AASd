@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 08.11.2023
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 08.11.2023
 
-  Purpose: Template class for configuration elements.
+Purpose: Template class for configuration elements.
 """
 
 from typing import Union, List, Optional

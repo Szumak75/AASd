@@ -1,9 +1,9 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 07.11.2023
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 07.11.2023
 
-  Purpose: Interface classes for modules.
+Purpose: Interface classes for modules.
 """
 
 from abc import ABC, abstractmethod

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 05.12.2023
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 05.12.2023
 
-  Purpose:
+Purpose:
 """
 
 import time, sys, gc
@@ -63,13 +63,13 @@ def heap_results():
 
 def get_session(db_list: List) -> Session:
     """."""
-    session:Session = None # type: ignore
+    session: Session = None  # type: ignore
     for dbh in db_list:
         try:
             session = Session(dbh)
             session.query(func.max(mlms.MCustomer.id))
         except:
-            session = None # type: ignore
+            session = None  # type: ignore
             continue
 
     return session
