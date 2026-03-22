@@ -144,6 +144,12 @@ poetry run pytest -v
 9. `STATIC/CLASS METHODS`
 10. `EOF` - ostatnia linia tekstu w pliku modułu
 
+#### `EOF` Clarification
+
+- `EOF` oznacza wyłącznie ostatnią linię pliku modułu.
+- Nie dodawaj sekcji `EOF` na końcu każdej klasy.
+- W pliku może istnieć tylko jeden znacznik `# #[EOF]...` i powinien znajdować się na końcu modułu.
+
 #### Separator Example
 
 ```python

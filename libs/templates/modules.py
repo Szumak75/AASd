@@ -14,17 +14,18 @@ from jsktoolbox.basetool import BData
 from jsktoolbox.attribtool import ReadOnlyClass
 
 
-class _Keys(object, metaclass=ReadOnlyClass):
-    """Define internal storage keys for configuration template items."""
-
-    DESC: str = "__desc__"
-    VALUE: str = "__val__"
-    VARNAME: str = "__var__"
-
-
 class TemplateConfigItem(BData):
     """Represent one configuration template entry exposed by a module."""
 
+    class __Keys(object, metaclass=ReadOnlyClass):
+        """Define internal storage keys for configuration template items."""
+
+        # #[CONSTANTS]####################################################################
+        DESC: str = "__desc__"
+        VALUE: str = "__val__"
+        VARNAME: str = "__var__"
+
+    # #[CONSTRUCTOR]##################################################################
     def __init__(
         self,
         varname: Optional[str] = None,
@@ -45,6 +46,70 @@ class TemplateConfigItem(BData):
         if desc:
             self.desc = desc
 
+    # #[PUBLIC PROPERTIES]############################################################
+    @property
+    def desc(self) -> Optional[str]:
+        """Return the description line.
+
+        ### Returns:
+        Optional[str] - Description line or `None`.
+        """
+        return self._get_data(key=self.__Keys.DESC, default_value=None)
+
+    @desc.setter
+    def desc(self, string: str) -> None:
+        """Store the description line.
+
+        ### Arguments:
+        * string: str - Description line.
+        """
+        self._set_data(key=self.__Keys.DESC, value=string, set_default_type=str)
+
+    @property
+    def value(self) -> Optional[Union[str, int, float, bool, List]]:
+        """Return the default value stored in the template item.
+
+        ### Returns:
+        Optional[Union[str, int, float, bool, List]] - Default value or `None`.
+        """
+        return self._get_data(key=self.__Keys.VALUE, default_value=None)
+
+    @value.setter
+    def value(self, value: Union[str, int, float, bool, List]) -> None:
+        """Store the default value for the template item.
+
+        ### Arguments:
+        * value: Union[str, int, float, bool, List] - Default configuration value.
+        """
+        self._set_data(
+            key=self.__Keys.VALUE,
+            value=value,
+            set_default_type=Union[str, int, float, bool, List],
+        )
+
+    @property
+    def varname(self) -> Optional[str]:
+        """Return the configuration variable name.
+
+        ### Returns:
+        Optional[str] - Variable name or `None`.
+        """
+        return self._get_data(key=self.__Keys.VARNAME, default_value=None)
+
+    @varname.setter
+    def varname(self, name: str) -> None:
+        """Store the configuration variable name.
+
+        ### Arguments:
+        * name: str - Configuration variable name.
+        """
+        self._set_data(
+            key=self.__Keys.VARNAME,
+            value=name,
+            set_default_type=str,
+        )
+
+    # #[PRIVATE METHODS]##############################################################
     def __repr__(self) -> str:
         """Return a debug representation of the template item.
 
@@ -62,68 +127,6 @@ class TemplateConfigItem(BData):
             f" value={value},"
             f" desc='{desc}'"
             " )"
-        )
-
-    @property
-    def desc(self) -> Optional[str]:
-        """Return the description line.
-
-        ### Returns:
-        Optional[str] - Description line or `None`.
-        """
-        return self._get_data(key=_Keys.DESC, default_value=None)
-
-    @desc.setter
-    def desc(self, string: str) -> None:
-        """Store the description line.
-
-        ### Arguments:
-        * string: str - Description line.
-        """
-        self._set_data(key=_Keys.DESC, value=string, set_default_type=str)
-
-    @property
-    def value(self) -> Optional[Union[str, int, float, bool, List]]:
-        """Return the default value stored in the template item.
-
-        ### Returns:
-        Optional[Union[str, int, float, bool, List]] - Default value or `None`.
-        """
-        return self._get_data(key=_Keys.VALUE, default_value=None)
-
-    @value.setter
-    def value(self, value: Union[str, int, float, bool, List]) -> None:
-        """Store the default value for the template item.
-
-        ### Arguments:
-        * value: Union[str, int, float, bool, List] - Default configuration value.
-        """
-        self._set_data(
-            key=_Keys.VALUE,
-            value=value,
-            set_default_type=Union[str, int, float, bool, List],
-        )
-
-    @property
-    def varname(self) -> Optional[str]:
-        """Return the configuration variable name.
-
-        ### Returns:
-        Optional[str] - Variable name or `None`.
-        """
-        return self._get_data(key=_Keys.VARNAME, default_value=None)
-
-    @varname.setter
-    def varname(self, name: str) -> None:
-        """Store the configuration variable name.
-
-        ### Arguments:
-        * name: str - Configuration variable name.
-        """
-        self._set_data(
-            key=_Keys.VARNAME,
-            value=name,
-            set_default_type=str,
         )
 
 

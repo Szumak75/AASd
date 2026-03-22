@@ -14,6 +14,7 @@ from jsktoolbox.attribtool import ReadOnlyClass
 class Keys(object, metaclass=ReadOnlyClass):
     """Expose shared public key names for internal storage containers."""
 
+    # #[CONSTANTS]####################################################################
     APP_NAME: str = "__app_name__"
     CFH: str = "__config_handler__"
     CLOG: str = "__clog__"

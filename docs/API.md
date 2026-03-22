@@ -75,6 +75,9 @@ Main application orchestrator.
 - `__init_command_line()` - binds CLI options to config changes.
 - `__password_encoding()` - updates encrypted passwords in config.
 
+The implementation is normalized to the repository class layout rules with
+sectioned class blocks and alphabetized members inside each block.
+
 ## Shared Runtime Contracts
 
 ### `libs`

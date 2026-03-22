@@ -27,9 +27,11 @@ class AppName(BData):
     class __Keys(object, metaclass=ReadOnlyClass):
         """Define internal storage keys for the application identity container."""
 
+        # #[CONSTANTS]################################################################
         APP_NAME = "app_name"
         APP_VERSION = "app_version"
 
+    # #[CONSTRUCTOR]##################################################################
     def __init__(self, app_name: str, app_version: str) -> None:
         """Initialize the application identity container.
 
@@ -41,6 +43,22 @@ class AppName(BData):
         self._set_data(
             key=self.__Keys.APP_VERSION, value=app_version, set_default_type=str
         )
+
+    # #[PUBLIC PROPERTIES]############################################################
+    @property
+    def app_host_name(self) -> str:
+        """Return the best available host name for the current machine.
+
+        ### Returns:
+        str - Host name resolved from the local platform APIs.
+        """
+        app = platform.node()
+        if app:
+            return app
+        app = socket.gethostname()
+        if app:
+            return app
+        return "unknown host"
 
     @property
     def app_name(self) -> str:
@@ -75,21 +93,6 @@ class AppName(BData):
                 currentframe(),
             )
         return obj
-
-    @property
-    def app_host_name(self) -> str:
-        """Return the best available host name for the current machine.
-
-        ### Returns:
-        str - Host name resolved from the local platform APIs.
-        """
-        app = platform.node()
-        if app:
-            return app
-        app = socket.gethostname()
-        if app:
-            return app
-        return "unknown host"
 
 
 # #[EOF]#######################################################################

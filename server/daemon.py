@@ -15,7 +15,7 @@ import gc
 import setproctitle
 
 from inspect import currentframe
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from queue import Queue
 
 from jsktoolbox.raisetool import Raise
@@ -49,6 +49,7 @@ import server
 class AASd(ProjectClassMixin, ImporterMixin):
     """Orchestrate daemon startup, runtime supervision, and shutdown."""
 
+    # #[CONSTRUCTOR]##################################################################
     def __init__(self) -> None:
         """Initialize the daemon runtime.
 
@@ -68,11 +69,12 @@ class AASd(ProjectClassMixin, ImporterMixin):
 
         # logger engines configuration
         logger_engine = LoggerEngine()
-        logger_queue: Optional[LoggerQueue] = logger_engine.logs_queue
-
-        if logger_queue is None:
+        existing_queue: Optional[LoggerQueue] = logger_engine.logs_queue
+        if existing_queue is None:
             logger_queue = LoggerQueue()
             logger_engine.logs_queue = logger_queue
+        else:
+            logger_queue = existing_queue
 
         # logger levels
         self.__init_log_levels(logger_engine)
@@ -136,105 +138,77 @@ class AASd(ProjectClassMixin, ImporterMixin):
         # automatic garbage collector
         gc.enable()
 
-    def __start_subsystem(self) -> List:
-        """Start dispatcher, communication modules, and task modules.
+    # #[PUBLIC PROPERTIES]#############################################################
+    @property
+    def hup(self) -> bool:
+        """Return the configuration reload flag.
 
         ### Returns:
-        List - List containing communication modules, task modules, and the
-        dispatcher instance.
+        bool - `True` when subsystem restart has been requested.
         """
-        self.logs.message_info = "starting..."
+        return self._get_data(key=Keys.HUP, default_value=False)  # type: ignore
 
-        if self.logs is None or self.conf is None or self.logs.logs_queue is None:
-            return [None, None]
-
-        # communication queue
-        qcom = Queue()
-
-        # dispatcher processor
-        dispatch = ThDispatcher(
-            qlog=self.logs.logs_queue,
-            qcom=qcom,
-            verbose=self.conf.verbose,
-            debug=self.conf.debug,
-        )
-
-        # start dispatcher
-        dispatch.start()
-
-        # break for caffe
-        time.sleep(1)
-
-        # start communication modules
-        com_mods: List[IComModule] = []
-        for com_mod in self.conf.get_com_modules:
-            try:
-                obj_mod = com_mod(
-                    app_name=self.application,
-                    conf=self.conf.cf,
-                    qlog=self.logs.logs_queue,
-                    verbose=self.conf.verbose,
-                    debug=self.conf.debug,
-                )  # type: ignore
-                obj_mod.qcom = dispatch.register_queue(obj_mod.module_conf.channel)
-                obj_mod.start()
-                com_mods.append(obj_mod)
-            except Exception as ex:
-                if self.conf.debug:
-                    self.logs.message_debug = f"{ex}"
-
-        # start running modules
-        run_mods: List[IRunModule] = []
-        for run_mod in self.conf.get_run_modules:
-            try:
-                obj_mod = run_mod(
-                    app_name=self.application,
-                    conf=self.conf.cf,
-                    qlog=self.logs.logs_queue,
-                    qcom=qcom,
-                    verbose=self.conf.verbose,
-                    debug=self.conf.debug,
-                )  # type: ignore
-                obj_mod.start()
-                run_mods.append(obj_mod)
-            except Exception as ex:
-                if self.conf.debug:
-                    self.logs.message_debug = f"{ex}"
-        return [com_mods, run_mods, dispatch]
-
-    def __stop_subsystem(
-        self,
-        com_mods: List[IComModule],
-        run_mods: List[IRunModule],
-        dispatch: ThDispatcher,
-    ) -> None:
-        """Stop all started runtime subsystems in a controlled order.
+    @hup.setter
+    def hup(self, value: bool) -> None:
+        """Store the configuration reload flag.
 
         ### Arguments:
-        * com_mods: List[IComModule] - Started communication module instances.
-        * run_mods: List[IRunModule] - Started task module instances.
-        * dispatch: ThDispatcher - Active dispatcher instance.
+        * value: bool - Reload request flag.
         """
-        # stopping & joining running modules
-        for mod in run_mods:
-            mod.stop()
-            while mod.module_stopped != True:
-                mod.join()  # type: ignore
-                time.sleep(0.1)
-        # stopping & joining communication modules
-        for mod in com_mods:
-            mod.stop()
-            while mod.module_stopped != True:
-                mod.join()  # type: ignore
-                time.sleep(0.1)
+        self._set_data(key=Keys.HUP, value=value, set_default_type=bool)
 
-        # dispatcher processor
-        dispatch.stop()
-        while dispatch._is_stopped != True:
-            dispatch.join()
-            time.sleep(0.1)
-        dispatch.join()
+    @property
+    def logs_processor(self) -> ThLoggerProcessor:
+        """Return the background log processing thread.
 
+        ### Returns:
+        ThLoggerProcessor - Logger processing thread instance.
+
+        ### Raises:
+        * ValueError: If the logger processor has not been initialized.
+        """
+        processor: Optional[ThLoggerProcessor] = self._get_data(
+            key=Keys.PROC_LOGS, default_value=None
+        )
+        if processor is None:
+            raise Raise.error(
+                "Logger processor is not initialized.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        return processor
+
+    @logs_processor.setter
+    def logs_processor(self, value: ThLoggerProcessor) -> None:
+        """Store the background log processing thread.
+
+        ### Arguments:
+        * value: ThLoggerProcessor - Logger processing thread instance.
+        """
+        self._set_data(
+            key=Keys.PROC_LOGS, value=value, set_default_type=ThLoggerProcessor
+        )
+
+    @property
+    def loop(self) -> bool:
+        """Return the main loop flag.
+
+        ### Returns:
+        bool - `True` while the daemon main loop should continue.
+        """
+        return self._get_data(key=Keys.LOOP, default_value=False)  # type:ignore
+
+    @loop.setter
+    def loop(self, value: bool) -> None:
+        """Store the main loop flag.
+
+        ### Arguments:
+        * value: bool - Main loop execution flag.
+        """
+        self._set_data(key=Keys.LOOP, value=value, set_default_type=bool)
+
+    # #[PUBLIC METHODS]################################################################
     def run(self) -> None:
         """Run the daemon main loop until shutdown is requested."""
         if self.conf is None:
@@ -242,7 +216,7 @@ class AASd(ProjectClassMixin, ImporterMixin):
         # logger processor
         self.logs_processor.start()
 
-        [com_mods, run_mods, dispatch] = self.__start_subsystem()
+        com_mods, run_mods, dispatch = self.__start_subsystem()
 
         # main loop
         self.logs.message_info = "entering to the main loop"
@@ -255,7 +229,7 @@ class AASd(ProjectClassMixin, ImporterMixin):
                     # critical message
                     self.logs.message_critical = "cannot reload config file"
                     self.loop = False
-                [com_mods, run_mods, dispatch] = self.__start_subsystem()
+                com_mods, run_mods, dispatch = self.__start_subsystem()
             time.sleep(0.5)
 
         self.__stop_subsystem(com_mods, run_mods, dispatch)
@@ -269,6 +243,7 @@ class AASd(ProjectClassMixin, ImporterMixin):
 
         sys.exit(0)
 
+    # #[PRIVATE METHODS]###############################################################
     def __help(self, command_conf: Dict) -> None:
         """Render command line help and terminate the process.
 
@@ -511,7 +486,7 @@ class AASd(ProjectClassMixin, ImporterMixin):
             else:
                 print(f"Error updating config file.")
 
-    def __sig_exit(self, signum: int, frame) -> None:
+    def __sig_exit(self, signum: int, frame: Any) -> None:
         """Handle `SIGTERM` and `SIGINT` by requesting daemon shutdown.
 
         ### Arguments:
@@ -522,7 +497,7 @@ class AASd(ProjectClassMixin, ImporterMixin):
             self.logs.message_debug = "TERM or INT signal received."
         self.loop = False
 
-    def __sig_hup(self, signum: int, frame) -> None:
+    def __sig_hup(self, signum: int, frame: Any) -> None:
         """Handle `SIGHUP` by requesting subsystem restart and config reload.
 
         ### Arguments:
@@ -533,49 +508,97 @@ class AASd(ProjectClassMixin, ImporterMixin):
             self.logs.message_debug = "HUP signal received."
         self.hup = True
 
-    @property
-    def hup(self) -> bool:
-        """Return the configuration reload flag.
+    def __start_subsystem(
+        self,
+    ) -> Tuple[List[IComModule], List[IRunModule], Optional[ThDispatcher]]:
+        """Start dispatcher, communication modules, and task modules.
 
         ### Returns:
-        bool - `True` when subsystem restart has been requested.
+        Tuple[List[IComModule], List[IRunModule], Optional[ThDispatcher]] -
+        Started communication modules, task modules, and dispatcher instance.
         """
-        return self._get_data(key=Keys.HUP, default_value=False)  # type: ignore
+        self.logs.message_info = "starting..."
 
-    @hup.setter
-    def hup(self, value: bool) -> None:
-        """Store the configuration reload flag.
+        if self.logs is None or self.conf is None or self.logs.logs_queue is None:
+            return ([], [], None)
+
+        qcom: Queue = Queue()
+        dispatch = ThDispatcher(
+            qlog=self.logs.logs_queue,
+            qcom=qcom,
+            verbose=self.conf.verbose,
+            debug=self.conf.debug,
+        )
+        dispatch.start()
+        time.sleep(1)
+
+        com_mods: List[IComModule] = []
+        for com_mod in self.conf.get_com_modules:
+            try:
+                obj_mod = com_mod(
+                    app_name=self.application,
+                    conf=self.conf.cf,
+                    qlog=self.logs.logs_queue,
+                    verbose=self.conf.verbose,
+                    debug=self.conf.debug,
+                )  # type: ignore
+                obj_mod.qcom = dispatch.register_queue(obj_mod.module_conf.channel)
+                obj_mod.start()
+                com_mods.append(obj_mod)
+            except Exception as ex:
+                if self.conf.debug:
+                    self.logs.message_debug = f"{ex}"
+
+        run_mods: List[IRunModule] = []
+        for run_mod in self.conf.get_run_modules:
+            try:
+                obj_mod = run_mod(
+                    app_name=self.application,
+                    conf=self.conf.cf,
+                    qlog=self.logs.logs_queue,
+                    qcom=qcom,
+                    verbose=self.conf.verbose,
+                    debug=self.conf.debug,
+                )  # type: ignore
+                obj_mod.start()
+                run_mods.append(obj_mod)
+            except Exception as ex:
+                if self.conf.debug:
+                    self.logs.message_debug = f"{ex}"
+        return (com_mods, run_mods, dispatch)
+
+    def __stop_subsystem(
+        self,
+        com_mods: List[IComModule],
+        run_mods: List[IRunModule],
+        dispatch: Optional[ThDispatcher],
+    ) -> None:
+        """Stop all started runtime subsystems in a controlled order.
 
         ### Arguments:
-        * value: bool - Reload request flag.
+        * com_mods: List[IComModule] - Started communication module instances.
+        * run_mods: List[IRunModule] - Started task module instances.
+        * dispatch: Optional[ThDispatcher] - Active dispatcher instance.
         """
-        self._set_data(key=Keys.HUP, value=value, set_default_type=bool)
+        for mod in run_mods:
+            mod.stop()
+            while mod.module_stopped != True:
+                mod.join()  # type: ignore
+                time.sleep(0.1)
+        for mod in com_mods:
+            mod.stop()
+            while mod.module_stopped != True:
+                mod.join()  # type: ignore
+                time.sleep(0.1)
 
-    @property
-    def logs_processor(self) -> ThLoggerProcessor:
-        """Return the background log processing thread.
+        if dispatch is None:
+            return None
 
-        ### Returns:
-        ThLoggerProcessor - Logger processing thread instance.
-        """
-        return self._get_data(key=Keys.PROC_LOGS, default_value=None)  # type:ignore
-
-    @logs_processor.setter
-    def logs_processor(self, value: ThLoggerProcessor) -> None:
-        """Set logs_processor."""
-        self._set_data(
-            key=Keys.PROC_LOGS, value=value, set_default_type=ThLoggerProcessor
-        )
-
-    @property
-    def loop(self) -> bool:
-        """Return loop flag."""
-        return self._get_data(key=Keys.LOOP, default_value=False)  # type:ignore
-
-    @loop.setter
-    def loop(self, value: bool) -> None:
-        """Set loop flag."""
-        self._set_data(key=Keys.LOOP, value=value, set_default_type=bool)
+        dispatch.stop()
+        while dispatch._is_stopped != True:
+            dispatch.join()
+            time.sleep(0.1)
+        dispatch.join()
 
 
 # #[EOF]#######################################################################

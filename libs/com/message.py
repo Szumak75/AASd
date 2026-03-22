@@ -28,6 +28,7 @@ from libs.tools import MDateTime, MIntervals
 class _Keys(object, metaclass=ReadOnlyClass):
     """Define internal storage keys for the messaging subsystem."""
 
+    # #[CONSTANTS]#####################################################################
     AT_DAY: str = "day_of_month"
     AT_DAY_WEEK: str = "day_of_week"
     AT_HOUR: str = "hour"
@@ -48,9 +49,11 @@ class _Keys(object, metaclass=ReadOnlyClass):
     MSG_TO: str = "__to__"
 
 
+
 class AtChannel(BData):
     """Implement cron-like scheduling for message channels."""
 
+    # #[CONSTRUCTOR]##################################################################
     def __init__(self, config_channel: List[str]) -> None:
         """Initialize the cron-style channel scheduler.
 
@@ -64,6 +67,105 @@ class AtChannel(BData):
         # "channel:minute;hour;day-of-month;month;day-of-week"
         self._set_data(key=_Keys.CHANNELS, value={}, set_default_type=Dict)
         self.__config_channels(config_channel)
+
+    # #[PUBLIC PROPERTIES]#############################################################
+    @property
+    def channels(self) -> List[str]:
+        """Return the configured channel identifiers.
+
+        ### Returns:
+        List[str] - Configured channel identifiers.
+        """
+        return list(self.get_channels.keys())
+
+    @property
+    def check(self) -> bool:
+        """Return whether at least one configured channel is currently due.
+
+        ### Returns:
+        bool - `True` when at least one channel is ready.
+        """
+        date: datetime = MDateTime.now()
+
+        for chan in self.channels:
+            for item in self.get_channels[chan]:
+                if (
+                    date.minute in item[_Keys.AT_MINUTE]
+                    and date.hour in item[_Keys.AT_HOUR]
+                    and date.day in item[_Keys.AT_DAY]
+                    and date.month in item[_Keys.AT_MONTH]
+                ):
+                    if date.weekday() == 6 and (
+                        0 in item[_Keys.AT_DAY_WEEK] or 7 in item[_Keys.AT_DAY_WEEK]
+                    ):
+                        return True
+                    if date.weekday() + 1 in item[_Keys.AT_DAY_WEEK]:
+                        return True
+        return False
+
+    @property
+    def get(self) -> List[str]:
+        """Return channels whose cron schedule is currently due.
+
+        ### Returns:
+        List[str] - Due channel identifiers.
+        """
+        date: datetime = MDateTime.now()
+        out: List[str] = []
+        for channel in self.channels:
+            for item in self.get_channels[channel]:
+                if (
+                    date.minute in item[_Keys.AT_MINUTE]
+                    and date.hour in item[_Keys.AT_HOUR]
+                    and date.day in item[_Keys.AT_DAY]
+                    and date.month in item[_Keys.AT_MONTH]
+                ):
+                    if date.weekday() == 6 and (
+                        0 in item[_Keys.AT_DAY_WEEK] or 7 in item[_Keys.AT_DAY_WEEK]
+                    ):
+                        if channel not in out:
+                            out.append(channel)
+                    elif date.weekday() + 1 in item[_Keys.AT_DAY_WEEK]:
+                        if channel not in out:
+                            out.append(channel)
+        return out
+
+    @property
+    def get_channels(self) -> Dict[str, List[Dict[str, List[int]]]]:
+        """Return the internal cron channel mapping.
+
+        ### Returns:
+        Dict - Mapping of channel identifiers to cron schedule definitions.
+        """
+        return self._get_data(key=_Keys.CHANNELS)  # type: ignore
+
+    # #[PRIVATE METHODS]###############################################################
+    def __build_cron_data(self, cron: str) -> Dict[str, List[int]]:
+        """Convert a cron-style channel definition to internal scheduling data.
+
+        ### Arguments:
+        * cron: str - Cron-style field definition without the channel prefix.
+
+        ### Returns:
+        Dict[str, List[int]] - Parsed scheduling fields.
+        """
+        out: Dict[str, List[int]] = {}
+        tmp: List[str] = cron.split(";")
+        if len(tmp) != 5:
+            raise Raise.error(
+                "String format error, check example in config file.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        out[_Keys.AT_MINUTE] = self.__build_value_list(form=tmp[0], val_range=[0, 59])
+        out[_Keys.AT_HOUR] = self.__build_value_list(form=tmp[1], val_range=[0, 23])
+        out[_Keys.AT_DAY] = self.__build_value_list(form=tmp[2], val_range=[1, 31])
+        out[_Keys.AT_MONTH] = self.__build_value_list(form=tmp[3], val_range=[1, 12])
+        out[_Keys.AT_DAY_WEEK] = self.__build_value_list(
+            form=tmp[4], val_range=[0, 7]
+        )
+        return out
 
     def __build_value_list(self, form: str, val_range: List[int]) -> List[int]:
         """Convert one cron field definition to a list of integers.
@@ -90,10 +192,10 @@ class AtChannel(BData):
                     currentframe(),
                 )
         elif form.find("|") > -1 and form.find("-") == -1:
-            tmp = form.split("|")
-            for i in tmp:
+            tmp: List[str] = form.split("|")
+            for item in tmp:
                 try:
-                    out.append(int(i))
+                    out.append(int(item))
                 except Exception as ex:
                     raise Raise.error(
                         f"String format error, check example in config file. Exception: {ex}",
@@ -102,12 +204,12 @@ class AtChannel(BData):
                         currentframe(),
                     )
         elif form.find("-") > -1 and form.find("|") == -1:
-            tmp: list[str] = form.split("-")
-            if len(tmp) == 2:
+            tmp_range: List[str] = form.split("-")
+            if len(tmp_range) == 2:
                 try:
-                    for i in range(int(tmp[0]), int(tmp[1]) + 1):
-                        if i in range(val_range[0], val_range[1] + 1):
-                            out.append(i)
+                    for item in range(int(tmp_range[0]), int(tmp_range[1]) + 1):
+                        if item in range(val_range[0], val_range[1] + 1):
+                            out.append(item)
                 except Exception as ex:
                     raise Raise.error(
                         f"String format error, check example in config file. Exception: {ex}",
@@ -116,15 +218,17 @@ class AtChannel(BData):
                         currentframe(),
                     )
         elif form.find("-") > -1 and form.find("|") > -1:
-            tmp = form.split("|")
+            tmp: List[str] = form.split("|")
             for item in tmp:
                 if item.find("-") > -1:
-                    tmp2: list[str] = item.split("-")
-                    if len(tmp2) == 2:
+                    tmp_range = item.split("-")
+                    if len(tmp_range) == 2:
                         try:
-                            for i in range(int(tmp2[0]), int(tmp2[1]) + 1):
-                                if i in range(val_range[0], val_range[1] + 1):
-                                    out.append(i)
+                            for value in range(
+                                int(tmp_range[0]), int(tmp_range[1]) + 1
+                            ):
+                                if value in range(val_range[0], val_range[1] + 1):
+                                    out.append(value)
                         except Exception as ex:
                             raise Raise.error(
                                 f"String format error, check example in config file. Exception: {ex}",
@@ -142,39 +246,6 @@ class AtChannel(BData):
                             self._c_name,
                             currentframe(),
                         )
-
-        return out
-
-    def __build_cron_data(self, cron: str) -> Dict[str, List[int]]:
-        """Convert a cron-style channel definition to internal scheduling data.
-
-        ### Arguments:
-        * cron: str - Cron-style field definition without the channel prefix.
-
-        ### Returns:
-        Dict[str, List[int]] - Parsed scheduling fields.
-        """
-        out: Dict[str, List[int]] = {}
-        tmp: List[str] = cron.split(";")
-        if len(tmp) != 5:
-            raise Raise.error(
-                f"String format error, check example in config file.",
-                ValueError,
-                self._c_name,
-                currentframe(),
-            )
-        # value format: '\d+', '\d+|\d+|\d+', '\d+-\d+', '\d+|\d+-\d+', '*'
-        # minutes
-        out[_Keys.AT_MINUTE] = self.__build_value_list(form=tmp[0], val_range=[0, 59])
-        # hours
-        out[_Keys.AT_HOUR] = self.__build_value_list(form=tmp[1], val_range=[0, 23])
-        # days-of-month
-        out[_Keys.AT_DAY] = self.__build_value_list(form=tmp[2], val_range=[1, 31])
-        # months
-        out[_Keys.AT_MONTH] = self.__build_value_list(form=tmp[3], val_range=[1, 12])
-        # days-of-week
-        out[_Keys.AT_DAY_WEEK] = self.__build_value_list(form=tmp[4], val_range=[0, 7])
-
         return out
 
     def __config_channels(self, config_channel: List[str]) -> None:
@@ -183,8 +254,6 @@ class AtChannel(BData):
         ### Arguments:
         * config_channel: List[str] - Channel configuration definitions.
         """
-        channel: str
-        cron: str
         if not isinstance(config_channel, List):
             raise Raise.error(
                 f"Expected List type, received: '{type(config_channel)}'",
@@ -195,97 +264,22 @@ class AtChannel(BData):
         for item in config_channel:
             if item.find(":") < 0:
                 raise Raise.error(
-                    f"Channel string format error, check example in config file.",
+                    "Channel string format error, check example in config file.",
                     ValueError,
                     self._c_name,
                     currentframe(),
                 )
-            (channel, cron) = item.split(":", 1)
-            channels: Dict = self._get_data(key=_Keys.CHANNELS)  # type: ignore
+            channel, cron = item.split(":", 1)
+            channels = self.get_channels
             if channel not in channels:
                 channels[channel] = []
             channels[channel].append(self.__build_cron_data(cron))
-
-    @property
-    def check(self) -> bool:
-        """Return whether at least one configured channel is currently due.
-
-        ### Returns:
-        bool - `True` when at least one channel is ready.
-        """
-        date: datetime = MDateTime.now()
-        # "channel:minute;hour;day-of-month;month;day-of-week"
-        # date.minute
-        # date.hour
-        # date.day
-        # date.month
-        # date.weekday() + 1 == crontab weekday (sunday:0 or 7)
-
-        for chan in self.channels:
-            for item in self.get_channels[chan]:
-                if (
-                    date.minute in item[_Keys.AT_MINUTE]
-                    and date.hour in item[_Keys.AT_HOUR]
-                    and date.day in item[_Keys.AT_DAY]
-                    and date.month in item[_Keys.AT_MONTH]
-                ):
-                    if date.weekday() == 6 and (
-                        0 in item[_Keys.AT_DAY_WEEK] or 7 in item[_Keys.AT_DAY_WEEK]
-                    ):
-                        return True
-                    elif date.weekday() + 1 in item[_Keys.AT_DAY_WEEK]:
-                        return True
-        return False
-
-    @property
-    def get(self) -> List[str]:
-        """Return channels whose cron schedule is currently due.
-
-        ### Returns:
-        List[str] - Due channel identifiers.
-        """
-        date: datetime = MDateTime.now()
-        out = list()
-        for channel in self.channels:
-            for item in self.get_channels[channel]:
-                if (
-                    date.minute in item[_Keys.AT_MINUTE]
-                    and date.hour in item[_Keys.AT_HOUR]
-                    and date.day in item[_Keys.AT_DAY]
-                    and date.month in item[_Keys.AT_MONTH]
-                ):
-                    if date.weekday() == 6 and (
-                        0 in item[_Keys.AT_DAY_WEEK] or 7 in item[_Keys.AT_DAY_WEEK]
-                    ):
-                        if channel not in out:
-                            out.append(channel)
-                    elif date.weekday() + 1 in item[_Keys.AT_DAY_WEEK]:
-                        if channel not in out:
-                            out.append(channel)
-        return out
-
-    @property
-    def channels(self) -> List[str]:
-        """Return the configured channel identifiers.
-
-        ### Returns:
-        List[str] - Configured channel identifiers.
-        """
-        return list(self.get_channels.keys())
-
-    @property
-    def get_channels(self) -> Dict:
-        """Return the internal cron channel mapping.
-
-        ### Returns:
-        Dict - Mapping of channel identifiers to cron schedule definitions.
-        """
-        return self._get_data(key=_Keys.CHANNELS)  # type: ignore
 
 
 class Channel(BData):
     """Implement interval-based scheduling for message channels."""
 
+    # #[CONSTRUCTOR]##################################################################
     def __init__(self, config_channel: List[str]) -> None:
         """Initialize the interval-based channel scheduler.
 
@@ -298,47 +292,15 @@ class Channel(BData):
         self._set_data(key=_Keys.CHANNELS, value={}, set_default_type=Dict)
         self.__config_channels(config_channel)
 
-    def __config_channels(self, config_channel: List[str]) -> None:
-        """Build the internal interval schedule mapping.
+    # #[PUBLIC PROPERTIES]#############################################################
+    @property
+    def channels(self) -> List[str]:
+        """Return the configured channel identifiers.
 
-        ### Arguments:
-        * config_channel: List[str] - Channel configuration definitions.
+        ### Returns:
+        List[str] - Configured channel identifiers.
         """
-        channel: str
-        interval: str
-        if not isinstance(config_channel, List):
-            raise Raise.error(
-                f"Expected List type, received: '{type(config_channel)}'",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        for item in config_channel:
-            if str(item).find(":") > -1:
-                (channel, interval) = item.split(":")
-                conv = MIntervals(self._c_name)
-                self.__add_channel(channel, conv.convert(interval))
-            else:
-                self.__add_channel(item, 0)
-
-    def __add_channel(self, channel: str, interval: int) -> None:
-        """Register one channel and its interval in the internal mapping.
-
-        ### Arguments:
-        * channel: str - Channel identifier.
-        * interval: int - Interval in seconds.
-        """
-        if channel in self.channels:
-            raise Raise.error(
-                f"Duplicate channel key found: '{channel}'",
-                KeyError,
-                self._c_name,
-                currentframe(),
-            )
-        self.get_channels[channel] = {
-            _Keys.CHECK_INTERVAL: interval,
-            _Keys.CHECK_NEXT: Timestamp.now(),
-        }
+        return list(self.get_channels.keys())
 
     @property
     def check(self) -> bool:
@@ -361,25 +323,16 @@ class Channel(BData):
         List[str] - Due channel identifiers.
         """
         now: int = Timestamp.now()  # type: ignore
-        out = []
+        out: List[str] = []
         for item in self.channels:
-            check_dict: Dict = self.get_channels[item]
+            check_dict: Dict[str, int] = self.get_channels[item]
             if check_dict[_Keys.CHECK_NEXT] < now:
                 out.append(item)
                 check_dict[_Keys.CHECK_NEXT] = now + check_dict[_Keys.CHECK_INTERVAL]
         return out
 
     @property
-    def channels(self) -> List[str]:
-        """Return the configured channel identifiers.
-
-        ### Returns:
-        List[str] - Configured channel identifiers.
-        """
-        return list(self.get_channels.keys())
-
-    @property
-    def get_channels(self) -> Dict:
+    def get_channels(self) -> Dict[str, Dict[str, int]]:
         """Return the internal interval channel mapping.
 
         ### Returns:
@@ -387,10 +340,52 @@ class Channel(BData):
         """
         return self._get_data(key=_Keys.CHANNELS)  # type: ignore
 
+    # #[PRIVATE METHODS]###############################################################
+    def __add_channel(self, channel: str, interval: int) -> None:
+        """Register one channel and its interval in the internal mapping.
+
+        ### Arguments:
+        * channel: str - Channel identifier.
+        * interval: int - Interval in seconds.
+        """
+        if channel in self.channels:
+            raise Raise.error(
+                f"Duplicate channel key found: '{channel}'",
+                KeyError,
+                self._c_name,
+                currentframe(),
+            )
+        self.get_channels[channel] = {
+            _Keys.CHECK_INTERVAL: interval,
+            _Keys.CHECK_NEXT: Timestamp.now(),
+        }
+
+    def __config_channels(self, config_channel: List[str]) -> None:
+        """Build the internal interval schedule mapping.
+
+        ### Arguments:
+        * config_channel: List[str] - Channel configuration definitions.
+        """
+        if not isinstance(config_channel, List):
+            raise Raise.error(
+                f"Expected List type, received: '{type(config_channel)}'",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        for item in config_channel:
+            if str(item).find(":") > -1:
+                channel, interval = item.split(":")
+                conv = MIntervals(self._c_name)
+                self.__add_channel(channel, conv.convert(interval))
+            else:
+                self.__add_channel(item, 0)
+
 
 class Multipart(object, metaclass=ReadOnlyClass):
     """Expose public keys used for multipart message payloads."""
 
+    # #[CONSTANTS]#####################################################################
     PLAIN: str = "plain"
     HTML: str = "html"
 
@@ -398,6 +393,7 @@ class Multipart(object, metaclass=ReadOnlyClass):
 class Message(BData):
     """Store a message exchanged between task and communication modules."""
 
+    # #[CONSTRUCTOR]##################################################################
     def __init__(self) -> None:
         """Initialize an empty message container."""
         self._set_data(key=_Keys.MSG_MESS, value=[], set_default_type=List)
@@ -417,18 +413,7 @@ class Message(BData):
         self._set_data(key=_Keys.MSG_REPLY, value=None, set_default_type=Optional[str])
         self._set_data(key=_Keys.MSG_COUNTER, value=0, set_default_type=int)
 
-    @property
-    def counter(self) -> int:
-        """Increment and return the internal message counter.
-
-        ### Returns:
-        int - Updated counter value.
-        """
-        count: int = self._get_data(key=_Keys.MSG_COUNTER)  # type: ignore
-        count += 1
-        self._set_data(key=_Keys.MSG_COUNTER, value=count)
-        return count
-
+    # #[PUBLIC PROPERTIES]#############################################################
     @property
     def channel(self) -> Optional[int]:
         """Return the target communication channel.
@@ -449,6 +434,18 @@ class Message(BData):
             key=_Keys.MSG_CHANNEL,
             value=value,
         )
+
+    @property
+    def counter(self) -> int:
+        """Increment and return the internal message counter.
+
+        ### Returns:
+        int - Updated counter value.
+        """
+        count: int = self._get_data(key=_Keys.MSG_COUNTER)  # type: ignore
+        count += 1
+        self._set_data(key=_Keys.MSG_COUNTER, value=count)
+        return count
 
     @property
     def footer(self) -> Optional[str]:
@@ -578,11 +575,11 @@ class Message(BData):
         )
 
     @property
-    def to(self) -> Optional[List[str]]:
+    def to(self) -> Optional[Union[List[str], str]]:
         """Return destination recipients collected for the message.
 
         ### Returns:
-        Optional[List[str]] - Recipient list or `None`.
+        Optional[Union[List[str], str]] - Recipient list or `None`.
         """
         return self._get_data(key=_Keys.MSG_TO)
 
@@ -619,6 +616,7 @@ class Message(BData):
 class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
     """Route outbound messages to queues registered for communication modules."""
 
+    # #[CONSTRUCTOR]##################################################################
     def __init__(
         self,
         qlog: LoggerQueue,
@@ -658,10 +656,17 @@ class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
         # }
         self._set_data(key=_Keys.MSG_COM_QUEUES, value={}, set_default_type=Dict)
 
+    # #[PRIVATE PROPERTIES]############################################################
     @property
-    def __get_comm_queues(self) -> Dict:
+    def __get_comm_queues(self) -> Dict[str, List[Queue]]:
+        """Return internal queue registry keyed by communication channel.
+
+        ### Returns:
+        Dict[str, List[Queue]] - Registered queues for each communication channel.
+        """
         return self._get_data(key=_Keys.MSG_COM_QUEUES)  # type: ignore
 
+    # #[PUBLIC METHODS]################################################################
     def register_queue(self, channel: int) -> Queue:
         """Register a target queue for the selected communication channel.
 
@@ -722,6 +727,7 @@ class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
         if self._debug:
             self.logs.message_debug = "exit from loop"
 
+    # #[PRIVATE METHODS]###############################################################
     def __dispatch_message(self, message: Message) -> None:
         """Forward one message to every queue registered for its channel.
 

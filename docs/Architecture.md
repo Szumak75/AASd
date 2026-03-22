@@ -74,6 +74,10 @@ now exposes these symbols through lazy exports, so package-level imports such as
 `from libs.base import ModuleMixin` do not load `libs.base.classes` until the
 requested symbol is accessed.
 
+The implementation file [`libs/base/classes.py`](../libs/base/classes.py) is
+also normalized to the repository class-structure convention with explicit
+section markers inside each class.
+
 ### Configuration Service
 
 [`libs/conf.py`](../libs/conf.py) contains `AppConfig`, which acts as the
@@ -93,6 +97,9 @@ it bridges file configuration, module discovery, and daemon startup.
 
 [`libs/com/message.py`](../libs/com/message.py) provides the internal
 message-dispatching layer:
+
+The implementation file is normalized to the repository class-structure
+convention with explicit section markers inside each class.
 
 - `Message` is the payload container passed from task modules to communication modules,
 - `Channel` handles interval-based notification schedules,
@@ -160,11 +167,18 @@ Public documentation surface:
 
 - `server.daemon`
 - `libs.app`
+- `libs.keys`
 - `libs.conf`
+  The core runtime helper layer now follows the repository class-section layout
+  for application identity, shared keys, and configuration services.
 - `libs.base.classes`
 - `libs.com.message`
 - `libs.tools.*` used by runtime modules
+  The tools layer now follows the repository class-section layout for the
+  datetime, interval, ICMP, and traceroute helpers.
 - `libs.templates.modules`
+  The `TemplateConfigItem` helper follows the repository class-section layout
+  with explicit constructor, public property, and private method blocks.
 - `modules.com.*`
 - `modules.run.*`
 

@@ -1,5 +1,41 @@
 # Changelog
 
+## 2.0.12-DEV
+
+- refactor: normalized `libs.app`, `libs.conf`, and `libs.keys` to the repository class section layout
+- docs: documented the normalized structure of the core runtime helper layer
+
+## 2.0.11-DEV
+
+- refactor: normalized `libs.tools.datetool` and `libs.tools.icmp` to the repository class section layout
+- docs: documented the normalized structure of the tools layer
+
+## 2.0.10-DEV
+
+- refactor: normalized `libs.templates.modules.TemplateConfigItem` to the repository class section layout
+- docs: documented the normalized structure of the template helper layer
+
+## 2.0.9-DEV
+
+- refactor: normalized `libs.com.message` to the repository class section layout
+- docs: documented the normalized structure of the messaging layer
+
+## 2.0.8-DEV
+
+- docs: clarified in `AGENTS.md` that the `EOF` section marker applies only to the end of a module file
+- refactor: removed incorrect per-class `EOF` markers from `libs.base.classes`
+
+## 2.0.7-DEV
+
+- refactor: normalized `libs.base.classes` to the repository class section layout
+- docs: documented the normalized structure of the shared base layer
+
+## 2.0.6-DEV
+
+- refactor: reorganized `server.daemon.AASd` into repository-mandated class sections
+- refactor: tightened daemon typing around signal handlers, logger queue setup, and subsystem lifecycle
+- docs: documented the normalized daemon class layout
+
 ## 2.0.5-DEV
 
 - feat: added lazy package exports for the first-level `libs` package symbols

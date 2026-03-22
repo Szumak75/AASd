@@ -24,6 +24,7 @@ from jsktoolbox.basetool import BData
 class _Keys(object, metaclass=ReadOnlyClass):
     """Define internal storage keys for ICMP and traceroute helpers."""
 
+    # #[CONSTANTS]####################################################################
     CMD: str = "cmd"
     COMMAND: str = "__command_found__"
     COMMANDS: str = "__commands__"
@@ -35,6 +36,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 class Pinger(BData):
     """Check IPv4 reachability using system ICMP tools."""
 
+    # #[CONSTRUCTOR]##################################################################
     def __init__(self, timeout: int = 1) -> None:
         """Initialize the ICMP helper.
 
@@ -79,6 +81,7 @@ class Pinger(BData):
             self._set_data(key=_Keys.COMMAND, value=command, set_default_type=str)
             self._set_data(key=_Keys.MULTIPLIER, value=multiplier)
 
+    # #[PUBLIC METHODS]###############################################################
     def is_alive(self, ip: str) -> bool:
         """Check whether the target IPv4 address responds to ICMP echo.
 
@@ -133,6 +136,7 @@ class Pinger(BData):
             return True
         return False
 
+    # #[PRIVATE PROPERTIES]###########################################################
     @property
     def __is_tool(self) -> Optional[tuple]:
         """Find a working ICMP command implementation.
@@ -167,6 +171,7 @@ class Pinger(BData):
 class Tracert(BData):
     """Execute traceroute against an IPv4 address using system tools."""
 
+    # #[CONSTRUCTOR]##################################################################
     def __init__(self) -> None:
         """Initialize the traceroute helper and detect a working command."""
 
@@ -202,32 +207,7 @@ class Tracert(BData):
             key=_Keys.COMMAND, value=self.__is_tool, set_default_type=Optional[Dict]
         )
 
-    @property
-    def __is_tool(self) -> Optional[Dict]:
-        """Find a working traceroute command implementation.
-
-        ### Returns:
-        Optional[Dict] - Command descriptor or `None`.
-        """
-        commands: Optional[List[Dict]] = self._get_data(key=_Keys.COMMANDS, default=[])
-        if commands is None:
-            commands = []
-
-        for cmd in commands:
-            if find_executable(cmd[_Keys.CMD]) is not None:
-                if (
-                    os.system(
-                        "{} {} {} > /dev/null 2>&1".format(
-                            cmd[_Keys.CMD], cmd[_Keys.OPTS], "127.0.0.1"
-                        )
-                    )
-                    == 0
-                ):
-                    out = {}
-                    out.update(cmd)
-                    return out
-        return None
-
+    # #[PUBLIC METHODS]###############################################################
     def execute(self, ip: str) -> List[str]:
         """Execute traceroute for the selected IPv4 address.
 
@@ -265,6 +245,33 @@ class Tracert(BData):
                 for line in proc.stdout:
                     out.append(line.decode("utf-8"))
         return out
+
+    # #[PRIVATE PROPERTIES]###########################################################
+    @property
+    def __is_tool(self) -> Optional[Dict]:
+        """Find a working traceroute command implementation.
+
+        ### Returns:
+        Optional[Dict] - Command descriptor or `None`.
+        """
+        commands: Optional[List[Dict]] = self._get_data(key=_Keys.COMMANDS, default=[])
+        if commands is None:
+            commands = []
+
+        for cmd in commands:
+            if find_executable(cmd[_Keys.CMD]) is not None:
+                if (
+                    os.system(
+                        "{} {} {} > /dev/null 2>&1".format(
+                            cmd[_Keys.CMD], cmd[_Keys.OPTS], "127.0.0.1"
+                        )
+                    )
+                    == 0
+                ):
+                    out = {}
+                    out.update(cmd)
+                    return out
+        return None
 
 
 # #[EOF]#######################################################################

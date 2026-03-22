@@ -29,6 +29,7 @@ if TYPE_CHECKING:
 class AppNameMixin(BData):
     """Mixin that exposes a typed application identity property."""
 
+    # #[PUBLIC PROPERTIES]#############################################################
     @property
     def application(self) -> AppName:
         """Return the application identity object.
@@ -56,9 +57,11 @@ class AppNameMixin(BData):
         self._set_data(key=Keys.APP_NAME, value=value, set_default_type=AppName)
 
 
+
 class ConfigHandlerMixin(BData):
     """Mixin that exposes a typed configuration handler property."""
 
+    # #[PROTECTED PROPERTIES]##########################################################
     @property
     def _cfh(self) -> Optional[ConfigTool]:
         """Return the bound configuration handler.
@@ -80,9 +83,11 @@ class ConfigHandlerMixin(BData):
         )
 
 
+
 class ConfigSectionMixin(BData):
     """Mixin that exposes a typed configuration section property."""
 
+    # #[PROTECTED PROPERTIES]##########################################################
     @property
     def _section(self) -> Optional[str]:
         """Return the bound configuration section name.
@@ -110,9 +115,11 @@ class ConfigSectionMixin(BData):
         self._set_data(key=Keys.SECTION, value=sn, set_default_type=Optional[str])
 
 
+
 class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
     """Mixin-style adapter that provides typed access to module configuration."""
 
+    # #[CONSTANTS]#####################################################################
     class Keys(object, metaclass=ReadOnlyClass):
         """Define shared configuration key names for module settings."""
 
@@ -121,6 +128,7 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
         MODULE_CONF: str = "__MODULE_CONF__"
         SLEEP_PERIOD: str = "sleep_period"
 
+    # #[CONSTRUCTOR]##################################################################
     def __init__(self, cfh: ConfigTool, section: Optional[str]) -> None:
         """Initialize the module configuration adapter.
 
@@ -131,19 +139,7 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
         self._cfh = cfh
         self._section = section
 
-    def _get(self, varname: str) -> Any:
-        """Return a raw configuration value from the current section.
-
-        ### Arguments:
-        * varname: str - Variable name to read from the configuration section.
-
-        ### Returns:
-        Any - Raw configuration value or `None`.
-        """
-        if self._cfh and self._section:
-            return self._cfh.get(self._section, varname)
-        return None
-
+    # #[PUBLIC PROPERTIES]#############################################################
     @property
     def channel(self) -> Optional[int]:
         """Return the communication channel configured for a module.
@@ -208,6 +204,21 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
             )
         return float(var)
 
+    # #[PRIVATE METHODS]###############################################################
+    def _get(self, varname: str) -> Any:
+        """Return a raw configuration value from the current section.
+
+        ### Arguments:
+        * varname: str - Variable name to read from the configuration section.
+
+        ### Returns:
+        Any - Raw configuration value or `None`.
+        """
+        if self._cfh and self._section:
+            return self._cfh.get(self._section, varname)
+        return None
+
+
 
 class ImporterMixin(BData):
     """Mixin that discovers and imports runtime modules using the current naming convention.
@@ -216,6 +227,7 @@ class ImporterMixin(BData):
     name from the file name using the current project convention.
     """
 
+    # #[PUBLIC METHODS]################################################################
     def import_name_list(self, package: str) -> List:
         """Return importable module file names from the selected package.
 
@@ -266,9 +278,11 @@ class ImporterMixin(BData):
         return getattr(module, name)
 
 
+
 class LogsMixin(BData):
     """Mixin that exposes a typed logger client property."""
 
+    # #[PUBLIC PROPERTIES]#############################################################
     @property
     def logs(self) -> LoggerClient:
         """Return the logger client for the current object.
@@ -300,9 +314,11 @@ class LogsMixin(BData):
         self._set_data(key=Keys.CLOG, value=logs, set_default_type=LoggerClient)
 
 
+
 class ComMixin(BData):
     """Mixin that exposes a typed communication queue property."""
 
+    # #[PUBLIC PROPERTIES]#############################################################
     @property
     def qcom(self) -> Optional[Queue]:
         """Return the shared communication queue.
@@ -322,9 +338,11 @@ class ComMixin(BData):
         self._set_data(key=Keys.QCOM, value=queue, set_default_type=Queue)
 
 
+
 class ConfigMixin(BData):
     """Mixin that exposes a typed application configuration property."""
 
+    # #[PUBLIC PROPERTIES]#############################################################
     @property
     def conf(self) -> Optional["AppConfig"]:
         """Return the bound application configuration object.
@@ -346,8 +364,10 @@ class ConfigMixin(BData):
         self._set_data(key=Keys.CONF, value=conf, set_default_type=AppConfig)
 
 
+
 class ProjectClassMixin(LogsMixin, ConfigMixin, AppNameMixin):
     """Compose mixins used by the daemon core."""
+
 
 
 class ModuleMixin(
@@ -355,12 +375,14 @@ class ModuleMixin(
 ):
     """Compose mixins used by communication and task modules."""
 
+    # #[CONSTANTS]#####################################################################
     class Keys(object, metaclass=ReadOnlyClass):
         """Define internal key names used by module runtime state."""
 
         DEBUG: str = "debug"
         VERBOSE: str = "verbose"
 
+    # #[PROTECTED PROPERTIES]##########################################################
     @property
     def _bm_debug(self) -> bool:
         """Return the module debug flag.
@@ -448,9 +470,11 @@ class ModuleMixin(
         self._set_data(key=Keys.VERBOSE, value=verbose, set_default_type=bool)
 
 
+
 class DebugMixin(BData):
     """Mixin that exposes a simple debug flag property."""
 
+    # #[PROTECTED PROPERTIES]##########################################################
     @property
     def _debug(self) -> bool:
         """Return the current debug flag.
@@ -474,9 +498,11 @@ class DebugMixin(BData):
         self._set_data(key=Keys.DEBUG, value=debug, set_default_type=bool)
 
 
+
 class VerboseMixin(BData):
     """Mixin that exposes a simple verbose flag property."""
 
+    # #[PROTECTED PROPERTIES]##########################################################
     @property
     def _verbose(self) -> bool:
         """Return the current verbose flag.
@@ -500,8 +526,10 @@ class VerboseMixin(BData):
         self._set_data(key=Keys.VERBOSE, value=verbose, set_default_type=bool)
 
 
+
 class ThProcessorMixin(ComMixin, VerboseMixin, LogsMixin):
     """Compose mixins used by threaded communication processors."""
+
 
 
 # #[EOF]#######################################################################

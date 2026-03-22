@@ -25,6 +25,7 @@ from jsktoolbox.attribtool import ReadOnlyClass
 class MDateTime(DateTime):
     """Provide project-specific date and time formatting helpers."""
 
+    # #[STATIC/CLASS METHODS]#########################################################
     @classmethod
     def date_now(cls) -> str:
         """Return the current date in ISO format.
@@ -81,9 +82,11 @@ class MIntervals(BData):
     class __Keys(object, metaclass=ReadOnlyClass):
         """Define internal storage keys for date and interval helpers."""
 
+        # #[CONSTANTS]################################################################
         RE: str = "__re__"
         NAME: str = "__name__"
 
+    # #[CONSTRUCTOR]##################################################################
     def __init__(self, module_name: str) -> None:
         """Initialize the interval converter.
 
@@ -97,6 +100,7 @@ class MIntervals(BData):
             set_default_type=Pattern,
         )
 
+    # #[PUBLIC METHODS]###############################################################
     def convert(self, value: str) -> int:
         """Convert string value to seconds.
 
