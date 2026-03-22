@@ -247,9 +247,10 @@ Format wersji: `X.Y.Z` (`MAJOR.MINOR.PATCH`).
 
 #### Mandatory Rules
 
-1. Każda zmiana projektu musi zwiększać `Z` (`PATCH`), nawet drobna poprawka.
-2. Przy zwiększeniu `Y` (`MINOR`) należy zresetować `Z` do `0`.
-3. Przy zwiększeniu `X` (`MAJOR`) należy zresetować `Y` i `Z` do `0`.
+1. Zmiany w kodzie projektu wymagają aktualizacji wersji zgodnie z Semantic Versioning.
+2. Zmiany obejmujące wyłącznie dokumentację projektową lub developerską nie wymagają zmiany wersji.
+3. Przy zwiększeniu `Y` (`MINOR`) należy zresetować `Z` do `0`.
+4. Przy zwiększeniu `X` (`MAJOR`) należy zresetować `Y` i `Z` do `0`.
 
 #### Examples
 
@@ -265,6 +266,12 @@ Current: 0.2.3
 - `X` (`MAJOR`) - breaking changes, incompatible API changes.
 - `Y` (`MINOR`) - new features, backward-compatible additions.
 - `Z` (`PATCH`) - bug fixes, small improvements, refactoring.
+
+### Documentation And Non-Code Changes
+
+- Zmiany wyłącznie w dokumentacji projektowej, dokumentacji developerskiej, planach prac lub zasadach repozytorium nie wymagają podniesienia wersji.
+- Takie zmiany nadal należy odnotować w odpowiedniej sekcji `CHANGELOG.md`.
+- Jeśli zmiana łączy modyfikację kodu i dokumentacji, obowiązuje versioning wynikający ze zmiany kodu.
 
 ### Files To Update
 
@@ -285,10 +292,12 @@ Przy zmianie wersji zawsze aktualizuj oba pliki:
 
 ### Versioning Checklist
 
-- [ ] Określ typ zmiany: `MAJOR`, `MINOR`, `PATCH`
-- [ ] Zaktualizuj obie wersje tak, aby były zgodne
-- [ ] Przygotuj commit message: `chore: bump version to X.Y.Z`
-- [ ] Przygotuj tag: `git tag vX.Y.Z`
+- [ ] Określ, czy zmiana obejmuje kod czy wyłącznie dokumentację / metadane developerskie
+- [ ] Jeśli zmiana obejmuje kod: określ typ zmiany `MAJOR`, `MINOR`, `PATCH`
+- [ ] Jeśli zmiana obejmuje kod: zaktualizuj obie wersje tak, aby były zgodne
+- [ ] Zawsze dopisz zmianę do właściwej sekcji `CHANGELOG.md`
+- [ ] Jeśli zmiana obejmuje kod: przygotuj commit message `chore: bump version to X.Y.Z`
+- [ ] Jeśli zmiana obejmuje kod: przygotuj tag `git tag vX.Y.Z`
 
 ## Architecture Patterns
 

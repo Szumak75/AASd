@@ -18,6 +18,21 @@ The main process is executed in the foreground and it is assumed that it will be
 
 The project is dedicated and tested on FreeBSD platforms, most of the modules should work properly in the Linux environment.
 
+## Environment Policy
+
+Poetry is used only in development environments for dependency management,
+locking, testing, and documentation work.
+
+Production and deployment environments should use `requirements.txt` as the
+runtime installation source:
+
+```bash
+pip install -r requirements.txt
+```
+
+`requirements.txt` is treated as the deployment artifact generated from the
+current Poetry runtime lock set.
+
 ## Table of contents
 
 1. [Installation](https://github.com/Szumak75/AASd/blob/master/docs/Installation.md)
@@ -29,7 +44,8 @@ The project is dedicated and tested on FreeBSD platforms, most of the modules sh
 ## Documentation Build
 
 The repository now includes a Sphinx-based documentation toolchain with MyST
-Markdown support.
+Markdown support. This is a development workflow and assumes Poetry is
+available in the local development environment.
 
 ```bash
 make docs

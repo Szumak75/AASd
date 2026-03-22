@@ -3,6 +3,9 @@
 This directory contains project documentation, operational notes, module guides,
 and generated API-oriented reference material for the current codebase.
 
+Deployment documentation assumes `requirements.txt` is the production runtime
+installation source, while Poetry remains a development-only tool.
+
 ## Core Documents
 
 - [Installation](./Installation.md) - environment setup and service preparation.

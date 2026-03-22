@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.0.19-DEV
+
+- docs: documented that Poetry is development-only and `requirements.txt` is the production deployment source
+- docs: updated project versioning rules so documentation-only changes do not require a version bump
+
+## 1.0.18-DEV
+
+- chore: refreshed production `requirements.txt` from the current Poetry runtime lock set
+
 ## 1.0.17-DEV
 
 - docs: converted `TODO.md` into a prioritized operational refactoring plan with `P1/P2/P3` stages
