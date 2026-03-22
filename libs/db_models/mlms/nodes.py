@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-Created: 01.12.2023
+"""MLMS node model extension.
 
-Purpose: Redefine the lms Node class.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-12-01
+
+Purpose: Extend the LMS node model with MLMS-specific relationships.
 """
 
 
@@ -14,7 +15,7 @@ from libs.db_models.mlms.nodeassignments import MNodeAssignment
 
 
 class MNode(Node):
-    """LMS nodes table."""
+    """Represent the MLMS node ORM model."""
 
     ownerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
     nodeassignment: Mapped[int] = relationship("MNodeAssignment")

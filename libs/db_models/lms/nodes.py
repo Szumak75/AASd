@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 7 oct 2020
+Created on 7 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -20,6 +20,8 @@ from libs.db_models.base import LmsBase
 
 
 class Node(LmsBase):
+    """Represent the LMS Node ORM model."""
+
     __tablename__ = "nodes"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -105,6 +107,7 @@ class Node(LmsBase):
     # CONSTRAINT `nodes_ownerid_fkey` FOREIGN KEY (`ownerid`) REFERENCES `customers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Node(id='{self.id}', "
             f"name='{self.name}', "

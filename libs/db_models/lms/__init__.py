@@ -1,9 +1,5 @@
 # -*- coding: UTF-8 -*-
-"""
-Created on 9 oct 2020
-
-@author: szumak
-"""
+"""LMS ORM models package."""
 # ls *.py|grep -v -E '^_' | sed -e 's/\.py//'|sed -e 's/\(.*\)/from libs.db_models.lms.\1 import */' >> __init__.py
 
 from libs.db_models.lms.addresses import *

@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class CustomerAddress(LmsBase):
+    """Represent the LMS customer address ORM model."""
+
     __tablename__ = "customer_addresses"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -40,6 +42,7 @@ class CustomerAddress(LmsBase):
     # CONSTRAINT `customer_addresses_customer_id_fkey` FOREIGN KEY (`customer_id`) REFERENCES `customers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"CustomerAddress(id='{self.id}', "
             f"customer_id='{self.customer_id}', "

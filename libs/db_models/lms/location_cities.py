@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 16 oct 2020
+Created on 16 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -22,6 +22,8 @@ from libs.db_models.lms.location_boroughs import LocationBorough
 
 
 class LocationCity(LmsBase):
+    """Represent the LMS LocationCity ORM model."""
+
     __tablename__ = "location_cities"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -43,6 +45,7 @@ class LocationCity(LmsBase):
     borough: Mapped["LocationBorough"] = relationship("LocationBorough")
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"LocationCity(id='{self.id}', "
             f"ident='{self.ident}', "

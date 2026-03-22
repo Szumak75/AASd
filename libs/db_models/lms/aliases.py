@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class Alias(LmsBase):
+    """Represent the LMS alias ORM model."""
+
     __tablename__ = "aliases"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -37,6 +39,7 @@ class Alias(LmsBase):
     # CONSTRAINT `aliases_domainid_fkey` FOREIGN KEY (`domainid`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Alias(id='{self.id}', "
             f"login='{self.login}', "

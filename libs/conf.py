@@ -1,9 +1,11 @@
 # -*- coding: UTF-8 -*-
 """
-Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-Created: 07.11.2023
+Application configuration service.
 
-Purpose: configuration package
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-11-07
+
+Purpose: Provide configuration loading, generation, and module discovery logic.
 """
 
 import socket
@@ -31,10 +33,7 @@ from libs.templates.modules import TemplateConfigItem
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Private Keys definition class.
-
-    For internal purpose only.
-    """
+    """Define internal storage keys and config variable names."""
 
     # internal vars
     APP_NAME: str = "__app_name__"
@@ -61,11 +60,15 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
 
 class _ModuleConf(BModuleConfig):
-    """Module Config private class."""
+    """Provide typed access to the daemon main-section configuration."""
 
     @property
     def debug(self) -> bool:
-        """Return debug var."""
+        """Return the global debug flag from the main section.
+
+        ### Returns:
+        bool - Debug flag value.
+        """
         var: Optional[bool] = self._get(_Keys.MC_DEBUG)
         if var is None:
             return False
@@ -73,7 +76,11 @@ class _ModuleConf(BModuleConfig):
 
     @property
     def verbose(self) -> bool:
-        """Return verbose var."""
+        """Return the global verbose flag from the main section.
+
+        ### Returns:
+        bool - Verbose flag value.
+        """
         var: Optional[bool] = self._get(_Keys.MC_VERBOSE)
         if var is None:
             return False
@@ -81,7 +88,14 @@ class _ModuleConf(BModuleConfig):
 
     @property
     def modules(self) -> List[str]:
-        """Return modules list."""
+        """Return the sorted list of enabled module names.
+
+        ### Returns:
+        List[str] - Sorted names of enabled runtime modules.
+
+        ### Raises:
+        * TypeError: If the configuration value is not a list of strings.
+        """
         tmp: Optional[List[str]] = self._get(_Keys.MC_MODULES)
         if tmp is None:
             return []
@@ -105,15 +119,24 @@ class _ModuleConf(BModuleConfig):
 
     @property
     def salt(self) -> int:
-        """Return salt var."""
+        """Return the password encryption salt.
+
+        ### Returns:
+        int - Salt value read from the main configuration section.
+        """
         return self._get(_Keys.MC_SALT)
 
 
 class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
-    """Configuration container class."""
+    """Manage daemon configuration, module discovery, and config generation."""
 
     def __init__(self, qlog: LoggerQueue, app_name: str) -> None:
-        """Constructor."""
+        """Initialize the application configuration service.
+
+        ### Arguments:
+        * qlog: LoggerQueue - Shared logging queue used by the configuration service.
+        * app_name: str - Name of the main application section in the config file.
+        """
         from jsktoolbox.datetool import Timestamp
 
         # class logger client
@@ -143,7 +166,11 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
         self.logs.message_info = "... complete"
 
     def load(self) -> bool:
-        """Try to load config file."""
+        """Load the configuration file and refresh discovered module settings.
+
+        ### Returns:
+        bool - `True` when the configuration was loaded successfully.
+        """
         if self.config_file is None or self._section is None:
             self.logs.message_critical = (
                 f"UNRECOVERABLE ERROR: {self._c_name}.{self._f_name}"
@@ -196,7 +223,11 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
             return False
 
     def save(self) -> bool:
-        """Try to save config file."""
+        """Persist the current configuration handler to disk.
+
+        ### Returns:
+        bool - `True` when the configuration was saved successfully.
+        """
         if self._cfh:
             if self._cfh.save():
                 if self.debug:
@@ -209,12 +240,20 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
         return False
 
     def reload(self) -> bool:
-        """Try to reload config file."""
+        """Reload the configuration file from disk.
+
+        ### Returns:
+        bool - `True` when the configuration was reloaded successfully.
+        """
         self._cfh = None
         return self.load()
 
     def __check_module_config_updates(self) -> bool:
-        """Check module configs."""
+        """Ensure that discovered modules have all required config entries.
+
+        ### Returns:
+        bool - `True` when the configuration file requires an update.
+        """
         test = False
         if self._cfh is None:
             return False
@@ -252,7 +291,12 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
         return test
 
     def __get_modules_config(self) -> Tuple[List[str], List[str], Dict]:
-        """Get modules configuration template."""
+        """Collect configuration templates for discovered communication and task modules.
+
+        ### Returns:
+        Tuple[List[str], List[str], Dict] - Communication module names, task
+        module names, and their configuration template definitions.
+        """
         # init local variables
         com_mods = list()
         run_mods = list()
@@ -283,7 +327,11 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
         return com_mods, run_mods, config
 
     def __create_config_file(self) -> bool:
-        """Try to create config file."""
+        """Create a default configuration file using discovered module templates.
+
+        ### Returns:
+        bool - `True` when the configuration file was created successfully.
+        """
         if self._cfh is None or self._section is None:
             return False
         # main section
@@ -370,33 +418,57 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
 
     @property
     def app_name(self) -> Optional[str]:
-        """Returns app name."""
+        """Return the application section name.
+
+        ### Returns:
+        Optional[str] - Main section name or `None`.
+        """
         return self.__main._get_data(key=_Keys.APP_NAME, default_value=None)
 
     @app_name.setter
     def app_name(self, value: str) -> None:
-        """Sets app name string."""
+        """Store the application section name.
+
+        ### Arguments:
+        * value: str - Main section name written to internal state.
+        """
         self.__main._set_data(key=_Keys.APP_NAME, value=value, set_default_type=str)
         self._section = value
 
     @property
     def cf(self) -> Optional[ConfigTool]:
-        """Return config file handler."""
+        """Return the bound configuration handler.
+
+        ### Returns:
+        Optional[ConfigTool] - Configuration handler or `None`.
+        """
         return self._cfh
 
     @property
     def __main(self) -> BData:
-        """Return MAIN data container."""
+        """Return the internal main-state container.
+
+        ### Returns:
+        BData - Internal state container for global configuration data.
+        """
         return self._get_data(key=_Keys.MAIN)  # type: ignore
 
     @property
     def __modules(self) -> Dict:
-        """Return MODULES dict."""
+        """Return the internal module-state container.
+
+        ### Returns:
+        Dict - Internal module state dictionary.
+        """
         return self._get_data(key=_Keys.MODULES)  # type: ignore
 
     @property
     def config_file(self) -> Optional[str]:
-        """Return config_file path string."""
+        """Return the configuration file path.
+
+        ### Returns:
+        Optional[str] - Absolute or relative path to the configuration file.
+        """
         return self.__main._get_data(
             key=_Keys.CONF_FILE,
             default_value=None,
@@ -404,7 +476,11 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
 
     @config_file.setter
     def config_file(self, value: str) -> None:
-        """Set config_file path string."""
+        """Store the configuration file path.
+
+        ### Arguments:
+        * value: str - Configuration file path.
+        """
         self.__main._set_data(
             key=_Keys.CONF_FILE,
             value=value,
@@ -413,7 +489,11 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
 
     @property
     def debug(self) -> bool:
-        """Return debug flag."""
+        """Return the effective global debug flag.
+
+        ### Returns:
+        bool - Debug flag value.
+        """
         if self.__main._get_data(key=_Keys.DEBUG, default_value=None) is None:
             self.__main._set_data(key=_Keys.DEBUG, value=False, set_default_type=bool)
         if self._cfh and self._section:
@@ -423,11 +503,22 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
 
     @debug.setter
     def debug(self, value: bool) -> None:
-        """Set debug flag."""
+        """Store the global debug flag.
+
+        ### Arguments:
+        * value: bool - Debug flag value.
+        """
         self.__main._set_data(key=_Keys.DEBUG, value=value, set_default_type=bool)
 
     def __get_modules_list(self, package: str) -> List[Union[IRunModule, IComModule]]:
-        """Get configured modules list."""
+        """Return enabled modules available in the selected package.
+
+        ### Arguments:
+        * package: str - Dotted package path, for example `modules.com`.
+
+        ### Returns:
+        List[Union[IRunModule, IComModule]] - Imported module classes enabled in config.
+        """
         out = []
         if self.module_conf and self.module_conf.modules:
             # try search importable modules and compare it to config variable list
@@ -451,51 +542,87 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
 
     @property
     def fqdn(self) -> str:
-        """Get fully qualified domain name from name."""
+        """Return the current host FQDN.
+
+        ### Returns:
+        str - Fully qualified domain name.
+        """
         return socket.getfqdn()
 
     @property
     def get_com_modules(self) -> List[IComModule]:
-        """Get configured communication modules list."""
+        """Return the enabled communication module classes.
+
+        ### Returns:
+        List[IComModule] - Imported communication module classes.
+        """
         import_from = "modules.com"
         return self.__get_modules_list(import_from)  # type: ignore
 
     @property
     def get_run_modules(self) -> List[IRunModule]:
-        """Get configured running modules list."""
+        """Return the enabled task module classes.
+
+        ### Returns:
+        List[IRunModule] - Imported task module classes.
+        """
         import_from = "modules.run"
         return self.__get_modules_list(import_from)  # type: ignore
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
-        """Return module conf object."""
+        """Return the typed main-section configuration adapter.
+
+        ### Returns:
+        Optional[_ModuleConf] - Typed configuration adapter or `None`.
+        """
         return self._get_data(key=_Keys.MODULE_CONF, default_value=None)
 
     @property
     def password(self) -> bool:
-        """Return password flag."""
+        """Return the one-shot password update flag.
+
+        ### Returns:
+        bool - Password update mode flag.
+        """
         return self.__main._get_data(key=_Keys.PASSWORD, default_value=False)  # type: ignore
 
     @password.setter
     def password(self, value: bool) -> None:
-        """Set password flag."""
+        """Store the one-shot password update flag.
+
+        ### Arguments:
+        * value: bool - Password update mode flag.
+        """
         self.__main._set_data(key=_Keys.PASSWORD, value=value, set_default_type=bool)
 
     @property
     def _password_section(self) -> Optional[str]:
-        """Return password section string."""
+        """Return the section name targeted by password update mode.
+
+        ### Returns:
+        Optional[str] - Target section name or `None`.
+        """
         return self.__main._get_data(key=_Keys.PASSWORD_SECTION, default_value=None)
 
     @_password_section.setter
     def _password_section(self, value: str) -> None:
-        """Set password section string."""
+        """Store the section name targeted by password update mode.
+
+        ### Arguments:
+        * value: str - Target section name.
+        """
         self.__main._set_data(
             key=_Keys.PASSWORD_SECTION, value=value, set_default_type=str
         )
 
     @property
     def _password_varname(self) -> Optional[str]:
-        """Return password varname string."""
+        """Return the variable name targeted by password update mode.
+
+        ### Returns:
+        Optional[str] - Target variable name or `None`.
+        """
         return self.__main._get_data(
             key=_Keys.PASSWORD_VARNAME,
             default_value=None,
@@ -503,24 +630,40 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
 
     @_password_varname.setter
     def _password_varname(self, value: str) -> None:
-        """Set password varname string."""
+        """Store the variable name targeted by password update mode.
+
+        ### Arguments:
+        * value: str - Target variable name.
+        """
         self.__main._set_data(
             key=_Keys.PASSWORD_VARNAME, value=value, set_default_type=str
         )
 
     @property
     def update(self) -> bool:
-        """Return update flag."""
+        """Return the configuration update flag.
+
+        ### Returns:
+        bool - Update mode flag.
+        """
         return self.__main._get_data(key=_Keys.CONF_UPDATE, default_value=False)  # type: ignore
 
     @update.setter
     def update(self, value: bool) -> None:
-        """Set update flag."""
+        """Store the configuration update flag.
+
+        ### Arguments:
+        * value: bool - Update mode flag.
+        """
         self.__main._set_data(key=_Keys.CONF_UPDATE, value=value, set_default_type=bool)
 
     @property
     def verbose(self) -> bool:
-        """Return verbose flag."""
+        """Return the effective global verbose flag.
+
+        ### Returns:
+        bool - Verbose flag value.
+        """
         if self.__main._get_data(key=_Keys.VERBOSE, default_value=None) is None:
             self.__main._set_data(key=_Keys.VERBOSE, value=False, set_default_type=bool)
         if self._cfh and self._section:
@@ -532,17 +675,29 @@ class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
 
     @verbose.setter
     def verbose(self, value: bool) -> None:
-        """Set verbose flag."""
+        """Store the global verbose flag.
+
+        ### Arguments:
+        * value: bool - Verbose flag value.
+        """
         self.__main._set_data(key=_Keys.VERBOSE, value=value, set_default_type=bool)
 
     @property
     def version(self) -> Optional[str]:
-        """Return version string."""
+        """Return the current application version string.
+
+        ### Returns:
+        Optional[str] - Application version string or `None`.
+        """
         return self.__main._get_data(key=_Keys.VERSION, default_value=None)
 
     @version.setter
     def version(self, value: str) -> None:
-        """Set version string."""
+        """Store the current application version string.
+
+        ### Arguments:
+        * value: str - Application version string.
+        """
         self.__main._set_data(key=_Keys.VERSION, value=value, set_default_type=str)
 
 

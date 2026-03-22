@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class DocumentContent(LmsBase):
+    """Represent the LMS DocumentContent ORM model."""
+
     __tablename__ = "documentcontents"
 
     # dummy primary key
@@ -41,6 +43,7 @@ class DocumentContent(LmsBase):
     # CONSTRAINT `documentcontents_ibfk_1` FOREIGN KEY (`docid`) REFERENCES `documents` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"DocumentContent(docid='{self.docid}', "
             f"title='{self.title}', "

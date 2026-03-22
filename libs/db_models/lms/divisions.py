@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -22,6 +22,8 @@ from libs.db_models.lms.addresses import Address
 
 
 class Division(LmsBase):
+    """Represent the LMS Division ORM model."""
+
     __tablename__ = "divisions"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -71,6 +73,7 @@ class Division(LmsBase):
     address: Mapped["Address"] = relationship("Address")
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Division(id='{self.id}', "
             f"shortname='{self.shortname}', "

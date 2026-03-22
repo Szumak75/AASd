@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 9 oct 2020
+Created on 9 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -19,6 +19,8 @@ from libs.db_models.base import LmsBase
 
 
 class Tariff(LmsBase):
+    """Represent the LMS Tariff ORM model."""
+
     __tablename__ = "tariffs"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -120,6 +122,7 @@ class Tariff(LmsBase):
     # CONSTRAINT `tariffs_taxid_fkey` FOREIGN KEY (`taxid`) REFERENCES `taxes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Tariff(id='{self.id}', "
             f"name='{self.name}', "

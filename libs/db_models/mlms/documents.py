@@ -1,8 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-Created on 6 oct 2020
+"""MLMS document model extension.
 
-@author: szumak@virthost.pl
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2020-10-06
+
+Purpose: Extend the LMS document model for MLMS-specific usage.
 """
 
 from sqlalchemy import ForeignKey, Integer, Text, String
@@ -21,4 +23,4 @@ from libs.db_models.lms.documents import Document
 
 
 class MDocument(Document):
-    """LMS documents table."""
+    """Represent the MLMS document ORM model."""

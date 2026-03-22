@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -17,6 +17,8 @@ from libs.db_models.base import LmsBase
 
 
 class Cash(LmsBase):
+    """Represent the LMS cash ORM model."""
+
     __tablename__ = "cash"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -61,6 +63,7 @@ class Cash(LmsBase):
     # CONSTRAINT `cash_userid_fkey` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Cash(id='{self.id}', "
             f"time='{self.time}', "

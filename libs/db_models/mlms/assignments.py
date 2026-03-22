@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-Created: 01.12.2023
+"""MLMS assignment model extension.
 
-Purpose: Redefine lms Assignment class.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-12-01
+
+Purpose: Extend the LMS assignment model with MLMS-specific relationships.
 """
 
 from typing import Optional
@@ -17,7 +18,7 @@ from libs.db_models.lms.assignments import Assignment
 
 
 class MAssignment(Assignment):
-    """LMS assignments table."""
+    """Represent the MLMS assignment ORM model."""
 
     tariffid: Mapped[int] = mapped_column(ForeignKey("tariffs.id"))
     customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))

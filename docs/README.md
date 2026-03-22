@@ -3,6 +3,9 @@
 This directory contains project documentation, operational notes, module guides,
 and generated API-oriented reference material for the current codebase.
 
+Deployment documentation assumes `requirements.txt` is the production runtime
+installation source, while Poetry remains a development-only tool.
+
 ## Core Documents
 
 - [Installation](./Installation.md) - environment setup and service preparation.
@@ -10,6 +13,7 @@ and generated API-oriented reference material for the current codebase.
 - [Flow](./Flow.md) - runtime flow and subsystem relationships.
 - [Architecture](./Architecture.md) - project-wide structural analysis.
 - [API](./API.md) - business logic API and runtime contracts.
+- [API Surface](./API-Surface.md) - boundary between public runtime API and internal ORM layer.
 
 ## Module Guides
 

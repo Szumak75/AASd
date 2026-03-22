@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 16 oct 2020
+Created on 16 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class LocationStreetType(LmsBase):
+    """Represent the LMS LocationStreetType ORM model."""
+
     __tablename__ = "location_street_types"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -32,4 +34,5 @@ class LocationStreetType(LmsBase):
     # PRIMARY KEY (`id`)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return f"LocationStreetType(id='{self.id}', " f"name='{self.name}' ) "

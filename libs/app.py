@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-app.py
-Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-Created: 6.11.2024, 15:34:07
+Application identity helpers.
 
-Purpose: Application name container class.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2024-11-06
+
+Purpose: Provide a small container for application identity metadata.
 """
 
 import platform
@@ -14,33 +15,54 @@ from jsktoolbox.basetool.data import BData
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Keys for the class."""
+    """Define internal storage keys for the application identity container."""
 
     APP_NAME = "app_name"
     APP_VERSION = "app_version"
 
 
 class AppName(BData):
-    """Application name container class."""
+    """Store application name and version metadata.
+
+    The class also exposes a derived host name used by modules when building
+    logs and outbound messages.
+    """
 
     def __init__(self, app_name: str, app_version: str) -> None:
-        """Initialize the class."""
+        """Initialize the application identity container.
+
+        ### Arguments:
+        * app_name: str - Runtime application name.
+        * app_version: str - Runtime application version string.
+        """
         self._set_data(key=_Keys.APP_NAME, value=app_name, set_default_type=str)
         self._set_data(key=_Keys.APP_VERSION, value=app_version, set_default_type=str)
 
     @property
     def app_name(self) -> str:
-        """Get the application name."""
+        """Return the application name.
+
+        ### Returns:
+        str - Configured application name.
+        """
         return self._get_data(key=_Keys.APP_NAME)  # type: ignore
 
     @property
     def app_version(self) -> str:
-        """Get the application version."""
+        """Return the application version.
+
+        ### Returns:
+        str - Configured application version string.
+        """
         return self._get_data(key=_Keys.APP_VERSION)  # type: ignore
 
     @property
     def app_host_name(self) -> str:
-        """Get the application host name."""
+        """Return the best available host name for the current machine.
+
+        ### Returns:
+        str - Host name resolved from the local platform APIs.
+        """
         app = platform.node()
         if app:
             return app

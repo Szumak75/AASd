@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class DocumentAttachment(LmsBase):
+    """Represent the LMS DocumentAttachment ORM model."""
+
     __tablename__ = "documentattachments"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -43,6 +45,7 @@ class DocumentAttachment(LmsBase):
     # CONSTRAINT `documentattachments_ibfk_1` FOREIGN KEY (`docid`) REFERENCES `documents` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"DocumentAttachment(id='{self.id}', "
             f"docid='{self.docid}', "

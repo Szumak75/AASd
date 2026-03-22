@@ -6,6 +6,32 @@ and runtime contracts. It is intentionally focused on the daemon, shared
 runtime services, business-task modules, and communication modules. SQLAlchemy
 schema models are listed only as dependencies, not as the primary API.
 
+## API Classification
+
+### Public Runtime API
+
+The following areas should currently be treated as the documented project API:
+
+- daemon bootstrap and runtime orchestration,
+- shared configuration and importer contracts,
+- messaging and dispatching abstractions,
+- utility helpers used directly by modules,
+- communication modules,
+- business-task modules.
+
+### Internal Integration API
+
+The following areas are internal and should not be treated as stable entry
+points for external integrations or higher-level business workflows:
+
+- `libs.db_models.base`
+- `libs.db_models.connectors`
+- `libs.db_models.lms.*`
+- `libs.db_models.mlms.*`
+
+They remain important for maintenance, query tracing, and refactoring, but they
+describe persistence structure rather than public application behavior.
+
 ## Public Runtime Entry Points
 
 ### `aasd.py`

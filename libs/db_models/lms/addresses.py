@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -28,6 +28,8 @@ from libs.db_models.lms.location_districts import LocationDistrict
 
 
 class Address(LmsBase):
+    """Represent the LMS address ORM model."""
+
     __tablename__ = "addresses"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -116,6 +118,7 @@ class Address(LmsBase):
         return None
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Address(id='{self.id}', "
             f"name='{self.name}', "

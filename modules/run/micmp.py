@@ -1,9 +1,11 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 23.11.2023
+ICMP reachability monitoring module.
 
-  Purpose: ICMP host testing module
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-11-23
+
+Purpose: Monitor configured IPv4 hosts and generate reachability notifications.
 """
 
 import time
@@ -31,10 +33,7 @@ from libs.app import AppName
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Private Keys definition class.
-
-    For internal purpose only.
-    """
+    """Define internal key names for host state tracking."""
 
     CHANGE: str = "__change__"
     HOSTS: str = "hosts"
@@ -44,11 +43,18 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
 
 class _ModuleConf(BModuleConfig):
-    """Module Config private class."""
+    """Provide typed access to the ICMP module configuration."""
 
     @property
     def hosts(self) -> Optional[List[str]]:
-        """Returns hosts IP addresses list."""
+        """Return configured IPv4 addresses to monitor.
+
+        ### Returns:
+        Optional[List[str]] - Host IPv4 addresses or `None`.
+
+        ### Raises:
+        * TypeError: If the configured value is not a list.
+        """
         var = self._get(varname=_Keys.HOSTS)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
@@ -61,10 +67,14 @@ class _ModuleConf(BModuleConfig):
 
 
 class Ipv4Test(BData):
-    """Ipv4 container class."""
+    """Track reachability state for one monitored IPv4 address."""
 
     def __init__(self, address: Address) -> None:
-        """Constructor."""
+        """Initialize the state container for a monitored host.
+
+        ### Arguments:
+        * address: Address - IPv4 address object.
+        """
         self._set_data(key=_Keys.IP, value=address, set_default_type=Address)
         now = Timestamp.now()
         self._set_data(key=_Keys.LAST_UP, value=now, set_default_type=Union[int, float])
@@ -75,12 +85,20 @@ class Ipv4Test(BData):
 
     @property
     def address(self) -> str:
-        """Returns ipv4 address object."""
+        """Return the monitored IPv4 address.
+
+        ### Returns:
+        str - IPv4 address string.
+        """
         return str(self._get_data(key=_Keys.IP))
 
     @property
     def change(self) -> bool:
-        """Returns True if change is set."""
+        """Return and clear the change marker.
+
+        ### Returns:
+        bool - `True` when host state changed since the previous read.
+        """
         if self._get_data(key=_Keys.CHANGE):
             self._set_data(key=_Keys.CHANGE, value=False)
             return True
@@ -88,24 +106,40 @@ class Ipv4Test(BData):
 
     @property
     def last_up(self) -> int:
-        """Last UP timestamp."""
+        """Return the timestamp of the last successful state.
+
+        ### Returns:
+        int - Timestamp of the last successful check.
+        """
         return self._get_data(key=_Keys.LAST_UP)  # type: ignore
 
     @property
     def last_down(self) -> int:
-        """Last down timestamp."""
+        """Return the timestamp of the last failed state.
+
+        ### Returns:
+        int - Timestamp of the last failed check.
+        """
         return self._get_data(key=_Keys.LAST_DOWN)  # type: ignore
 
     @property
     def result(self) -> bool:
-        """Returns last availability result."""
+        """Return the last known availability result.
+
+        ### Returns:
+        bool - `True` when the host is currently considered reachable.
+        """
         if self.last_up >= self.last_down:
             return True
         return False
 
     @result.setter
     def result(self, value: bool) -> None:
-        """Set result."""
+        """Update the reachability result and state-change timestamps.
+
+        ### Arguments:
+        * value: bool - Reachability result from the latest ICMP check.
+        """
         if value:
             if self.last_up <= self.last_down:
                 if self.last_up < self.last_down:
@@ -119,7 +153,7 @@ class Ipv4Test(BData):
 
 
 class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
-    """ICMP testing module."""
+    """Monitor host reachability and emit incident notifications."""
 
     def __init__(
         self,
@@ -130,7 +164,16 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         verbose: bool = False,
         debug: bool = False,
     ) -> None:
-        """Constructor."""
+        """Initialize the ICMP monitoring module.
+
+        ### Arguments:
+        * app_name: AppName - Application identity container.
+        * conf: ConfigTool - Configuration handler bound to the module section.
+        * qlog: LoggerQueue - Shared logging queue.
+        * qcom: Queue - Shared communication queue for outbound messages.
+        * verbose: bool - Initial verbose flag value.
+        * debug: bool - Initial debug flag value.
+        """
         # Thread initialization
         Thread.__init__(self, name=self._c_name)
         self._stop_event = Event()
@@ -154,7 +197,11 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         self.qcom = qcom
 
     def _apply_config(self) -> bool:
-        """Apply config from module_conf"""
+        """Apply runtime configuration to the module.
+
+        ### Returns:
+        bool - `True` when configuration was applied successfully.
+        """
         if self.module_conf is None:
             return False
 
@@ -167,7 +214,7 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         return True
 
     def run(self) -> None:
-        """Main loop."""
+        """Run the host monitoring loop and emit aggregated notifications."""
         self.logs.message_notice = "starting..."
 
         if (
@@ -287,13 +334,13 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
         self.logs.message_notice = "exit"
 
     def sleep(self) -> None:
-        """Sleep interval for main loop."""
+        """Sleep until the next loop iteration."""
         sleep_break: float = Timestamp.now() + self.sleep_period
         while not self._stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:
-        """Set stop event."""
+        """Request module shutdown."""
         if self.debug:
             self.logs.message_debug = "stop signal received"
         if self._stop_event:
@@ -301,41 +348,69 @@ class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
 
     @property
     def debug(self) -> bool:
-        """Return debug flag."""
+        """Return the effective debug flag.
+
+        ### Returns:
+        bool - Debug flag value.
+        """
         if self._bm_debug is not None:
             return self._bm_debug
         return False
 
     @property
     def verbose(self) -> bool:
-        """Return verbose flag."""
+        """Return the effective verbose flag.
+
+        ### Returns:
+        bool - Verbose flag value.
+        """
         return self._verbose
 
     @property
     def _stopped(self) -> bool:
-        """Return stop flag."""
+        """Return whether stop was requested.
+
+        ### Returns:
+        bool - `True` when stop was requested.
+        """
         if self._stop_event:
             return self._stop_event.is_set()
         return True
 
     @property
     def module_stopped(self) -> bool:
-        """Return stop flag."""
+        """Return whether the underlying thread is stopped.
+
+        ### Returns:
+        bool - `True` when the module thread is stopped.
+        """
         return self._is_stopped  # type: ignore
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
-        """Return module conf object."""
+        """Return the typed module configuration.
+
+        ### Returns:
+        Optional[_ModuleConf] - Module configuration adapter.
+        """
         return self._module_conf  # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:
-        """Return module name for configuration builder."""
+        """Return the configuration section name for this module.
+
+        ### Returns:
+        str - Lowercase configuration section name.
+        """
         return cls.__name__.lower()
 
     @classmethod
     def template_module_variables(cls) -> List[TemplateConfigItem]:
-        """Return configuration variables template."""
+        """Return configuration template items for this module.
+
+        ### Returns:
+        List[TemplateConfigItem] - Configuration template items.
+        """
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()

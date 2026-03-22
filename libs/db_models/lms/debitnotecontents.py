@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class DebitNoteContent(LmsBase):
+    """Represent the LMS DebitNoteContent ORM model."""
+
     __tablename__ = "debitnotecontents"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -40,6 +42,7 @@ class DebitNoteContent(LmsBase):
     # CONSTRAINT `debitnotecontents_docid_fkey` FOREIGN KEY (`docid`) REFERENCES `documents` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"DebitNoteContent(id='{self.id}', "
             f"docid='{self.docid}', "

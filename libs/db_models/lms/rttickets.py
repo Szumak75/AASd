@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 7 oct 2020
+Created on 7 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class RtTicket(LmsBase):
+    """Represent the LMS RtTicket ORM model."""
+
     __tablename__ = "rttickets"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -89,6 +91,7 @@ class RtTicket(LmsBase):
     # CONSTRAINT `rttickets_requestor_userid_fkey` FOREIGN KEY (`requestor_userid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"RtTicket(id='{self.id}', "
             f"queueid='{self.queueid}', "

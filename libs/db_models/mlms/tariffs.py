@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-Created: 01.12.2023
+"""MLMS tariff model extension.
 
-Purpose: Redefine the lms Tariff class.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-12-01
+
+Purpose: Extend the LMS tariff model with MLMS-specific relationships.
 """
 
 from typing import List
@@ -15,7 +16,7 @@ from libs.db_models.lms.tariffs import Tariff
 
 
 class MTariff(Tariff):
-    """LMS tariffs table."""
+    """Represent the MLMS tariff ORM model."""
 
     assignments: Mapped[List["MAssignment"]] = relationship(back_populates="tariff") # type: ignore
 

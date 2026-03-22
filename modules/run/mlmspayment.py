@@ -1,11 +1,13 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 23.11.2023
+LMS payment notification module.
 
-  Purpose: a module for generating notifications for LMS customers about the upcoming payment date.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-11-23
 
-  WWW: https://lms.org.pl/
+Purpose: Generate customer payment notifications and diagnostic reports using LMS data.
+
+WWW: https://lms.org.pl/
 """
 
 import time
@@ -40,10 +42,7 @@ import libs.db_models.lms as lms
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Private Keys definition class.
-
-    For internal purpose only.
-    """
+    """Define configuration keys, contact flags, and diagnostic storage keys."""
 
     # for configuration
     AT_CHANNEL: str = "at_channel"
@@ -86,7 +85,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
 
 class _ModuleConf(BModuleConfig):
-    """Module Config private class."""
+    """Provide typed access to the LMS payment module configuration."""
 
     @property
     def at_channel(self) -> Optional[List[str]]:
@@ -241,11 +240,7 @@ class _ModuleConf(BModuleConfig):
 
 
 class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
-    """LMS payment module.
-
-    For generating notifications for customers about the upcoming
-    payment date.
-    """
+    """Generate payment notifications and diagnostic summaries for LMS customers."""
 
     def __init__(
         self,
@@ -256,7 +251,16 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         verbose: bool = False,
         debug: bool = False,
     ) -> None:
-        """Constructor."""
+        """Initialize the LMS payment module.
+
+        ### Arguments:
+        * app_name: AppName - Application identity container.
+        * conf: ConfigTool - Configuration handler bound to the module section.
+        * qlog: LoggerQueue - Shared logging queue.
+        * qcom: Queue - Shared communication queue for outbound messages.
+        * verbose: bool - Initial verbose flag value.
+        * debug: bool - Initial debug flag value.
+        """
         # Thread initialization
         Thread.__init__(self, name=self._c_name)
         self._stop_event = Event()
@@ -286,14 +290,29 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
 
     @property
     def __diag_cont(self) -> List:
+        """Return the missing-contact diagnostic buffer.
+
+        ### Returns:
+        List - Diagnostic buffer for missing contact entries.
+        """
         return self._get_data(key=_Keys.DIAG_CONT)  # type: ignore
 
     @property
     def __diag_debt(self) -> List:
+        """Return the debt diagnostic buffer.
+
+        ### Returns:
+        List - Diagnostic buffer for debt-related entries.
+        """
         return self._get_data(key=_Keys.DIAG_DEBT)  # type: ignore
 
     @property
     def __diag_tariff(self) -> List:
+        """Return the tariff diagnostic buffer.
+
+        ### Returns:
+        List - Diagnostic buffer for tariff-related entries.
+        """
         return self._get_data(key=_Keys.DIAG_TARIFF)  # type: ignore
 
     def __clean_diagnostic(self) -> None:
@@ -303,7 +322,11 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         self.__diag_tariff.clear()
 
     def _apply_config(self) -> bool:
-        """Apply config from module_conf"""
+        """Apply runtime configuration to the module.
+
+        ### Returns:
+        bool - `True` when configuration was applied successfully.
+        """
         if self.module_conf is None:
             return False
         try:
@@ -359,7 +382,12 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
     def __get_customers_for_verification(
         self, dbh: LmsMysqlDatabase, channel: int
     ) -> None:
-        """Get list of Customers to verification."""
+        """Build diagnostic data for customers scheduled for verification.
+
+        ### Arguments:
+        * dbh: LmsMysqlDatabase - Open database connector.
+        * channel: int - Diagnostic channel identifier.
+        """
         email: int = _Keys.CONTACT_EMAIL | _Keys.CONTACT_NOTIFICATIONS
         mobile: int = _Keys.CONTACT_MOBILE | _Keys.CONTACT_NOTIFICATIONS
         disabled: int = _Keys.CONTACT_DISABLED
@@ -460,7 +488,7 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         session.close()
 
     def __get_indebted_customers(self, dbh: LmsMysqlDatabase, channel: int) -> None:
-        """Gets a list of Customers for sending notifications."""
+        """Get a list of customers for sending notifications."""
         STEEP: int = 10
         if (
             self.module_conf is None
@@ -614,7 +642,6 @@ class MLmspayment(Thread, ThBaseObject, BModule, IRunModule):
         channel: int,
     ) -> None:
         """Prepare customer email and put it to communication queue."""
-
         if (
             self.module_conf is None
             or self.module_conf.default_paytime is None
@@ -711,7 +738,6 @@ PIN: {customer_pin}
 
     def __add_diagnostic_debt(self, customer: mlms.MCustomer) -> None:
         """Create diagnostic information about customer."""
-
         if self.module_conf is None:
             return None
 
@@ -755,7 +781,6 @@ PIN: {customer_pin}
 
     def __add_diagnostic_contact(self, customer: mlms.MCustomer) -> None:
         """Create diagnostic information about customer."""
-
         if self.module_conf is None:
             return None
 
@@ -774,7 +799,6 @@ PIN: {customer_pin}
 
     def __add_diagnostic_tariff(self, customer: mlms.MCustomer) -> None:
         """Create diagnostic information about customer."""
-
         if self.module_conf is None:
             return None
 
@@ -797,7 +821,6 @@ PIN: {customer_pin}
 
     def __send_diagnostic(self, channel: int) -> None:
         """Make email notification for diagnostic channel."""
-
         if self.qcom is None:
             return None
 
@@ -922,7 +945,7 @@ div.centered table { margin: 0 auto; text-align: left; }
         self.__clean_diagnostic()
 
     def run(self) -> None:
-        """Main loop."""
+        """Run the scheduled LMS payment processing loop."""
         self.logs.message_notice = "starting..."
 
         if (
@@ -1006,13 +1029,13 @@ div.centered table { margin: 0 auto; text-align: left; }
         self.logs.message_notice = "exit"
 
     def sleep(self) -> None:
-        """Sleep interval for main loop."""
+        """Sleep until the next loop iteration."""
         sleep_break: float = Timestamp.now() + self.sleep_period
         while not self._stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:
-        """Set stop event."""
+        """Request module shutdown."""
         if self.debug:
             self.logs.message_debug = "stop signal received"
         if self._stop_event:
@@ -1020,41 +1043,69 @@ div.centered table { margin: 0 auto; text-align: left; }
 
     @property
     def debug(self) -> bool:
-        """Return debug flag."""
+        """Return the effective debug flag.
+
+        ### Returns:
+        bool - Debug flag value.
+        """
         if self._bm_debug is not None:
             return self._bm_debug
         return False
 
     @property
     def verbose(self) -> bool:
-        """Return verbose flag."""
+        """Return the effective verbose flag.
+
+        ### Returns:
+        bool - Verbose flag value.
+        """
         return self._verbose
 
     @property
     def _stopped(self) -> bool:
-        """Return stop flag."""
+        """Return whether stop was requested.
+
+        ### Returns:
+        bool - `True` when stop was requested.
+        """
         if self._stop_event:
             return self._stop_event.is_set()
         return True
 
     @property
     def module_stopped(self) -> bool:
-        """Return stop flag."""
+        """Return whether the underlying thread is stopped.
+
+        ### Returns:
+        bool - `True` when the module thread is stopped.
+        """
         return self._is_stopped  # type: ignore
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
-        """Return module conf object."""
+        """Return the typed module configuration.
+
+        ### Returns:
+        Optional[_ModuleConf] - Module configuration adapter.
+        """
         return self._module_conf  # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:
-        """Return module name for configuration builder."""
+        """Return the configuration section name for this module.
+
+        ### Returns:
+        str - Lowercase configuration section name.
+        """
         return cls.__name__.lower()
 
     @classmethod
     def template_module_variables(cls) -> List[TemplateConfigItem]:
-        """Return configuration variables template."""
+        """Return configuration template items for this module.
+
+        ### Returns:
+        List[TemplateConfigItem] - Configuration template items.
+        """
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()

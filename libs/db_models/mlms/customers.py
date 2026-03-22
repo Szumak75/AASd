@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-Created: 01.12.2023
+"""MLMS customer model extension.
 
-Purpose: extension for Customer class
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-12-01
+
+Purpose: Extend the LMS customer model with business-oriented relationships and helpers.
 """
 
 
@@ -24,7 +25,7 @@ from libs.db_models.mlms.documents import MDocument
 
 
 class MCustomer(Customer):
-    """LMS customers table."""
+    """Represent the MLMS customer ORM model."""
 
     # time of debt creation
     __debt_time: int = 0
@@ -37,13 +38,14 @@ class MCustomer(Customer):
 
     @hybrid_property
     def sum_cash(self) -> float:
+        """Return the sum of all customer cash operations."""
         if self.cash_operations:
             return sum(cash.value for cash in self.cash_operations)
         return 0.0
 
     @hybrid_property
     def balance(self) -> float:
-        """Returns balance of cash operations."""
+        """Return the current balance derived from cash operations."""
         balance: float = self.sum_cash
         if balance >= 0:
             return balance
@@ -65,24 +67,23 @@ class MCustomer(Customer):
 
     @property
     def debt_timestamp(self) -> int:
-        """Returns time of debt creation."""
+        """Return the timestamp when the outstanding debt started."""
         return self.__debt_time
 
     @property
     def pay_time(self) -> int:
-        """Returns pay time as number of days."""
+        """Return the effective payment term in days."""
         if self.__pay_time > 0:
             return self.__pay_time
         return self.paytime
 
     @hybrid_property
     def has_active_node(self) -> Optional[bool]:
-        """Checks active nodes.
+        """Check whether the customer has at least one active node.
 
-        Returns:
-        - True, if at last one node is active,
-        - False, if no node is active,
-        - None, if there are no nodes,
+        ### Returns:
+        Optional[bool] - `True` when any node is active, `False` when nodes exist
+        but all are inactive, or `None` when no nodes are assigned.
         """
         count = 0
         test = False
@@ -97,7 +98,7 @@ class MCustomer(Customer):
 
     @hybrid_property
     def tariffs(self) -> List[MTariff]:
-        """Return list of Tariffs."""
+        """Return the list of tariffs assigned to the customer."""
         out = []
         for item in self.assignments:
             assignment: MAssignment = item

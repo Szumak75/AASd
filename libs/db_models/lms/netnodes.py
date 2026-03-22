@@ -23,6 +23,8 @@ from libs.db_models.lms.divisions import Division
 
 
 class NetNode(LmsBase):
+    """Represent the LMS NetNode ORM model."""
+
     __tablename__ = "netnodes"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -72,6 +74,7 @@ class NetNode(LmsBase):
     division: Mapped["Division"] = relationship("Division")
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"NetNode(id='{self.id}', "
             f"name='{self.name}', "

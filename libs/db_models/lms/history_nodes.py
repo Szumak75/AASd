@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 17 nov 2020
+Created on 17 nov 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class HistoryNode(LmsBase):
+    """Represent the LMS HistoryNode ORM model."""
+
     __tablename__ = "history_nodes"
 
     # `id` int(11) NOT NULL,
@@ -39,6 +41,7 @@ class HistoryNode(LmsBase):
     messages: Mapped[str] = mapped_column(TEXT(), nullable=False)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"HistoryNode(id='{self.id}', "
             f"nodeid='{self.nodeid}', "

@@ -1,5 +1,11 @@
 # Installation
 
+## Environment Policy
+
+- Poetry is used only in development environments.
+- Production and deployment environments should install runtime packages from `requirements.txt`.
+- `requirements.txt` is generated from the current Poetry runtime lock set and is the supported deployment input.
+
 ## Prerequisite
 
 - `master` and future releases are now targeted against Python 3.11 or newer,
@@ -74,11 +80,30 @@ source /opt/AASd/.venv/bin/activate.csh
 
 ## Install the requirements with `pip`
 
+This is the recommended installation path for production and deployment
+environments.
+
 ```
 cd /opt/AASd
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+## Development Workflow
+
+Poetry is reserved for development work such as dependency management, testing,
+linting, type checking, and documentation generation.
+
+Typical development setup:
+
+```bash
+poetry install
+poetry run pytest
+make docs
+```
+
+If runtime dependencies are changed in Poetry, `requirements.txt` should be
+refreshed before preparing a production deployment.
 
 ## Generating a configuration file
 

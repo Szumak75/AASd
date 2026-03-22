@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class InvoiceContent(LmsBase):
+    """Represent the LMS InvoiceContent ORM model."""
+
     __tablename__ = "invoicecontents"
 
     # dummy primary key
@@ -65,6 +67,7 @@ class InvoiceContent(LmsBase):
     # CONSTRAINT `invoicecontents_taxid_fkey` FOREIGN KEY (`taxid`) REFERENCES `taxes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"InvoiceContent(docid='{self.docid}', "
             f"itemid='{self.itemid}', "

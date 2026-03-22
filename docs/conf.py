@@ -15,10 +15,12 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT_DIR))
 
+from server import __version__
+
 project = "AASd"
 author = "Jacek 'Szumak' Kotlarski"
 copyright = "2026, Jacek 'Szumak' Kotlarski"
-release = "1.0.6-DEV"
+release = __version__
 
 extensions = [
     "myst_parser",

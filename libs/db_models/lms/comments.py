@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class Comment(LmsBase):
+    """Represent the LMS comment ORM model."""
+
     __tablename__ = "comments"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -46,6 +48,7 @@ class Comment(LmsBase):
     # CONSTRAINT `comments_domain_id_fkey` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Comment(id='{self.id}', "
             f"domain_id='{self.domain_id}', "

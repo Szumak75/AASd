@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 7 oct 2020
+Created on 7 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class RtCategory(LmsBase):
+    """Represent the LMS RtCategory ORM model."""
+
     __tablename__ = "rtcategories"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -37,6 +39,7 @@ class RtCategory(LmsBase):
     # UNIQUE KEY `name` (`name`)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"RtCategory(id='{self.id}', "
             f"name='{self.name}', "

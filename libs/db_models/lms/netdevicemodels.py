@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 7 oct 2020
+Created on 7 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class NetDeviceModel(LmsBase):
+    """Represent the LMS NetDeviceModel ORM model."""
+
     __tablename__ = "netdevicemodels"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -39,6 +41,7 @@ class NetDeviceModel(LmsBase):
     # CONSTRAINT `netdevicemodels_ibfk_1` FOREIGN KEY (`netdeviceproducerid`) REFERENCES `netdeviceproducers` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"NetDeviceModel(id='{self.id}', "
             f"netdeviceproducerid='{self.netdeviceproducerid}', "

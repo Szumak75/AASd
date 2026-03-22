@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 17 nov 2020
+Created on 17 nov 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class UpCustomer(LmsBase):
+    """Represent the LMS UpCustomer ORM model."""
+
     __tablename__ = "up_customers"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -41,6 +43,7 @@ class UpCustomer(LmsBase):
     enabled: Mapped[int] = mapped_column(INTEGER(10), nullable=False, default=0)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"UpCustomer(id='{self.id}', "
             f"customerid='{self.customerid}', "

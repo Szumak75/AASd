@@ -1,9 +1,11 @@
 # -*- coding: UTF-8 -*-
 """
-Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-Created: 13.11.2023
+ICMP and traceroute helpers.
 
-Purpose: ICMP testing tools.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-11-13
+
+Purpose: Provide shell-based helpers for ICMP reachability and traceroute tests.
 """
 
 import os
@@ -20,10 +22,7 @@ from jsktoolbox.basetool.data import BData
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Private Keys definition class.
-
-    For internal purpose only.
-    """
+    """Define internal storage keys for ICMP and traceroute helpers."""
 
     CMD: str = "cmd"
     COMMAND: str = "__command_found__"
@@ -34,13 +33,13 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
 
 class Pinger(BData):
-    """Pinger class for testing ICMP echo."""
+    """Check IPv4 reachability using system ICMP tools."""
 
     def __init__(self, timeout: int = 1) -> None:
-        """Constructor.
+        """Initialize the ICMP helper.
 
-        Arguments:
-        - timeout [int] - timeout in seconds
+        ### Arguments:
+        * timeout: int - Timeout in seconds used by the underlying command.
         """
         self._set_data(key=_Keys.TIMEOUT, value=timeout, set_default_type=int)
         self._set_data(key=_Keys.COMMANDS, value=[], set_default_type=List)
@@ -76,7 +75,17 @@ class Pinger(BData):
             self._set_data(key=_Keys.MULTIPLIER, value=multiplier)
 
     def is_alive(self, ip: str) -> bool:
-        """Check ICMP echo response."""
+        """Check whether the target IPv4 address responds to ICMP echo.
+
+        ### Arguments:
+        * ip: str - IPv4 address to test.
+
+        ### Returns:
+        bool - `True` when the target host responds.
+
+        ### Raises:
+        * ChildProcessError: If no supported ICMP command is available.
+        """
         command: Optional[str] = self._get_data(key=_Keys.COMMAND)
         timeout: int = self._get_data(key=_Keys.TIMEOUT)  # type: ignore
         multiplier: int = self._get_data(key=_Keys.MULTIPLIER)  # type: ignore
@@ -100,7 +109,11 @@ class Pinger(BData):
 
     @property
     def __is_tool(self) -> Optional[tuple]:
-        """Check system command."""
+        """Find a working ICMP command implementation.
+
+        ### Returns:
+        Optional[tuple] - Command template and timeout multiplier or `None`.
+        """
         for cmd in self._get_data(key=_Keys.COMMANDS):  # type: ignore
             if find_executable(cmd[_Keys.CMD]) is not None:
                 test_cmd: str = f"{cmd[_Keys.CMD]} {cmd[_Keys.OPTS]}"
@@ -119,43 +132,49 @@ class Pinger(BData):
 
 
 class Tracert(BData):
-    """Tracert class for testing route to IPv4 address."""
+    """Execute traceroute against an IPv4 address using system tools."""
 
     def __init__(self) -> None:
-        """Constructor."""
+        """Initialize the traceroute helper and detect a working command."""
         self._set_data(key=_Keys.COMMANDS, value=[], set_default_type=List)
-        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
+        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-I -q2 -S -e -w1 -n -m 10",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
+        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-P UDP -q2 -S -e -w1 -n -m 10",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
+        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-I -q2 -e -w1 -n -m 10",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
+        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-U -q2 -e -w1 -n -m 10",
             }
         )
         self._set_data(
-            key=_Keys.COMMAND, value=self.__is_tool, set_default_type=Optional[Dict]
+            key=_Keys.COMMAND,
+            value=self.__is_tool,
+            set_default_type=Optional[Dict]
         )
 
     @property
     def __is_tool(self) -> Optional[Dict]:
-        """Check system commend."""
-        for cmd in self._get_data(key=_Keys.COMMANDS):  # type: ignore
+        """Find a working traceroute command implementation.
+
+        ### Returns:
+        Optional[Dict] - Command descriptor or `None`.
+        """
+        for cmd in self._get_data(key=_Keys.COMMANDS): # type: ignore
             if find_executable(cmd[_Keys.CMD]) is not None:
                 if (
                     os.system(
@@ -171,8 +190,18 @@ class Tracert(BData):
         return None
 
     def execute(self, ip: str) -> List[str]:
-        """Traceroute to given IPv4 address."""
-        command: Optional[Dict] = self._get_data(key=_Keys.COMMAND)
+        """Execute traceroute for the selected IPv4 address.
+
+        ### Arguments:
+        * ip: str - IPv4 address to trace.
+
+        ### Returns:
+        List[str] - Raw traceroute output lines.
+
+        ### Raises:
+        * ChildProcessError: If no supported traceroute command is available.
+        """
+        command:Optional[Dict]=self._get_data(key=_Keys.COMMAND)
         if command is None:
             raise Raise.error(
                 "Command for testing ICMP echo not found.",

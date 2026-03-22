@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 7 oct 2020
+Created on 7 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class NetDeviceProducer(LmsBase):
+    """Represent the LMS NetDeviceProducer ORM model."""
+
     __tablename__ = "netdeviceproducers"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -35,6 +37,7 @@ class NetDeviceProducer(LmsBase):
     # UNIQUE KEY `name` (`name`)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"NetDeviceProducer(id='{self.id}', "
             f"name='{self.name}', "

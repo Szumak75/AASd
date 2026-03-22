@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 7 oct 2020
+Created on 7 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class RtTicketCategory(LmsBase):
+    """Represent the LMS RtTicketCategory ORM model."""
+
     __tablename__ = "rtticketcategories"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -38,6 +40,7 @@ class RtTicketCategory(LmsBase):
     # CONSTRAINT `rtticketcategories_ibfk_2` FOREIGN KEY (`categoryid`) REFERENCES `rtcategories` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"RtTicketCategory(id='{self.id}', "
             f"ticketid='{self.ticketid}', "

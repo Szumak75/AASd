@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 7 oct 2020
+Created on 7 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class NetLink(LmsBase):
+    """Represent the LMS NetLink ORM model."""
+
     __tablename__ = "netlinks"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -56,6 +58,7 @@ class NetLink(LmsBase):
     # CONSTRAINT `netlinks_src_fkey` FOREIGN KEY (`src`) REFERENCES `netdevices` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"NetLink(id='{self.id}', "
             f"src='{self.src}', "

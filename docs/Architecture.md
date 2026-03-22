@@ -146,6 +146,33 @@ The business modules currently depend directly on:
 This means domain logic and data access are only partially separated at the
 moment.
 
+### API Boundary Decision
+
+For documentation and refactoring purposes, the project should treat the
+runtime layer as the public API and the ORM layer as internal infrastructure.
+
+Public documentation surface:
+
+- `server.daemon`
+- `libs.app`
+- `libs.conf`
+- `libs.base.classes`
+- `libs.com.message`
+- `libs.tools.*` used by runtime modules
+- `libs.templates.modules`
+- `modules.com.*`
+- `modules.run.*`
+
+Internal documentation surface:
+
+- `libs.db_models.lms.*`
+- `libs.db_models.mlms.*`
+- `libs.db_models.base`
+- `libs.db_models.connectors`
+
+The ORM tree still needs docstrings and maintenance documentation, but it
+should not be presented as the stable entry point for application behavior.
+
 ## Current Strengths
 
 - Clear runtime split between daemon core, task modules, and communication modules.
@@ -161,7 +188,6 @@ moment.
   descriptions are inconsistent.
 - The database-backed modules have direct knowledge of SQLAlchemy models and
   query details, which makes later refactoring harder.
-- There is no dedicated documentation generator configured in the repository.
 - Existing Markdown documentation covers selected modules but not the shared API surface.
 
 ## Recommended Documentation Strategy
@@ -171,7 +197,8 @@ Before the planned refactoring, the safest documentation-first path is:
 1. Normalize docstrings in the shared infrastructure and business modules.
 2. Keep a curated Markdown API reference for the current public runtime surface.
 3. Document runtime contracts before extracting services or refactoring modules.
-4. Separate operational docs from API docs and from future architecture notes.
+4. Keep ORM models documented but outside the public API reference.
+5. Separate operational docs from API docs and from future architecture notes.
 
 This document is intended to serve as the project-wide architectural baseline
 for that work.

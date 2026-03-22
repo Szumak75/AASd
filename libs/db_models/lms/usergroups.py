@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 9 oct 2020
+Created on 9 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class UserGroup(LmsBase):
+    """Represent the LMS UserGroup ORM model."""
+
     __tablename__ = "usergroups"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -35,6 +37,7 @@ class UserGroup(LmsBase):
     # UNIQUE KEY `name` (`name`)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"UserGroup(id='{self.id}', "
             f"name='{self.name}', "
