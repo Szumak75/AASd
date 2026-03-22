@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This module provides a simple way to create and rotate ZFS snapshots. 
+This module provides a simple way to create and rotate ZFS snapshots.
 Is dedicated and tested on the FreeBSD system.
 
 At intervals specified by the optional `sleep_period` parameter (default: 5 seconds), the module checks whether the procedure startup time specified by the `snapshot_interval` parameter has been reached.
@@ -51,8 +51,8 @@ To create daily snapshots every 5 minutes for the `tank/data` volume, use the co
 ```
 [mzfssnapshot]
 message_channel = ['1']
-volumes = ['tank/data'] 
+volumes = ['tank/data']
 max_snapshot_count = 288
-snapshot_interval = "5m" 
-min_free_space = 20 
+snapshot_interval = "5m"
+min_free_space = 20
 ```

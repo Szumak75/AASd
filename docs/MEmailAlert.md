@@ -19,10 +19,10 @@ Module intended for sending e-mail notifications. There are two copies of this m
 # address_to [list] - destination list of emails,
 # can be overridden by properties of the Message class if set.
 channel = 1
-smtp_server = 
-smtp_user = 
-smtp_pass = 
-address_from = 
+smtp_server =
+smtp_user =
+smtp_pass =
+address_from =
 address_to = []
 # -----<end of section: 'memailalert'>-----
 ```

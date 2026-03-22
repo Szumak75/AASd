@@ -23,3 +23,16 @@ The project is dedicated and tested on FreeBSD platforms, most of the modules sh
 1. [Installation](https://github.com/Szumak75/AASd/blob/master/docs/Installation.md)
 1. [Modules](https://github.com/Szumak75/AASd/blob/master/docs/Modules.md)
 1. [Flow Diagram](https://github.com/Szumak75/AASd/blob/master/docs/Flow.md)
+1. [Architecture Analysis](https://github.com/Szumak75/AASd/blob/master/docs/Architecture.md)
+1. [Business Logic API](https://github.com/Szumak75/AASd/blob/master/docs/API.md)
+
+## Documentation Build
+
+The repository now includes a Sphinx-based documentation toolchain with MyST
+Markdown support.
+
+```bash
+make docs
+```
+
+Generated HTML output is written to `docs/_build/html/`.
