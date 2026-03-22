@@ -35,11 +35,11 @@ from jsktoolbox.stringtool.crypto import SimpleCrypto
 from libs.base import DebugMixin, LogsMixin, ModuleMixin
 from libs.db_models.mlms.assignments import MAssignment
 from libs.db_models.mlms.nodeassignments import MNodeAssignment
-from libs.interfaces.modules import IRunModule
+from libs.interfaces import IRunModule
 from libs.base import ModuleConfigMixin
-from libs.templates.modules import TemplateConfigItem
+from libs.templates import TemplateConfigItem
 from libs.com.message import Message, Multipart, Channel, AtChannel
-from libs.app import AppName
+from libs import AppName
 
 from libs.db_models.connectors import LmsMysqlDatabase
 import libs.db_models.mlms as mlms

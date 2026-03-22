@@ -8,10 +8,10 @@
 
 import unittest
 
-from datetime import datetime, timedelta, timezone, tzinfo
-from time import time
+from datetime import datetime, timedelta
+from unittest.mock import patch
 
-from libs.tools.datetool import MDateTime, MIntervals
+from libs.tools import MDateTime, MIntervals
 
 
 class TestDateTime(unittest.TestCase):
@@ -32,6 +32,41 @@ class TestDateTime(unittest.TestCase):
     def test_04_datetime_datetime_from_timestamp(self) -> None:
         """Test nr 04."""
         self.assertIsInstance(MDateTime.datetime_from_timestamp(10), datetime)
+
+    def test_05_date_now(self) -> None:
+        """Test nr 05."""
+        self.assertRegex(MDateTime.date_now(), r"^\d{4}-\d{2}-\d{2}$")
+
+    def test_06_datetime_now(self) -> None:
+        """Test nr 06."""
+        self.assertRegex(MDateTime.datetime_now(), r"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$")
+
+    def test_07_email_date(self) -> None:
+        """Test nr 07."""
+        self.assertRegex(
+            MDateTime.email_date(),
+            r"^[A-Z][a-z]{2}, \d{2} [A-Z][a-z]{2} \d{4} \d{2}:\d{2}:\d{2} [+-]\d{4}$",
+        )
+
+    @patch("libs.tools.datetool.MDateTime.now")
+    def test_08_mfi_date(self, mock_now) -> None:
+        """Test nr 08."""
+        mock_now.return_value = datetime(2026, 3, 22, 12, 34, 56)
+
+        self.assertEqual(
+            MDateTime.mfi_date(),
+            {
+                "day": "Sun Mar 22",
+                "year": "2026",
+            },
+        )
+
+    @patch("libs.tools.datetool.MDateTime.now")
+    def test_09_zfs_snapshot_date(self, mock_now) -> None:
+        """Test nr 09."""
+        mock_now.return_value = datetime(2026, 3, 22, 12, 34, 56)
+
+        self.assertEqual(MDateTime.zfs_snapshot_date(), "20260322-123456")
 
 
 class TestIntervals(unittest.TestCase):
@@ -68,6 +103,10 @@ class TestIntervals(unittest.TestCase):
         """Test nr 07."""
         with self.assertRaises(ValueError):
             self.mi.convert("abc")
+
+    def test_08_interval_with_space(self) -> None:
+        """Test nr 08."""
+        self.assertEqual(self.mi.convert("10 m"), 600)
 
 
 # #[EOF]#######################################################################

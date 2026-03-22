@@ -11,7 +11,7 @@ Purpose: Define abstract interfaces implemented by communication and task module
 from abc import ABC, abstractmethod
 from typing import Optional, Any, List
 
-from libs.templates.modules import TemplateConfigItem
+from libs.templates import TemplateConfigItem
 
 
 class __IModule(ABC):

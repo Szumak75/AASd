@@ -28,12 +28,12 @@ from jsktoolbox.stringtool.crypto import SimpleCrypto
 from jsktoolbox.datetool import Timestamp
 
 from libs.base import ModuleMixin
-from libs.interfaces.modules import IComModule
+from libs.interfaces import IComModule
 from libs.base import ModuleConfigMixin
-from libs.templates.modules import TemplateConfigItem
+from libs.templates import TemplateConfigItem
 from libs.com.message import Message, Multipart
-from libs.tools.datetool import MDateTime
-from libs.app import AppName
+from libs.tools import MDateTime
+from libs import AppName
 
 # https://realpython.com/python-send-email/
 # https://docs.python.org/3/library/email.examples.html#email-examples

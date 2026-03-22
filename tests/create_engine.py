@@ -36,11 +36,11 @@ from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import Timestamp
 
 from libs.base import DebugMixin, LogsMixin, ModuleMixin
-from libs.interfaces.modules import IRunModule
+from libs.interfaces import IRunModule
 from libs.base import ModuleConfigMixin
-from libs.templates.modules import TemplateConfigItem
+from libs.templates import TemplateConfigItem
 from libs.com.message import Message, Multipart, AtChannel
-from libs.tools.datetool import MDateTime
+from libs.tools import MDateTime
 
 import libs.db_models.mlms as mlms
 

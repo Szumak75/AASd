@@ -8,17 +8,13 @@ Created: 2024-11-06
 Purpose: Provide a small container for application identity metadata.
 """
 
+from inspect import currentframe
 import platform
 import socket
+from typing import Optional
 from jsktoolbox.attribtool import ReadOnlyClass
-from jsktoolbox.basetool.data import BData
-
-
-class _Keys(object, metaclass=ReadOnlyClass):
-    """Define internal storage keys for the application identity container."""
-
-    APP_NAME = "app_name"
-    APP_VERSION = "app_version"
+from jsktoolbox.basetool import BData
+from jsktoolbox.raisetool import Raise
 
 
 class AppName(BData):
@@ -28,6 +24,12 @@ class AppName(BData):
     logs and outbound messages.
     """
 
+    class __Keys(object, metaclass=ReadOnlyClass):
+        """Define internal storage keys for the application identity container."""
+
+        APP_NAME = "app_name"
+        APP_VERSION = "app_version"
+
     def __init__(self, app_name: str, app_version: str) -> None:
         """Initialize the application identity container.
 
@@ -35,8 +37,10 @@ class AppName(BData):
         * app_name: str - Runtime application name.
         * app_version: str - Runtime application version string.
         """
-        self._set_data(key=_Keys.APP_NAME, value=app_name, set_default_type=str)
-        self._set_data(key=_Keys.APP_VERSION, value=app_version, set_default_type=str)
+        self._set_data(key=self.__Keys.APP_NAME, value=app_name, set_default_type=str)
+        self._set_data(
+            key=self.__Keys.APP_VERSION, value=app_version, set_default_type=str
+        )
 
     @property
     def app_name(self) -> str:
@@ -45,7 +49,15 @@ class AppName(BData):
         ### Returns:
         str - Configured application name.
         """
-        return self._get_data(key=_Keys.APP_NAME)  # type: ignore
+        obj: Optional[str] = self._get_data(key=self.__Keys.APP_NAME)
+        if obj is None:
+            raise Raise.error(
+                "Internal error: application name is not set.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        return obj
 
     @property
     def app_version(self) -> str:
@@ -54,7 +66,15 @@ class AppName(BData):
         ### Returns:
         str - Configured application version string.
         """
-        return self._get_data(key=_Keys.APP_VERSION)  # type: ignore
+        obj: Optional[str] = self._get_data(key=self.__Keys.APP_VERSION)
+        if obj is None:
+            raise Raise.error(
+                "Internal error: application version is not set.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        return obj
 
     @property
     def app_host_name(self) -> str:

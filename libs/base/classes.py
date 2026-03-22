@@ -11,17 +11,19 @@ Purpose: Provide shared mixin-style helper classes used by the daemon and runtim
 import os
 
 from inspect import currentframe
-from typing import Optional, List, Any, Union
+from typing import TYPE_CHECKING, Optional, List, Any, Union
 from queue import Queue
 
 from jsktoolbox.raisetool import Raise
-from jsktoolbox.basetool.data import BData
-from jsktoolbox.logstool.logs import LoggerClient
-from jsktoolbox.configtool.main import Config as ConfigTool
+from jsktoolbox.basetool import BData
+from jsktoolbox.logstool import LoggerClient
+from jsktoolbox.configtool import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
 
-from libs.keys import Keys
-from libs.app import AppName
+from libs import AppName, Keys
+
+if TYPE_CHECKING:
+    from libs import AppConfig
 
 
 class AppNameMixin(BData):
@@ -34,7 +36,15 @@ class AppNameMixin(BData):
         ### Returns:
         AppName - Runtime application identity container.
         """
-        return self._get_data(key=Keys.APP_NAME)  # type: ignore
+        obj: Optional[AppName] = self._get_data(key=Keys.APP_NAME, default_value=None)
+        if obj is None:
+            raise Raise.error(
+                "Application identity not set.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        return obj
 
     @application.setter
     def application(self, value: AppName) -> None:
@@ -270,7 +280,15 @@ class LogsMixin(BData):
             self._set_data(
                 key=Keys.CLOG, value=LoggerClient(), set_default_type=LoggerClient
             )
-        return self._get_data(key=Keys.CLOG)  # type: ignore
+        out: Optional[LoggerClient] = self._get_data(key=Keys.CLOG, default_value=None)
+        if out is None:
+            raise Raise.error(
+                "Logger client not set.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        return out
 
     @logs.setter
     def logs(self, logs: LoggerClient) -> None:
@@ -307,10 +325,8 @@ class ComMixin(BData):
 class ConfigMixin(BData):
     """Mixin that exposes a typed application configuration property."""
 
-    from libs.conf import AppConfig
-
     @property
-    def conf(self) -> Optional[AppConfig]:
+    def conf(self) -> Optional["AppConfig"]:
         """Return the bound application configuration object.
 
         ### Returns:
@@ -319,13 +335,13 @@ class ConfigMixin(BData):
         return self._get_data(key=Keys.CONF, default_value=None)
 
     @conf.setter
-    def conf(self, conf: AppConfig) -> None:
+    def conf(self, conf: "AppConfig") -> None:
         """Store the application configuration object.
 
         ### Arguments:
         * conf: AppConfig - Application configuration object.
         """
-        from libs.conf import AppConfig
+        from libs import AppConfig
 
         self._set_data(key=Keys.CONF, value=conf, set_default_type=AppConfig)
 
@@ -352,15 +368,20 @@ class ModuleMixin(
         ### Returns:
         bool - Effective debug flag derived from runtime state and configuration.
         """
-        if self._get_data(key=Keys.DEBUG, default_value=None) is None:
+
+        cfh_debug: Optional[bool] = (
+            self._cfh.get(self._section, ModuleMixin.Keys.DEBUG)
+            if self._cfh and self._section
+            else None
+        )
+        debug: Optional[bool] = self._get_data(key=Keys.DEBUG, default_value=None)
+
+        if debug is None:
             self._set_data(key=Keys.DEBUG, value=False, set_default_type=bool)
-        if (
-            self._cfh
-            and self._section
-            and self._cfh.get(self._section, ModuleMixin.Keys.DEBUG) is not None
-        ):
-            return self._cfh.get(self._section, ModuleMixin.Keys.DEBUG) or self._get_data(key=Keys.DEBUG)  # type: ignore
-        return self._get_data(key=Keys.DEBUG)  # type: ignore
+            debug = False
+        if cfh_debug is not None:
+            return cfh_debug or debug
+        return debug
 
     @_bm_debug.setter
     def _bm_debug(self, debug: bool) -> None:
@@ -378,9 +399,10 @@ class ModuleMixin(
         ### Returns:
         Optional[ModuleConfigMixin] - Module configuration adapter or `None`.
         """
-        return self._get_data(
+        out: Optional[ModuleConfigMixin] = self._get_data(
             key=ModuleConfigMixin.Keys.MODULE_CONF, default_value=None
-        )  # type: ignore
+        )
+        return out
 
     @_module_conf.setter
     def _module_conf(self, value: ModuleConfigMixin) -> None:
@@ -402,15 +424,19 @@ class ModuleMixin(
         ### Returns:
         bool - Effective verbose flag derived from runtime state and configuration.
         """
-        if self._get_data(key=Keys.VERBOSE, default_value=None) is None:
+        cfh_verbose: Optional[bool] = (
+            self._cfh.get(self._section, ModuleMixin.Keys.VERBOSE)
+            if self._cfh and self._section
+            else None
+        )
+        verbose: Optional[bool] = self._get_data(key=Keys.VERBOSE, default_value=None)
+
+        if verbose is None:
             self._set_data(key=Keys.VERBOSE, value=False, set_default_type=bool)
-        if (
-            self._cfh
-            and self._section
-            and self._cfh.get(self._section, ModuleMixin.Keys.VERBOSE) is not None
-        ):
-            return self._cfh.get(self._section, ModuleMixin.Keys.VERBOSE) or self._get_data(key=Keys.VERBOSE)  # type: ignore
-        return self._get_data(key=Keys.VERBOSE)  # type: ignore
+            verbose = False
+        if cfh_verbose is not None:
+            return cfh_verbose or verbose
+        return verbose
 
     @_verbose.setter
     def _verbose(self, verbose: bool) -> None:
@@ -432,7 +458,11 @@ class DebugMixin(BData):
         ### Returns:
         bool - Debug flag value.
         """
-        return self._get_data(key=Keys.DEBUG, default_value=False)  # type: ignore
+        out: Optional[bool] = self._get_data(key=Keys.DEBUG, default_value=None)
+        if out is None:
+            self._set_data(key=Keys.DEBUG, value=False, set_default_type=bool)
+            out = False
+        return out
 
     @_debug.setter
     def _debug(self, debug: bool) -> None:
@@ -454,7 +484,11 @@ class VerboseMixin(BData):
         ### Returns:
         bool - Verbose flag value.
         """
-        return self._get_data(key=Keys.VERBOSE, default_value=False)  # type: ignore
+        out: Optional[bool] = self._get_data(key=Keys.VERBOSE, default_value=None)
+        if out is None:
+            self._set_data(key=Keys.VERBOSE, value=False, set_default_type=bool)
+            out = False
+        return out
 
     @_verbose.setter
     def _verbose(self, verbose: bool) -> None:

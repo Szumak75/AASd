@@ -18,15 +18,8 @@ from inspect import currentframe
 
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import DateTime
-from jsktoolbox.basetool.data import BData
+from jsktoolbox.basetool import BData
 from jsktoolbox.attribtool import ReadOnlyClass
-
-
-class _Keys(object, metaclass=ReadOnlyClass):
-    """Define internal storage keys for date and interval helpers."""
-
-    RE: str = "__re__"
-    NAME: str = "__name__"
 
 
 class MDateTime(DateTime):
@@ -85,15 +78,21 @@ class MDateTime(DateTime):
 class MIntervals(BData):
     """Convert human-readable interval definitions to seconds."""
 
+    class __Keys(object, metaclass=ReadOnlyClass):
+        """Define internal storage keys for date and interval helpers."""
+
+        RE: str = "__re__"
+        NAME: str = "__name__"
+
     def __init__(self, module_name: str) -> None:
         """Initialize the interval converter.
 
         ### Arguments:
         * module_name: str - Name of the caller used in error reporting.
         """
-        self._set_data(key=_Keys.NAME, value=module_name, set_default_type=str)
+        self._set_data(key=self.__Keys.NAME, value=module_name, set_default_type=str)
         self._set_data(
-            key=_Keys.RE,
+            key=self.__Keys.RE,
             value=re.compile(r"(\d+)\s*([wdhms]*)", re.IGNORECASE),
             set_default_type=Pattern,
         )
@@ -110,7 +109,15 @@ class MIntervals(BData):
         ### Raises:
         * ValueError: If the value cannot be parsed.
         """
-        _re: Pattern[str] = self._get_data(key=_Keys.RE)  # type: ignore
+        obj: Optional[Pattern[str]] = self._get_data(key=self.__Keys.RE)
+        if obj is None:
+            raise Raise.error(
+                "Internal error: regular expression pattern is not set.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        _re: Pattern[str] = obj
         match: Optional[Match[str]] = _re.match(value)
 
         if match is None:

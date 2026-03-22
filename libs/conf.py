@@ -15,11 +15,12 @@ from typing import Dict, Optional, List, Union, Tuple
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
-from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
-from jsktoolbox.configtool.main import Config as ConfigTool
-from jsktoolbox.stringtool.crypto import SimpleCrypto
-from jsktoolbox.basetool.data import BData
+from jsktoolbox.logstool import LoggerClient, LoggerQueue
+from jsktoolbox.configtool import Config as ConfigTool
+from jsktoolbox.stringtool import SimpleCrypto
+from jsktoolbox.basetool import BData
 
+from libs import AppName
 from libs.base import (
     ConfigHandlerMixin,
     ConfigSectionMixin,
@@ -28,8 +29,8 @@ from libs.base import (
     ModuleConfigMixin,
 )
 
-from libs.interfaces.modules import IComModule, IRunModule
-from libs.templates.modules import TemplateConfigItem
+from libs.interfaces import IComModule, IRunModule
+from libs.templates import TemplateConfigItem
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -127,9 +128,7 @@ class _ModuleConf(ModuleConfigMixin):
         return self._get(_Keys.MC_SALT)
 
 
-class AppConfig(
-    LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
-):
+class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin):
     """Manage daemon configuration, module discovery, and config generation."""
 
     def __init__(self, qlog: LoggerQueue, app_name: str) -> None:
@@ -453,7 +452,15 @@ class AppConfig(
         ### Returns:
         BData - Internal state container for global configuration data.
         """
-        return self._get_data(key=_Keys.MAIN)  # type: ignore
+        obj: Optional[BData] = self._get_data(key=_Keys.MAIN)
+        if obj is None:
+            raise Raise.error(
+                "Main state container is not initialized.",
+                RuntimeError,
+                self._c_name,
+                currentframe(),
+            )
+        return obj
 
     @property
     def __modules(self) -> Dict:
@@ -462,7 +469,15 @@ class AppConfig(
         ### Returns:
         Dict - Internal module state dictionary.
         """
-        return self._get_data(key=_Keys.MODULES)  # type: ignore
+        obj: Optional[Dict] = self._get_data(key=_Keys.MODULES)
+        if obj is None:
+            raise Raise.error(
+                "Module state container is not initialized.",
+                RuntimeError,
+                self._c_name,
+                currentframe(),
+            )
+        return obj
 
     @property
     def config_file(self) -> Optional[str]:
@@ -496,12 +511,16 @@ class AppConfig(
         ### Returns:
         bool - Debug flag value.
         """
-        if self.__main._get_data(key=_Keys.DEBUG, default_value=None) is None:
+        debug: Optional[bool] = self.__main._get_data(
+            key=_Keys.DEBUG, default_value=None
+        )
+        if debug is None:
             self.__main._set_data(key=_Keys.DEBUG, value=False, set_default_type=bool)
+            debug = False
         if self._cfh and self._section:
             if self._cfh.get(self._section, _Keys.MC_DEBUG):
                 return True
-        return self.__main._get_data(key=_Keys.DEBUG)  # type: ignore
+        return debug
 
     @debug.setter
     def debug(self, value: bool) -> None:
@@ -587,7 +606,15 @@ class AppConfig(
         ### Returns:
         bool - Password update mode flag.
         """
-        return self.__main._get_data(key=_Keys.PASSWORD, default_value=False)  # type: ignore
+        obj: Optional[bool] = self.__main._get_data(
+            key=_Keys.PASSWORD, default_value=None
+        )
+        if obj is None:
+            self.__main._set_data(
+                key=_Keys.PASSWORD, value=False, set_default_type=bool
+            )
+            return False
+        return obj
 
     @password.setter
     def password(self, value: bool) -> None:
@@ -648,7 +675,15 @@ class AppConfig(
         ### Returns:
         bool - Update mode flag.
         """
-        return self.__main._get_data(key=_Keys.CONF_UPDATE, default_value=False)  # type: ignore
+        obj: Optional[bool] = self.__main._get_data(
+            key=_Keys.CONF_UPDATE, default_value=None
+        )
+        if obj is None:
+            self.__main._set_data(
+                key=_Keys.CONF_UPDATE, value=False, set_default_type=bool
+            )
+            return False
+        return obj
 
     @update.setter
     def update(self, value: bool) -> None:

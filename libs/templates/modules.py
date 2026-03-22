@@ -10,7 +10,7 @@ Purpose: Provide helper classes for module configuration template definitions.
 
 from typing import Union, List, Optional
 
-from jsktoolbox.basetool.data import BData
+from jsktoolbox.basetool import BData
 from jsktoolbox.attribtool import ReadOnlyClass
 
 
@@ -51,7 +51,18 @@ class TemplateConfigItem(BData):
         ### Returns:
         str - Debug-friendly string representation.
         """
-        return f"{self._c_name}( varname='{self.varname if self.varname else ''}', value={self.value if self.value is  not None else ''}, desc='{self.desc if self.desc else ''}' )"
+        varname: str = self.varname if self.varname else ""
+        value: Union[str, int, float, bool, List, str] = (
+            self.value if self.value is not None else ""
+        )
+        desc: str = self.desc if self.desc else ""
+        return (
+            f"{self._c_name}("
+            f" varname='{varname}',"
+            f" value={value},"
+            f" desc='{desc}'"
+            " )"
+        )
 
     @property
     def desc(self) -> Optional[str]:

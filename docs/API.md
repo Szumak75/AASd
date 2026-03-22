@@ -77,6 +77,23 @@ Main application orchestrator.
 
 ## Shared Runtime Contracts
 
+### `libs`
+
+**Purpose:**
+Lazy package entry point for first-level shared runtime symbols.
+
+**Package exports:**
+
+- `AppName`
+- `AppConfig`
+- `Keys`
+
+**Import contract:**
+
+- `from libs import AppName` is supported,
+- exported symbols are resolved from `libs.app`, `libs.conf`, or `libs.keys` on first access,
+- direct imports from those first-level modules remain valid.
+
 ### `libs.app.AppName`
 
 **Purpose:**
@@ -191,6 +208,10 @@ Single configuration template row used during config generation.
 **Used by:**
 all modules implementing `template_module_variables()`.
 
+The package entry point `libs.templates` exposes `TemplateConfigItem` through a
+lazy export, so `from libs.templates import TemplateConfigItem` does not load
+`libs.templates.modules` until the symbol is accessed.
+
 ## Messaging API
 
 ### `libs.com.message.Message`
@@ -302,6 +323,24 @@ Wrapper over system ICMP tools (`fping` or `ping`) used by `micmp`.
 **Main API:**
 
 - `is_alive(ip: str) -> bool`
+
+### `libs.tools`
+
+**Purpose:**
+Lazy package entry point for shared date and ICMP helpers.
+
+**Package exports:**
+
+- `MDateTime`
+- `MIntervals`
+- `Pinger`
+- `Tracert`
+
+**Import contract:**
+
+- `from libs.tools import MDateTime` is supported,
+- exported symbols are resolved from `libs.tools.datetool` or `libs.tools.icmp` on first access,
+- direct imports from `libs.tools.datetool` and `libs.tools.icmp` remain valid.
 
 ### `libs.db_models.connectors.LmsMysqlDatabase`
 
@@ -477,7 +516,7 @@ Development/test module for periodic logging.
 
 ## Interface Contract For Modules
 
-### `libs.interfaces.modules.IRunModule` and `IComModule`
+### `libs.interfaces.IRunModule` and `IComModule`
 
 All runtime modules are expected to implement the following contract:
 
@@ -494,6 +533,10 @@ All runtime modules are expected to implement the following contract:
 - `template_module_variables()`
 
 This interface is the current canonical runtime contract for both module types.
+
+The package entry point `libs.interfaces` exposes these interfaces through lazy
+exports, so package-level imports such as `from libs.interfaces import IRunModule`
+do not load `libs.interfaces.modules` until the requested symbol is accessed.
 
 ## Current API Boundaries
 

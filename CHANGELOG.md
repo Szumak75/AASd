@@ -1,6 +1,36 @@
 # Changelog
 
-## 3.0.0-DEV
+## 2.0.5-DEV
+
+- feat: added lazy package exports for the first-level `libs` package symbols
+- refactor: switched first-level imports from `libs.app`, `libs.conf`, and `libs.keys` to `libs`
+- test: added regression coverage for deferred loading and exported symbol discovery in `libs`
+
+## 2.0.4-DEV
+
+- test: expanded `libs.tools` coverage for project-specific datetime helpers
+- test: added dedicated regression coverage for `Pinger` and `Tracert`
+
+## 2.0.3-DEV
+
+- feat: added lazy package exports for `libs.tools` and switched project imports to the package root
+- test: added regression coverage for deferred loading and exported symbol discovery in `libs.tools`
+- docs: documented the new `libs.tools` import contract
+
+## 2.0.2-DEV
+
+- feat: added lazy package exports for `libs.templates` and switched project imports to the package root
+- refactor: rewrote `TemplateConfigItem.__repr__()` to avoid overlong source lines
+- test: added regression coverage for deferred loading and exported symbol discovery in `libs.templates`
+- docs: documented the new `libs.templates` import contract
+
+## 2.0.1-DEV
+
+- feat: added lazy package exports for `libs.interfaces` and switched project imports to the package root
+- test: added regression coverage for deferred loading and exported symbol discovery in `libs.interfaces`
+- docs: documented the new `libs.interfaces` import contract
+
+## 2.0.0-DEV
 
 - refactor: renamed shared `libs.base` mixins from the `B*` convention to explicit `*Mixin` names
 - refactor: switched project imports to package-level lazy exports from `libs.base`

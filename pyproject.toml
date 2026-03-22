@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aasd"
-version = "3.0.0-DEV"
+version = "2.0.5-DEV"
 description = "Autonomous Administrative System daemon"
 authors = ["Jacek 'Szumak' Kotlarski <szumak@virthost.pl>"]
 license = "MIT"
@@ -28,6 +28,8 @@ mypy = "^1.19.1"
 sphinx = "^8.2.3"
 myst-parser = "^4.0.1"
 sphinxcontrib-mermaid = "^2.0.1"
+coverage = "^7.13.5"
+pytest-cov = "^7.1.0"
 
 [build-system]
 requires = ["poetry-core"]

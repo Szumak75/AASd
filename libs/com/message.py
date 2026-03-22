@@ -16,13 +16,13 @@ from queue import Queue, Empty, Full
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
-from jsktoolbox.basetool.threads import ThBaseObject
-from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
+from jsktoolbox.basetool import ThBaseObject
+from jsktoolbox.logstool import LoggerClient, LoggerQueue
 from jsktoolbox.datetool import Timestamp
-from jsktoolbox.basetool.data import BData
+from jsktoolbox.basetool import BData
 
 from libs.base import ThProcessorMixin
-from libs.tools.datetool import MIntervals, MDateTime
+from libs.tools import MDateTime, MIntervals
 
 
 class _Keys(object, metaclass=ReadOnlyClass):

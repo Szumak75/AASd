@@ -17,8 +17,8 @@ from typing import Optional, Dict, List
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
-from jsktoolbox.netaddresstool.ipv4 import Address
-from jsktoolbox.basetool.data import BData
+from jsktoolbox.netaddresstool import Address
+from jsktoolbox.basetool import BData
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -42,32 +42,37 @@ class Pinger(BData):
         * timeout: int - Timeout in seconds used by the underlying command.
         """
         self._set_data(key=_Keys.TIMEOUT, value=timeout, set_default_type=int)
-        self._set_data(key=_Keys.COMMANDS, value=[], set_default_type=List)
         self._set_data(key=_Keys.MULTIPLIER, value=1, set_default_type=int)
 
-        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
+        commands: List[Dict] = []
+
+        # BSD fping
+        commands.append(
             {
                 _Keys.CMD: "fping",
                 _Keys.MULTIPLIER: 1000,
                 _Keys.OPTS: "-AaqR -B1 -r2 -t{} {} >/dev/null 2>&1",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
+        # FreeBSD ping
+        commands.append(
             {
-                # FreeBSD ping
                 _Keys.CMD: "ping",
                 _Keys.MULTIPLIER: 1000,
                 _Keys.OPTS: "-Qqo -c3 -W{} {} >/dev/null 2>&1",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append(  # type: ignore
+        # Linux ping
+        commands.append(
             {
-                # Linux ping
                 _Keys.CMD: "ping",
                 _Keys.MULTIPLIER: 1,
                 _Keys.OPTS: "-q -c3 -W{} {} >/dev/null 2>&1",
             }
         )
+        self._set_data(key=_Keys.COMMANDS, value=commands, set_default_type=List[Dict])
+
+        # Detect a working command and store it for later use.
         tmp: Optional[tuple] = self.__is_tool
         if tmp:
             (command, multiplier) = tmp
@@ -87,8 +92,29 @@ class Pinger(BData):
         * ChildProcessError: If no supported ICMP command is available.
         """
         command: Optional[str] = self._get_data(key=_Keys.COMMAND)
-        timeout: int = self._get_data(key=_Keys.TIMEOUT)  # type: ignore
-        multiplier: int = self._get_data(key=_Keys.MULTIPLIER)  # type: ignore
+
+        # Get timeout value
+        obj: Optional[int] = self._get_data(key=_Keys.TIMEOUT)
+        if obj is None:
+            raise Raise.error(
+                "Timeout value for ICMP command not found.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        timeout: int = obj
+
+        # Get multiplier value
+        obj = self._get_data(key=_Keys.MULTIPLIER)
+        if obj is None:
+            raise Raise.error(
+                "Timeout multiplier for ICMP command not found.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        multiplier: int = obj
+
         if command is None:
             raise Raise.error(
                 "Command for testing ICMP echo not found.",
@@ -114,14 +140,21 @@ class Pinger(BData):
         ### Returns:
         Optional[tuple] - Command template and timeout multiplier or `None`.
         """
-        for cmd in self._get_data(key=_Keys.COMMANDS):  # type: ignore
+        commands: Optional[List[Dict]] = self._get_data(key=_Keys.COMMANDS, default=[])
+        if commands is None:
+            commands = []
+
+        for cmd in commands:
             if find_executable(cmd[_Keys.CMD]) is not None:
                 test_cmd: str = f"{cmd[_Keys.CMD]} {cmd[_Keys.OPTS]}"
                 multiplier: int = cmd[_Keys.MULTIPLIER]
+                timeout: Optional[int] = self._get_data(key=_Keys.TIMEOUT)
+                if timeout is None:
+                    timeout = 1
                 if (
                     os.system(
                         test_cmd.format(
-                            int(self._get_data(key=_Keys.TIMEOUT) * multiplier),  # type: ignore
+                            int(timeout * multiplier),
                             "127.0.0.1",
                         )
                     )
@@ -136,35 +169,37 @@ class Tracert(BData):
 
     def __init__(self) -> None:
         """Initialize the traceroute helper and detect a working command."""
-        self._set_data(key=_Keys.COMMANDS, value=[], set_default_type=List)
-        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
+
+        commands: List[Dict] = []
+
+        commands.append(
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-I -q2 -S -e -w1 -n -m 10",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
+        commands.append(
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-P UDP -q2 -S -e -w1 -n -m 10",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
+        commands.append(
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-I -q2 -e -w1 -n -m 10",
             }
         )
-        self._get_data(key=_Keys.COMMANDS).append( # type: ignore
+        commands.append(
             {
                 _Keys.CMD: "traceroute",
                 _Keys.OPTS: "-U -q2 -e -w1 -n -m 10",
             }
         )
+
+        self._set_data(key=_Keys.COMMANDS, value=commands, set_default_type=List)
         self._set_data(
-            key=_Keys.COMMAND,
-            value=self.__is_tool,
-            set_default_type=Optional[Dict]
+            key=_Keys.COMMAND, value=self.__is_tool, set_default_type=Optional[Dict]
         )
 
     @property
@@ -174,7 +209,11 @@ class Tracert(BData):
         ### Returns:
         Optional[Dict] - Command descriptor or `None`.
         """
-        for cmd in self._get_data(key=_Keys.COMMANDS): # type: ignore
+        commands: Optional[List[Dict]] = self._get_data(key=_Keys.COMMANDS, default=[])
+        if commands is None:
+            commands = []
+
+        for cmd in commands:
             if find_executable(cmd[_Keys.CMD]) is not None:
                 if (
                     os.system(
@@ -201,7 +240,7 @@ class Tracert(BData):
         ### Raises:
         * ChildProcessError: If no supported traceroute command is available.
         """
-        command:Optional[Dict]=self._get_data(key=_Keys.COMMAND)
+        command: Optional[Dict] = self._get_data(key=_Keys.COMMAND)
         if command is None:
             raise Raise.error(
                 "Command for testing ICMP echo not found.",
@@ -218,7 +257,7 @@ class Tracert(BData):
         with subprocess.Popen(
             args,
             env={
-                "PATH": "/bin:/sbin:/usr/bin:/usr/sbin",
+                "PATH": "/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin",
             },
             stdout=subprocess.PIPE,
         ) as proc:

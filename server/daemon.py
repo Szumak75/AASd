@@ -19,7 +19,7 @@ from typing import Dict, List, Optional
 from queue import Queue
 
 from jsktoolbox.raisetool import Raise
-from jsktoolbox.logstool.logs import (
+from jsktoolbox.logstool import (
     LoggerEngine,
     LoggerClient,
     LoggerEngineFile,
@@ -30,21 +30,18 @@ from jsktoolbox.logstool.logs import (
     LogsLevelKeys,
 )
 
-from jsktoolbox.logstool.logs import ThLoggerProcessor
-from jsktoolbox.logstool.formatters import (
+from jsktoolbox.logstool import ThLoggerProcessor
+from jsktoolbox.logstool import (
     LogFormatterDateTime,
     LogFormatterNull,
 )
 from jsktoolbox.systemtool import CommandLineParser
-from jsktoolbox.basetool.logs import LoggerQueue
-from jsktoolbox.stringtool.crypto import SimpleCrypto
+from jsktoolbox.stringtool import SimpleCrypto
 
+from libs import AppConfig, AppName, Keys
 from libs.base import ImporterMixin, ProjectClassMixin
-from libs.interfaces.modules import IRunModule, IComModule
-from libs.keys import Keys
-from libs.conf import AppConfig
+from libs.interfaces import IRunModule, IComModule
 from libs.com.message import ThDispatcher
-from libs.app import AppName
 
 import server
 
@@ -70,14 +67,15 @@ class AASd(ProjectClassMixin, ImporterMixin):
         self.loop = True
 
         # logger engines configuration
-        log_engine = LoggerEngine()
-        log_queue: Optional[LoggerQueue] = log_engine.logs_queue
-        if log_queue is None:
-            log_queue = LoggerQueue()
-            log_engine.logs_queue = log_queue
+        logger_engine = LoggerEngine()
+        logger_queue: Optional[LoggerQueue] = logger_engine.logs_queue
+
+        if logger_queue is None:
+            logger_queue = LoggerQueue()
+            logger_engine.logs_queue = logger_queue
 
         # logger levels
-        self.__init_log_levels(log_engine)
+        self.__init_log_levels(logger_engine)
 
         # logger client
         self.logs = LoggerClient()
@@ -85,13 +83,13 @@ class AASd(ProjectClassMixin, ImporterMixin):
         # logger processor
         thl = ThLoggerProcessor()
         thl.sleep_period = 1.5
-        thl.logger_engine = log_engine
+        thl.logger_engine = logger_engine
         thl.logger_client = self.logs
         self.logs_processor = thl
 
         # add config handler
         if self.conf is None:
-            self.conf = AppConfig(qlog=log_queue, app_name=self._c_name)
+            self.conf = AppConfig(qlog=logger_queue, app_name=self._c_name)
         self.conf.version = self.application.app_version
         self.conf.debug = False
         # the default config file path can be overwritten with the command line argument '-f'.

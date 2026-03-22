@@ -26,12 +26,12 @@ from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import Timestamp, DateTime
 
 from libs.base import ModuleMixin
-from libs.interfaces.modules import IRunModule
+from libs.interfaces import IRunModule
 from libs.base import ModuleConfigMixin
-from libs.templates.modules import TemplateConfigItem
+from libs.templates import TemplateConfigItem
 from libs.com.message import Message, Multipart, Channel
-from libs.tools.datetool import MDateTime, MIntervals
-from libs.app import AppName
+from libs.tools import MDateTime, MIntervals
+from libs import AppName
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
