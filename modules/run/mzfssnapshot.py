@@ -25,9 +25,9 @@ from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import Timestamp, DateTime
 
-from libs.base.classes import BModule
+from libs.base import ModuleMixin
 from libs.interfaces.modules import IRunModule
-from libs.base.classes import BModuleConfig
+from libs.base import ModuleConfigMixin
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Channel
 from libs.tools.datetool import MDateTime, MIntervals
@@ -51,7 +51,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     ZD_ERROR: str = "__zfs_error__"
 
 
-class _ModuleConf(BModuleConfig):
+class _ModuleConf(ModuleConfigMixin):
     """Provide typed access to the ZFS snapshot module configuration."""
 
     @property
@@ -511,7 +511,7 @@ class ZfsProcessor(BData):
         return None
 
 
-class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
+class MZfssnapshot(Thread, ThBaseObject, ModuleMixin, IRunModule):
     """Automate snapshot creation and rotation for configured ZFS volumes."""
 
     def __init__(

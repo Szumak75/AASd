@@ -60,14 +60,19 @@ logs.
 [`libs/base/classes.py`](../libs/base/classes.py) contains the shared base layer.
 The most important classes are:
 
-- `BProjectClass` for daemon-level objects,
-- `BModule` for module implementations,
-- `BModuleConfig` for typed access to module configuration,
-- `BImporter` for dynamic module discovery and imports,
-- `BLogs`, `BCom`, `BConfig`, `BDebug`, `BVerbose` for cross-cutting state.
+- `ProjectClassMixin` for daemon-level objects,
+- `ModuleMixin` for module implementations,
+- `ModuleConfigMixin` for typed access to module configuration,
+- `ImporterMixin` for dynamic module discovery and imports,
+- `LogsMixin`, `ComMixin`, `ConfigMixin`, `DebugMixin`, `VerboseMixin` for cross-cutting state.
 
 This layer is the primary glue between `jsktoolbox` primitives and the project
 runtime.
+
+The package entry point [`libs/base/__init__.py`](../libs/base/__init__.py)
+now exposes these symbols through lazy exports, so package-level imports such as
+`from libs.base import ModuleMixin` do not load `libs.base.classes` until the
+requested symbol is accessed.
 
 ### Configuration Service
 

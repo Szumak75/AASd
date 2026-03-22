@@ -19,7 +19,7 @@ from sqlalchemy.util import immutabledict
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.attribtool import ReadOnlyClass
 
-from libs.base.classes import BLogs, BDebug, BVerbose
+from libs.base import DebugMixin, LogsMixin, VerboseMixin
 
 import libs.db_models.mlms as mlms
 
@@ -35,7 +35,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SQL_USER: str = "sql_user"
 
 
-class LmsMysqlDatabase(BDebug, BVerbose, BLogs):
+class LmsMysqlDatabase(DebugMixin, VerboseMixin, LogsMixin):
     """Create and expose database sessions for LMS and MLMS models."""
 
     def __init__(

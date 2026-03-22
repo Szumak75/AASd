@@ -15,6 +15,7 @@ from threading import Thread, Event
 from queue import Queue
 
 from jsktoolbox.basetool.threads import ThBaseObject
+from jsktoolbox.basetool.data import BData
 from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.netaddresstool.ipv4 import Address
@@ -22,9 +23,9 @@ from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import Timestamp
 
-from libs.base.classes import BModule, BData
+from libs.base import ModuleMixin
 from libs.interfaces.modules import IRunModule
-from libs.base.classes import BModuleConfig
+from libs.base import ModuleConfigMixin
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Channel
 from libs.tools.icmp import Pinger
@@ -42,7 +43,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     LAST_UP: str = "__up__"
 
 
-class _ModuleConf(BModuleConfig):
+class _ModuleConf(ModuleConfigMixin):
     """Provide typed access to the ICMP module configuration."""
 
     @property
@@ -152,7 +153,7 @@ class Ipv4Test(BData):
                 self._set_data(key=_Keys.LAST_DOWN, value=Timestamp.now())
 
 
-class MIcmp(Thread, ThBaseObject, BModule, IRunModule):
+class MIcmp(Thread, ThBaseObject, ModuleMixin, IRunModule):
     """Monitor host reachability and emit incident notifications."""
 
     def __init__(

@@ -121,7 +121,7 @@ Main configuration service for the daemon.
 - asks modules for configuration templates,
 - returns only enabled modules listed in config.
 
-### `libs.base.classes.BModuleConfig`
+### `libs.base.classes.ModuleConfigMixin`
 
 **Purpose:**
 Typed adapter over a module configuration section.
@@ -134,7 +134,7 @@ Typed adapter over a module configuration section.
 
 Each business module extends this class with its own typed config accessors.
 
-### `libs.base.classes.BImporter`
+### `libs.base.classes.ImporterMixin`
 
 **Purpose:**
 Dynamic module discovery and import helper.
@@ -149,6 +149,33 @@ Dynamic module discovery and import helper.
 - module file starts with `m`,
 - imported class name is derived from the file name,
 - current convention strongly influences runtime discovery.
+
+### `libs.base`
+
+**Purpose:**
+Lazy package entry point for the shared base layer.
+
+**Package exports:**
+
+- `AppNameMixin`
+- `ComMixin`
+- `ConfigMixin`
+- `ConfigHandlerMixin`
+- `ConfigSectionMixin`
+- `DebugMixin`
+- `ImporterMixin`
+- `LogsMixin`
+- `ModuleMixin`
+- `ModuleConfigMixin`
+- `ProjectClassMixin`
+- `ThProcessorMixin`
+- `VerboseMixin`
+
+**Import contract:**
+
+- `from libs.base import ModuleMixin` is supported,
+- exported symbols are resolved from `libs.base.classes` on first access,
+- direct imports from `libs.base.classes` remain valid for compatibility.
 
 ### `libs.templates.modules.TemplateConfigItem`
 
@@ -481,7 +508,7 @@ The most stable practical API for future refactoring currently appears to be:
 - `Channel`
 - `AtChannel`
 - `ThDispatcher`
-- `BModuleConfig`
+- `ModuleConfigMixin`
 - module configuration templates
 
 ### Internal But Important Boundary

@@ -20,12 +20,12 @@ from jsktoolbox.configtool.main import Config as ConfigTool
 from jsktoolbox.stringtool.crypto import SimpleCrypto
 from jsktoolbox.basetool.data import BData
 
-from libs.base.classes import (
-    BLogs,
-    BConfigSection,
-    BConfigHandler,
-    BModuleConfig,
-    BImporter,
+from libs.base import (
+    ConfigHandlerMixin,
+    ConfigSectionMixin,
+    ImporterMixin,
+    LogsMixin,
+    ModuleConfigMixin,
 )
 
 from libs.interfaces.modules import IComModule, IRunModule
@@ -59,7 +59,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     MC_VERBOSE: str = "verbose"
 
 
-class _ModuleConf(BModuleConfig):
+class _ModuleConf(ModuleConfigMixin):
     """Provide typed access to the daemon main-section configuration."""
 
     @property
@@ -127,7 +127,9 @@ class _ModuleConf(BModuleConfig):
         return self._get(_Keys.MC_SALT)
 
 
-class AppConfig(BLogs, BConfigHandler, BConfigSection, BImporter):
+class AppConfig(
+    LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
+):
     """Manage daemon configuration, module discovery, and config generation."""
 
     def __init__(self, qlog: LoggerQueue, app_name: str) -> None:

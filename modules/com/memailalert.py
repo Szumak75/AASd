@@ -27,9 +27,9 @@ from jsktoolbox.raisetool import Raise
 from jsktoolbox.stringtool.crypto import SimpleCrypto
 from jsktoolbox.datetool import Timestamp
 
-from libs.base.classes import BModule
+from libs.base import ModuleMixin
 from libs.interfaces.modules import IComModule
-from libs.base.classes import BModuleConfig
+from libs.base import ModuleConfigMixin
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart
 from libs.tools.datetool import MDateTime
@@ -52,7 +52,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SMTP_USER: str = "smtp_user"
 
 
-class _ModuleConf(BModuleConfig):
+class _ModuleConf(ModuleConfigMixin):
     """Provide typed accessors for email module configuration."""
 
     @property
@@ -134,7 +134,7 @@ class _ModuleConf(BModuleConfig):
         return var
 
 
-class MEmailalert(Thread, ThBaseObject, BModule, IComModule):
+class MEmailalert(Thread, ThBaseObject, ModuleMixin, IComModule):
     """Send outbound emails for the primary communication channel."""
 
     def __init__(

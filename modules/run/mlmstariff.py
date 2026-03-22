@@ -32,11 +32,11 @@ from jsktoolbox.datetool import Timestamp
 from jsktoolbox.stringtool.crypto import SimpleCrypto
 
 
-from libs.base.classes import BModule, BLogs, BDebug
+from libs.base import DebugMixin, LogsMixin, ModuleMixin
 from libs.db_models.mlms.assignments import MAssignment
 from libs.db_models.mlms.nodeassignments import MNodeAssignment
 from libs.interfaces.modules import IRunModule
-from libs.base.classes import BModuleConfig
+from libs.base import ModuleConfigMixin
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Channel, AtChannel
 from libs.app import AppName
@@ -57,7 +57,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     SQL_USER: str = "sql_user"
 
 
-class _ModuleConf(BModuleConfig):
+class _ModuleConf(ModuleConfigMixin):
     """Provide typed access to the tariff verification module configuration."""
 
     @property
@@ -117,7 +117,7 @@ class _ModuleConf(BModuleConfig):
         return var
 
 
-class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
+class MLmstariff(Thread, ThBaseObject, ModuleMixin, IRunModule):
     """Run scheduled tariff assignment checks against LMS and MLMS data."""
 
     def __init__(

@@ -24,13 +24,8 @@ from libs.keys import Keys
 from libs.app import AppName
 
 
-class BAppName(BData):
-    """Mixin that exposes a typed application identity property.
-
-    This class behaves as a reusable mixin. The current `B*` naming is kept for
-    compatibility, but the naming should be refactored in the future to make the
-    mixin role explicit.
-    """
+class AppNameMixin(BData):
+    """Mixin that exposes a typed application identity property."""
 
     @property
     def application(self) -> AppName:
@@ -51,7 +46,7 @@ class BAppName(BData):
         self._set_data(key=Keys.APP_NAME, value=value, set_default_type=AppName)
 
 
-class BConfigHandler(BData):
+class ConfigHandlerMixin(BData):
     """Mixin that exposes a typed configuration handler property."""
 
     @property
@@ -75,7 +70,7 @@ class BConfigHandler(BData):
         )
 
 
-class BConfigSection(BData):
+class ConfigSectionMixin(BData):
     """Mixin that exposes a typed configuration section property."""
 
     @property
@@ -105,7 +100,7 @@ class BConfigSection(BData):
         self._set_data(key=Keys.SECTION, value=sn, set_default_type=Optional[str])
 
 
-class BModuleConfig(BConfigHandler, BConfigSection):
+class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
     """Mixin-style adapter that provides typed access to module configuration."""
 
     class Keys(object, metaclass=ReadOnlyClass):
@@ -149,7 +144,7 @@ class BModuleConfig(BConfigHandler, BConfigSection):
         ### Raises:
         * TypeError: If the configured value is not an integer.
         """
-        var: Optional[int] = self._get(varname=BModuleConfig.Keys.CHANNEL)
+        var: Optional[int] = self._get(varname=ModuleConfigMixin.Keys.CHANNEL)
         if var is not None and not isinstance(var, int):
             raise Raise.error(
                 "Expected int type.",
@@ -169,7 +164,7 @@ class BModuleConfig(BConfigHandler, BConfigSection):
         ### Raises:
         * TypeError: If the configured value is not a list.
         """
-        var = self._get(varname=BModuleConfig.Keys.MESSAGE_CHANNEL)
+        var = self._get(varname=ModuleConfigMixin.Keys.MESSAGE_CHANNEL)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -190,7 +185,7 @@ class BModuleConfig(BConfigHandler, BConfigSection):
         * TypeError: If the configured value is neither `int` nor `float`.
         """
         var: Optional[Union[int, float]] = self._get(
-            varname=BModuleConfig.Keys.SLEEP_PERIOD
+            varname=ModuleConfigMixin.Keys.SLEEP_PERIOD
         )
         if var is None:
             return None
@@ -204,7 +199,7 @@ class BModuleConfig(BConfigHandler, BConfigSection):
         return float(var)
 
 
-class BImporter(BData):
+class ImporterMixin(BData):
     """Mixin that discovers and imports runtime modules using the current naming convention.
 
     The loader expects module file names to start with `m` and derives the class
@@ -261,7 +256,7 @@ class BImporter(BData):
         return getattr(module, name)
 
 
-class BLogs(BData):
+class LogsMixin(BData):
     """Mixin that exposes a typed logger client property."""
 
     @property
@@ -287,7 +282,7 @@ class BLogs(BData):
         self._set_data(key=Keys.CLOG, value=logs, set_default_type=LoggerClient)
 
 
-class BCom(BData):
+class ComMixin(BData):
     """Mixin that exposes a typed communication queue property."""
 
     @property
@@ -309,7 +304,7 @@ class BCom(BData):
         self._set_data(key=Keys.QCOM, value=queue, set_default_type=Queue)
 
 
-class BConfig(BData):
+class ConfigMixin(BData):
     """Mixin that exposes a typed application configuration property."""
 
     from libs.conf import AppConfig
@@ -335,15 +330,13 @@ class BConfig(BData):
         self._set_data(key=Keys.CONF, value=conf, set_default_type=AppConfig)
 
 
-class BProjectClass(BLogs, BConfig, BAppName):
-    """Compose mixins used by the daemon core.
-
-    The current name suggests a concrete base type, but this class mostly groups
-    mixin behavior and should be revisited during future naming cleanup.
-    """
+class ProjectClassMixin(LogsMixin, ConfigMixin, AppNameMixin):
+    """Compose mixins used by the daemon core."""
 
 
-class BModule(BConfigHandler, BConfigSection, BLogs, BCom, BAppName):
+class ModuleMixin(
+    ConfigHandlerMixin, ConfigSectionMixin, LogsMixin, ComMixin, AppNameMixin
+):
     """Compose mixins used by communication and task modules."""
 
     class Keys(object, metaclass=ReadOnlyClass):
@@ -364,9 +357,9 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom, BAppName):
         if (
             self._cfh
             and self._section
-            and self._cfh.get(self._section, BModule.Keys.DEBUG) is not None
+            and self._cfh.get(self._section, ModuleMixin.Keys.DEBUG) is not None
         ):
-            return self._cfh.get(self._section, BModule.Keys.DEBUG) or self._get_data(key=Keys.DEBUG)  # type: ignore
+            return self._cfh.get(self._section, ModuleMixin.Keys.DEBUG) or self._get_data(key=Keys.DEBUG)  # type: ignore
         return self._get_data(key=Keys.DEBUG)  # type: ignore
 
     @_bm_debug.setter
@@ -379,27 +372,27 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom, BAppName):
         self._set_data(key=Keys.DEBUG, value=debug, set_default_type=bool)
 
     @property
-    def _module_conf(self) -> Optional[BModuleConfig]:
+    def _module_conf(self) -> Optional[ModuleConfigMixin]:
         """Return the typed module configuration adapter.
 
         ### Returns:
-        Optional[BModuleConfig] - Module configuration adapter or `None`.
+        Optional[ModuleConfigMixin] - Module configuration adapter or `None`.
         """
         return self._get_data(
-            key=BModuleConfig.Keys.MODULE_CONF, default_value=None
+            key=ModuleConfigMixin.Keys.MODULE_CONF, default_value=None
         )  # type: ignore
 
     @_module_conf.setter
-    def _module_conf(self, value: BModuleConfig) -> None:
+    def _module_conf(self, value: ModuleConfigMixin) -> None:
         """Store the typed module configuration adapter.
 
         ### Arguments:
-        * value: BModuleConfig - Module configuration adapter.
+        * value: ModuleConfigMixin - Module configuration adapter.
         """
         self._set_data(
-            key=BModuleConfig.Keys.MODULE_CONF,
+            key=ModuleConfigMixin.Keys.MODULE_CONF,
             value=value,
-            set_default_type=BModuleConfig,
+            set_default_type=ModuleConfigMixin,
         )
 
     @property
@@ -414,9 +407,9 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom, BAppName):
         if (
             self._cfh
             and self._section
-            and self._cfh.get(self._section, BModule.Keys.VERBOSE) is not None
+            and self._cfh.get(self._section, ModuleMixin.Keys.VERBOSE) is not None
         ):
-            return self._cfh.get(self._section, BModule.Keys.VERBOSE) or self._get_data(key=Keys.VERBOSE)  # type: ignore
+            return self._cfh.get(self._section, ModuleMixin.Keys.VERBOSE) or self._get_data(key=Keys.VERBOSE)  # type: ignore
         return self._get_data(key=Keys.VERBOSE)  # type: ignore
 
     @_verbose.setter
@@ -429,7 +422,7 @@ class BModule(BConfigHandler, BConfigSection, BLogs, BCom, BAppName):
         self._set_data(key=Keys.VERBOSE, value=verbose, set_default_type=bool)
 
 
-class BDebug(BData):
+class DebugMixin(BData):
     """Mixin that exposes a simple debug flag property."""
 
     @property
@@ -451,7 +444,7 @@ class BDebug(BData):
         self._set_data(key=Keys.DEBUG, value=debug, set_default_type=bool)
 
 
-class BVerbose(BData):
+class VerboseMixin(BData):
     """Mixin that exposes a simple verbose flag property."""
 
     @property
@@ -473,7 +466,7 @@ class BVerbose(BData):
         self._set_data(key=Keys.VERBOSE, value=verbose, set_default_type=bool)
 
 
-class BThProcessor(BCom, BVerbose, BLogs):
+class ThProcessorMixin(ComMixin, VerboseMixin, LogsMixin):
     """Compose mixins used by threaded communication processors."""
 
 

@@ -20,9 +20,9 @@ from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import Timestamp
 
-from libs.base.classes import BModule
+from libs.base import ModuleMixin
 from libs.interfaces.modules import IRunModule
-from libs.base.classes import BModuleConfig
+from libs.base import ModuleConfigMixin
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, Channel
 from libs.app import AppName
@@ -35,11 +35,11 @@ class _Keys(object, metaclass=ReadOnlyClass):
     """
 
 
-class _ModuleConf(BModuleConfig):
+class _ModuleConf(ModuleConfigMixin):
     """Module Config private class."""
 
 
-class MExample(Thread, ThBaseObject, BModule, IRunModule):
+class MExample(Thread, ThBaseObject, ModuleMixin, IRunModule):
     """Example module."""
 
     def __init__(

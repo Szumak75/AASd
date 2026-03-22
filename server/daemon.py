@@ -39,7 +39,7 @@ from jsktoolbox.systemtool import CommandLineParser
 from jsktoolbox.basetool.logs import LoggerQueue
 from jsktoolbox.stringtool.crypto import SimpleCrypto
 
-from libs.base.classes import BProjectClass, BImporter
+from libs.base import ImporterMixin, ProjectClassMixin
 from libs.interfaces.modules import IRunModule, IComModule
 from libs.keys import Keys
 from libs.conf import AppConfig
@@ -49,7 +49,7 @@ from libs.app import AppName
 import server
 
 
-class AASd(BProjectClass, BImporter):
+class AASd(ProjectClassMixin, ImporterMixin):
     """Orchestrate daemon startup, runtime supervision, and shutdown."""
 
     def __init__(self) -> None:

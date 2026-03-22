@@ -1,5 +1,17 @@
 # Changelog
 
+## 3.0.0-DEV
+
+- refactor: renamed shared `libs.base` mixins from the `B*` convention to explicit `*Mixin` names
+- refactor: switched project imports to package-level lazy exports from `libs.base`
+- docs: updated base-layer documentation for the new mixin naming and import contract
+
+## 1.0.20-DEV
+
+- feat: added lazy package exports for `libs.base` so shared mixins can be imported from the package root
+- test: added regression coverage for deferred loading and exported symbol discovery in `libs.base`
+- docs: documented the new `libs.base` import contract in the API and architecture guides
+
 ## 1.0.19-DEV
 
 - docs: documented that Poetry is development-only and `requirements.txt` is the production deployment source

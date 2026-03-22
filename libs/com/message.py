@@ -21,7 +21,7 @@ from jsktoolbox.logstool.logs import LoggerClient, LoggerQueue
 from jsktoolbox.datetool import Timestamp
 from jsktoolbox.basetool.data import BData
 
-from libs.base.classes import BThProcessor
+from libs.base import ThProcessorMixin
 from libs.tools.datetool import MIntervals, MDateTime
 
 
@@ -616,7 +616,7 @@ class Message(BData):
             )
 
 
-class ThDispatcher(Thread, ThBaseObject, BThProcessor):
+class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
     """Route outbound messages to queues registered for communication modules."""
 
     def __init__(

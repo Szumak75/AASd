@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aasd"
-version = "1.0.19-DEV"
+version = "3.0.0-DEV"
 description = "Autonomous Administrative System daemon"
 authors = ["Jacek 'Szumak' Kotlarski <szumak@virthost.pl>"]
 license = "MIT"

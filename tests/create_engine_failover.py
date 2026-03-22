@@ -38,9 +38,9 @@ from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
 from jsktoolbox.datetool import Timestamp
 
-from libs.base.classes import BModule, BLogs, BDebug
+from libs.base import DebugMixin, LogsMixin, ModuleMixin
 from libs.interfaces.modules import IRunModule
-from libs.base.classes import BModuleConfig
+from libs.base import ModuleConfigMixin
 from libs.templates.modules import TemplateConfigItem
 from libs.com.message import Message, Multipart, AtChannel
 from libs.tools.datetool import MDateTime
@@ -100,7 +100,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     DTARIFF = "__tariff__"
 
 
-class _Database(BDebug, BLogs):
+class _Database(DebugMixin, LogsMixin):
     """Database class."""
 
     def __init__(
