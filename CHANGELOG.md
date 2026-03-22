@@ -5,9 +5,13 @@
 - docs: documented that Poetry is development-only and `requirements.txt` is the production deployment source
 - docs: updated project versioning rules so documentation-only changes do not require a version bump
 <<<<<<< HEAD
+<<<<<<< HEAD
 - docs: added the long-term plugin architecture direction to `TODO.md`
 =======
 >>>>>>> 20ffd1f (docs: update versioning rules and clarify documentation-only changes do not require version bump)
+=======
+- docs: added the long-term plugin architecture direction to `TODO.md`
+>>>>>>> df45bb1 (docs: add long-term plugin architecture direction to TODO.md)
 
 ## 1.0.18-DEV
 
