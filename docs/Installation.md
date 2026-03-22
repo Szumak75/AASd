@@ -2,20 +2,23 @@
 
 ## Prerequisite
 
-- `master` and future releases is now targeted against Python 3.9 or newer,
+- `master` and future releases are now targeted against Python 3.11 or newer,
 - make sure you have python `pip` installed,
-    > **FreeBSD:**
-    > $ pkg install py39-pip
 
-    > **Debian:**
-    > $ apt install python3-pip
+  > **FreeBSD:**
+  > $ pkg install py311-pip
 
-- make sure you have python `virtualenv`  installed,
-    > **FreeBSD:**
-    > $ pkg install py39-virtualenv
+  > **Debian:**
+  > $ apt install python3-pip
 
-    > **Debian:**
-    > $ apt install python3-virtualenv
+- make sure you have python `virtualenv` installed,
+
+  > **FreeBSD:**
+  > $ pkg install py311-virtualenv
+
+  > **Debian:**
+  > $ apt install python3-virtualenv
+
 - `git` optional but highly recommended
 - service supervision [`runit`](http://smarden.org/runit/) or similar as [`daemontools`](https://cr.yp.to/daemontools.html)
 
@@ -47,7 +50,6 @@ git clone https://github.com/Szumak75/AASd.git
 ```
 
 or download zipped source from github and extract it to `/opt` directory.
-
 
 ## Initialize the virtual environment
 
@@ -156,7 +158,7 @@ The schema has two functions:
 Syslog configuration example.
 
 ```
-% cat /etc/syslog.d/aasd.conf 
+% cat /etc/syslog.d/aasd.conf
 !AASd
 *.*               /var/log/aasd.log
 ```
@@ -164,7 +166,7 @@ Syslog configuration example.
 Example of a log archiving system configuration.
 
 ```
-% cat /etc/newsyslog.conf.d/aasd.conf 
+% cat /etc/newsyslog.conf.d/aasd.conf
 /var/log/aasd.log    644 7 1000  * J
 ```
 

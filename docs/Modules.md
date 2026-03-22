@@ -8,7 +8,7 @@ Each configured communication module is identified by a unique `channel` configu
 
 1. [memailalert](https://github.com/Szumak75/AASd/blob/master/docs/MEmailAlert.md)
 
-    Module intended for sending e-mail notifications.
+   Module intended for sending e-mail notifications.
 
 ## Task modules
 
@@ -20,12 +20,16 @@ Variables common to most modules are:
 
 1. [micmp](https://github.com/Szumak75/AASd/blob/master/docs/MIcmp.md)
 
-    A module designed to test the network reachability of a configured list of IPv4 addresses.
+   A module designed to test the network reachability of a configured list of IPv4 addresses.
 
 1. [mlmspayment](https://github.com/Szumak75/AASd/blob/master/docs/MLmsPayment.md)
 
-    A module compatible with the LMS panel, designed to generate notifications about overdue customer payments and summary reports for the customer service office.
+   A module compatible with the LMS panel, designed to generate notifications about overdue customer payments and summary reports for the customer service office.
+
+1. [mlmstariff](https://github.com/Szumak75/AASd/blob/master/docs/MLmsTariff.md)
+
+   A module compatible with LMS/MLMS data models, designed to inspect tariff assignments on nodes and emit scheduled notifications based on database state.
 
 1. [mzfssnapshot](https://github.com/Szumak75/AASd/blob/master/docs/MZfsSnapshot.md)
 
-    A module designed to create and rotate snapshots of the ZFS file system.
+   A module designed to create and rotate snapshots of the ZFS file system.
