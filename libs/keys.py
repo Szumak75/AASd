@@ -1,19 +1,18 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 06.11.2023
+Shared runtime key definitions.
 
-  Purpose: Public keys container class definition.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-11-06
+
+Purpose: Define shared public key names used across internal data containers.
 """
 
 from jsktoolbox.attribtool import ReadOnlyClass
 
 
 class Keys(object, metaclass=ReadOnlyClass):
-    """Keys definition class.
-
-    For internal purpose only.
-    """
+    """Expose shared public key names for internal storage containers."""
 
     APP_NAME: str = "__app_name__"
     CFH: str = "__config_handler__"

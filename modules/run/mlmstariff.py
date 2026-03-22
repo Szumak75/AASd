@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-  mlmstariff.py
-  Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 4.12.2024, 12:46:01
-  
-  Purpose: LMS module enabling checking of tariff assignment to nodes.
+LMS tariff assignment verification module.
+
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2024-12-04
+
+Purpose: Verify tariff assignments on nodes using LMS and MLMS-backed data.
 """
 
 
@@ -46,10 +47,7 @@ import libs.db_models.lms as lms
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Private Keys definition class.
-
-    For internal purpose only.
-    """
+    """Define configuration key names for the tariff verification module."""
 
     # for configuration
     AT_CHANNEL: str = "at_channel"
@@ -60,7 +58,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
 
 class _ModuleConf(BModuleConfig):
-    """Module Config private class."""
+    """Provide typed access to the tariff verification module configuration."""
 
     @property
     def at_channel(self) -> Optional[List[str]]:
@@ -120,7 +118,7 @@ class _ModuleConf(BModuleConfig):
 
 
 class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
-    """MLmstariff module class."""
+    """Run scheduled tariff assignment checks against LMS and MLMS data."""
 
     def __init__(
         self,
@@ -131,7 +129,16 @@ class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
         verbose: bool = False,
         debug: bool = False,
     ) -> None:
-        """Constructor."""
+        """Initialize the tariff verification module.
+
+        ### Arguments:
+        * app_name: AppName - Application identity container.
+        * conf: ConfigTool - Configuration handler bound to the module section.
+        * qlog: LoggerQueue - Shared logging queue.
+        * qcom: Queue - Shared communication queue for outbound messages.
+        * verbose: bool - Initial verbose flag value.
+        * debug: bool - Initial debug flag value.
+        """
         # Thread initialization
         Thread.__init__(self, name=self._c_name)
         self._stop_event = Event()
@@ -155,7 +162,11 @@ class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
         self.qcom = qcom
 
     def _apply_config(self) -> bool:
-        """Apply config from module_conf"""
+        """Apply runtime configuration to the module.
+
+        ### Returns:
+        bool - `True` when configuration was applied successfully.
+        """
         if self.module_conf is None:
             return False
 
@@ -189,7 +200,7 @@ class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
         return True
 
     def run(self) -> None:
-        """Main loop."""
+        """Run the scheduled tariff verification loop."""
         self.logs.message_notice = "starting..."
 
         if (
@@ -301,13 +312,13 @@ class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
         self.logs.message_notice = "exit"
 
     def sleep(self) -> None:
-        """Sleep interval for main loop."""
+        """Sleep until the next loop iteration."""
         sleep_break: float = Timestamp.now() + self.sleep_period
         while not self._stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:
-        """Set stop event."""
+        """Request module shutdown."""
         if self.debug:
             self.logs.message_debug = "stop signal received"
         if self._stop_event:
@@ -315,41 +326,69 @@ class MLmstariff(Thread, ThBaseObject, BModule, IRunModule):
 
     @property
     def _stopped(self) -> bool:
-        """Return stop flag."""
+        """Return whether stop was requested.
+
+        ### Returns:
+        bool - `True` when stop was requested.
+        """
         if self._stop_event:
             return self._stop_event.is_set()
         return True
 
     @property
     def module_stopped(self) -> bool:
-        """Return stop flag."""
+        """Return whether the underlying thread is stopped.
+
+        ### Returns:
+        bool - `True` when the module thread is stopped.
+        """
         return self._is_stopped  # type: ignore
 
     @property
     def debug(self) -> bool:
-        """Return debug flag."""
+        """Return the effective debug flag.
+
+        ### Returns:
+        bool - Debug flag value.
+        """
         if self._bm_debug is not None:
             return self._bm_debug
         return False
 
     @property
     def verbose(self) -> bool:
-        """Return verbose flag."""
+        """Return the effective verbose flag.
+
+        ### Returns:
+        bool - Verbose flag value.
+        """
         return self._verbose
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
-        """Return module conf object."""
+        """Return the typed module configuration.
+
+        ### Returns:
+        Optional[_ModuleConf] - Module configuration adapter.
+        """
         return self._module_conf  # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:
-        """Return module name for configuration builder."""
+        """Return the configuration section name for this module.
+
+        ### Returns:
+        str - Lowercase configuration section name.
+        """
         return cls.__name__.lower()
 
     @classmethod
     def template_module_variables(cls) -> List[TemplateConfigItem]:
-        """Return configuration variables template."""
+        """Return configuration template items for this module.
+
+        ### Returns:
+        List[TemplateConfigItem] - Configuration template items.
+        """
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()

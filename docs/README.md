@@ -10,6 +10,7 @@ and generated API-oriented reference material for the current codebase.
 - [Flow](./Flow.md) - runtime flow and subsystem relationships.
 - [Architecture](./Architecture.md) - project-wide structural analysis.
 - [API](./API.md) - business logic API and runtime contracts.
+- [API Surface](./API-Surface.md) - boundary between public runtime API and internal ORM layer.
 
 ## Module Guides
 

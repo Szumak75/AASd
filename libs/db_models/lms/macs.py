@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class Mac(LmsBase):
+    """Represent the LMS Mac ORM model."""
+
     __tablename__ = "macs"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -37,6 +39,7 @@ class Mac(LmsBase):
     # CONSTRAINT `macs_ibfk_1` FOREIGN KEY (`nodeid`) REFERENCES `nodes` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Mac(id='{self.id}', " f"mac='{self.mac}', " f"nodeid='{self.nodeid}' ) "
         )

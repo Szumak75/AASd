@@ -1,1 +1,1 @@
-
+"""Project type helpers package."""

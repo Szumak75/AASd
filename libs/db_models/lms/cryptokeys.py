@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class CryptoKey(LmsBase):
+    """Represent the LMS crypto key ORM model."""
+
     __tablename__ = "cryptokeys"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -40,6 +42,7 @@ class CryptoKey(LmsBase):
     # CONSTRAINT `cryptokeys_domain_id_fkey` FOREIGN KEY (`domain_id`) REFERENCES `domains` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"CryptoKey(id='{self.id}', "
             f"domain_id='{self.domain_id}', "

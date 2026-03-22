@@ -1,9 +1,11 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 06.11.2023
+Daemon runtime orchestration.
 
-  Purpose: Daemon main class.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-11-06
+
+Purpose: Provide the main daemon class responsible for runtime orchestration.
 """
 
 import signal
@@ -48,10 +50,14 @@ import server
 
 
 class AASd(BProjectClass, BImporter):
-    """AASd - Autonomous Administrative System daemon."""
+    """Orchestrate daemon startup, runtime supervision, and shutdown."""
 
     def __init__(self) -> None:
-        """Constructor."""
+        """Initialize the daemon runtime.
+
+        The constructor prepares logging, configuration handling, command line
+        options, process naming, and signal handlers before the main loop starts.
+        """
         # self.c_name - class name property derived from BClasses
         # self.f_name - current method name property derived from BClasses
 
@@ -133,9 +139,11 @@ class AASd(BProjectClass, BImporter):
         gc.enable()
 
     def __start_subsystem(self) -> List:
-        """Start subsystems.
+        """Start dispatcher, communication modules, and task modules.
 
-        Returns: List[ List[comms_mods], List[running_mods], ThDispatcher ]
+        ### Returns:
+        List - List containing communication modules, task modules, and the
+        dispatcher instance.
         """
         self.logs.message_info = "starting..."
 
@@ -202,7 +210,13 @@ class AASd(BProjectClass, BImporter):
         run_mods: List[IRunModule],
         dispatch: ThDispatcher,
     ) -> None:
-        """Stop subsystems."""
+        """Stop all started runtime subsystems in a controlled order.
+
+        ### Arguments:
+        * com_mods: List[IComModule] - Started communication module instances.
+        * run_mods: List[IRunModule] - Started task module instances.
+        * dispatch: ThDispatcher - Active dispatcher instance.
+        """
         # stopping & joining running modules
         for mod in run_mods:
             mod.stop()
@@ -224,7 +238,7 @@ class AASd(BProjectClass, BImporter):
         dispatch.join()
 
     def run(self) -> None:
-        """Start daemon."""
+        """Run the daemon main loop until shutdown is requested."""
         if self.conf is None:
             return None
         # logger processor
@@ -258,7 +272,11 @@ class AASd(BProjectClass, BImporter):
         sys.exit(0)
 
     def __help(self, command_conf: Dict) -> None:
-        """Show help information and shutdown."""
+        """Render command line help and terminate the process.
+
+        ### Arguments:
+        * command_conf: Dict - Parsed command configuration dumped by the CLI parser.
+        """
         command_opts: str = ""
         desc_opts: List = []
         max_len: int = 0
@@ -303,7 +321,7 @@ class AASd(BProjectClass, BImporter):
         sys.exit(2)
 
     def __init_command_line(self) -> None:
-        """Configure CommandLineParser and update config."""
+        """Configure command line arguments and map them to runtime settings."""
         if self.conf is None:
             return None
         parser = CommandLineParser()
@@ -368,7 +386,11 @@ class AASd(BProjectClass, BImporter):
             self.conf._password_varname = parser.get_option("varname")  # type: ignore
 
     def __init_log_levels(self, engine: LoggerEngine) -> None:
-        """Set logging levels configuration for LoggerEngine."""
+        """Register logger engines for all log levels used by the daemon.
+
+        ### Arguments:
+        * engine: LoggerEngine - Logger engine to configure.
+        """
         # ALERT
         engine.add_engine(
             LogsLevelKeys.ALERT,
@@ -443,7 +465,7 @@ class AASd(BProjectClass, BImporter):
         )
 
     def __password_encoding(self) -> None:
-        """Encode given password."""
+        """Encrypt a password entered on stdin and store it in the config file."""
         if self.conf is None or self.conf.cf is None or self.conf._section is None:
             return None
         # check salt, given section name and varname
@@ -492,30 +514,52 @@ class AASd(BProjectClass, BImporter):
                 print(f"Error updating config file.")
 
     def __sig_exit(self, signum: int, frame) -> None:
-        """Received TERM|INT signal."""
+        """Handle `SIGTERM` and `SIGINT` by requesting daemon shutdown.
+
+        ### Arguments:
+        * signum: int - Received signal number.
+        * frame: Any - Current frame passed by the signal handler.
+        """
         if self.conf and self.conf.debug:
             self.logs.message_debug = "TERM or INT signal received."
         self.loop = False
 
     def __sig_hup(self, signum: int, frame) -> None:
-        """Received HUP signal."""
+        """Handle `SIGHUP` by requesting subsystem restart and config reload.
+
+        ### Arguments:
+        * signum: int - Received signal number.
+        * frame: Any - Current frame passed by the signal handler.
+        """
         if self.conf and self.conf.debug:
             self.logs.message_debug = "HUP signal received."
         self.hup = True
 
     @property
     def hup(self) -> bool:
-        """Return hup flag."""
+        """Return the configuration reload flag.
+
+        ### Returns:
+        bool - `True` when subsystem restart has been requested.
+        """
         return self._get_data(key=Keys.HUP, default_value=False)  # type: ignore
 
     @hup.setter
     def hup(self, value: bool) -> None:
-        """Set loop flag."""
+        """Store the configuration reload flag.
+
+        ### Arguments:
+        * value: bool - Reload request flag.
+        """
         self._set_data(key=Keys.HUP, value=value, set_default_type=bool)
 
     @property
     def logs_processor(self) -> ThLoggerProcessor:
-        """Return logs_processor."""
+        """Return the background log processing thread.
+
+        ### Returns:
+        ThLoggerProcessor - Logger processing thread instance.
+        """
         return self._get_data(key=Keys.PROC_LOGS, default_value=None)  # type:ignore
 
     @logs_processor.setter

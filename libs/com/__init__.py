@@ -1,1 +1,1 @@
-
+"""Communication subsystem package."""

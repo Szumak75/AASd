@@ -1,9 +1,11 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 07.11.2023
+Runtime module interfaces.
 
-  Purpose: Interface classes for modules.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-11-07
+
+Purpose: Define abstract interfaces implemented by communication and task modules.
 """
 
 from abc import ABC, abstractmethod
@@ -13,66 +15,98 @@ from libs.templates.modules import TemplateConfigItem
 
 
 class __IModule(ABC):
-    """Module Interface class."""
+    """Define the abstract runtime contract shared by all module types."""
 
     @property
     @abstractmethod
     def debug(self) -> bool:
-        """Return debug flag."""
+        """Return the effective debug flag.
+
+        ### Returns:
+        bool - Debug flag value.
+        """
 
     @property
     @abstractmethod
     def module_conf(self) -> Optional[Any]:
-        """Return module conf object."""
+        """Return the typed module configuration object.
+
+        ### Returns:
+        Optional[Any] - Module configuration object or `None`.
+        """
 
     @abstractmethod
     def _apply_config(self) -> bool:
-        """Apply config from module_conf."""
+        """Apply runtime configuration to the module instance.
+
+        ### Returns:
+        bool - `True` when configuration was applied successfully.
+        """
 
     @abstractmethod
     def run(self) -> None:
-        """Main loop."""
+        """Run the main module loop."""
 
     @abstractmethod
     def sleep(self) -> None:
-        """Sleep interval for main loop."""
+        """Sleep until the next iteration of the main loop."""
 
     @abstractmethod
     def stop(self) -> None:
-        """Set stop event."""
+        """Request the module to stop."""
 
     @property
     @abstractmethod
     def _stopped(self) -> bool:
-        """Return stop event flag."""
+        """Return the stop-event state.
+
+        ### Returns:
+        bool - `True` when stop has been requested.
+        """
 
     @property
     @abstractmethod
     def module_stopped(self) -> bool:
-        """Return stopped status for main process."""
+        """Return whether the underlying thread finished execution.
+
+        ### Returns:
+        bool - `True` when the module thread is stopped.
+        """
 
     @classmethod
     @abstractmethod
     def template_module_name(cls) -> str:
-        """Return module name for configuration builder."""
+        """Return the module name used by configuration generators.
+
+        ### Returns:
+        str - Configuration section name for the module.
+        """
 
     @classmethod
     @abstractmethod
     def template_module_variables(cls) -> List[TemplateConfigItem]:
-        """Return configuration variables template."""
+        """Return the configuration template exposed by the module.
+
+        ### Returns:
+        List[TemplateConfigItem] - Configuration template items.
+        """
 
     @property
     @abstractmethod
     def verbose(self) -> bool:
-        """Return verbose flag."""
+        """Return the effective verbose flag.
+
+        ### Returns:
+        bool - Verbose flag value.
+        """
 
 
 class IRunModule(__IModule):
-    """Run Module Interface class."""
+    """Mark the interface implemented by task modules."""
 
 
 class IComModule(__IModule):
-    """Communication Module Interface class."""
+    """Mark the interface implemented by communication modules."""
 
 
 # #[EOF]#######################################################################

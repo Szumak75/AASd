@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 01.12.2023
+"""MLMS ORM extensions package.
 
-  Purpose:
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-12-01
+
+Purpose: Extend LMS base models with relations and helpers used by business logic.
 """
 
 # ls *.py|grep -v -E '^_' | sed -e 's/\.py//'|sed -e 's/\(.*\)/from libs.db_models.mlms.\1 import */' >> __init__.py

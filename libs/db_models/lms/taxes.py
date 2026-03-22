@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 9 oct 2020
+Created on 9 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class Tax(LmsBase):
+    """Represent the LMS Tax ORM model."""
+
     __tablename__ = "taxes"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -42,6 +44,7 @@ class Tax(LmsBase):
     # PRIMARY KEY (`id`)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Tax(id='{self.id}', "
             f"value='{self.value}', "

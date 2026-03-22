@@ -1,9 +1,11 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 07.11.2023
+Logging test module.
 
-  Purpose: for logs tests.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-11-07
+
+Purpose: Provide a simple test module that periodically writes log messages.
 """
 
 import time
@@ -27,18 +29,15 @@ from libs.app import AppName
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Private Keys definition class.
-
-    For internal purpose only.
-    """
+    """Define internal key names for the module."""
 
 
 class _ModuleConf(BModuleConfig):
-    """Module Config private class."""
+    """Provide typed access to the module configuration."""
 
 
 class MTest(Thread, ThBaseObject, BModule, IRunModule):
-    """Test module."""
+    """Emit periodic log messages for runtime testing."""
 
     def __init__(
         self,
@@ -49,7 +48,16 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         verbose: bool = False,
         debug: bool = False,
     ) -> None:
-        """Constructor."""
+        """Initialize the logging test module.
+
+        ### Arguments:
+        * app_name: AppName - Application identity container.
+        * conf: ConfigTool - Configuration handler bound to the module section.
+        * qlog: LoggerQueue - Shared logging queue.
+        * qcom: Queue - Shared communication queue.
+        * verbose: bool - Initial verbose flag value.
+        * debug: bool - Initial debug flag value.
+        """
         # Thread initialization
         Thread.__init__(self, name=self._c_name)
         self._stop_event = Event()
@@ -70,7 +78,11 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         self.logs = LoggerClient(queue=qlog, name=self._c_name)
 
     def _apply_config(self) -> bool:
-        """Apply config from module_conf"""
+        """Apply runtime configuration to the module.
+
+        ### Returns:
+        bool - `True` when configuration was applied successfully.
+        """
         try:
             if self.module_conf and self.module_conf.sleep_period:
                 self.sleep_period = self.module_conf.sleep_period
@@ -80,7 +92,7 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
         return True
 
     def run(self) -> None:
-        """Main loop."""
+        """Run the periodic logging loop."""
         # initialization local variables
         count = 0
 
@@ -101,13 +113,13 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
             self.logs.message_debug = "exiting from loop."
 
     def sleep(self) -> None:
-        """Sleep interval for main loop."""
+        """Sleep until the next loop iteration."""
         sleep_break: float = Timestamp.now() + self.sleep_period
         while not self._stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:
-        """Set stop event."""
+        """Request module shutdown."""
         if self.debug:
             self.logs.message_debug = "stop signal received."
         if self._stop_event:
@@ -115,41 +127,69 @@ class MTest(Thread, ThBaseObject, BModule, IRunModule):
 
     @property
     def debug(self) -> bool:
-        """Return debug flag."""
+        """Return the effective debug flag.
+
+        ### Returns:
+        bool - Debug flag value.
+        """
         if self._bm_debug is not None:
             return self._bm_debug
         return False
 
     @property
     def verbose(self) -> bool:
-        """Return verbose flag."""
+        """Return the effective verbose flag.
+
+        ### Returns:
+        bool - Verbose flag value.
+        """
         return self._verbose
 
     @property
     def _stopped(self) -> bool:
-        """Return stop flag."""
+        """Return whether stop was requested.
+
+        ### Returns:
+        bool - `True` when stop was requested.
+        """
         if self._stop_event:
             return self._stop_event.is_set()
         return True
 
     @property
     def module_stopped(self) -> bool:
-        """Return stop flag."""
+        """Return whether the underlying thread is stopped.
+
+        ### Returns:
+        bool - `True` when the module thread is stopped.
+        """
         return self._is_stopped  # type: ignore
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
-        """Return module conf object."""
+        """Return the typed module configuration.
+
+        ### Returns:
+        Optional[_ModuleConf] - Module configuration adapter.
+        """
         return self._module_conf  # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:
-        """Return module name for configuration builder."""
+        """Return the configuration section name for this module.
+
+        ### Returns:
+        str - Lowercase configuration section name.
+        """
         return cls.__name__.lower()
 
     @classmethod
     def template_module_variables(cls) -> List[TemplateConfigItem]:
-        """Return configuration variables template."""
+        """Return configuration template items for this module.
+
+        ### Returns:
+        List[TemplateConfigItem] - Configuration template items.
+        """
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()

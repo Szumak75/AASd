@@ -1,7 +1,22 @@
 # API Reference
 
 This section is generated from the current Python modules selected as the
-runtime and business-logic surface of the project.
+public runtime and business-logic surface of the project.
+
+## Scope Policy
+
+The generated API reference intentionally includes:
+
+- daemon orchestration,
+- shared runtime contracts,
+- message and utility helpers used by modules,
+- communication modules,
+- business-task modules.
+
+The generated API reference intentionally excludes most of `libs.db_models.*`.
+That package is treated as an internal persistence and integration layer. It is
+documented through source docstrings for maintainers, but it is not currently
+considered part of the public project API.
 
 ```{eval-rst}
 .. autosummary::

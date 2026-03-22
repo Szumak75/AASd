@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class DocNote(LmsBase):
+    """Represent the LMS DocNote ORM model."""
+
     __tablename__ = "docnote"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -35,6 +37,7 @@ class DocNote(LmsBase):
     # KEY `docnote_docid` (`docid`)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"DocNote(id='{self.id}', "
             f"docid='{self.docid}', "

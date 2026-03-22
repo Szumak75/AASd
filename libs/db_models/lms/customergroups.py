@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class CustomerGroup(LmsBase):
+    """Represent the LMS customer group ORM model."""
+
     __tablename__ = "customergroups"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -35,6 +37,7 @@ class CustomerGroup(LmsBase):
     # UNIQUE KEY `name` (`name`)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"CustomerGroup(id='{self.id}', "
             f"name='{self.name}', "

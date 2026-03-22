@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 7 oct 2020
+Created on 7 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class Network(LmsBase):
+    """Represent the LMS Network ORM model."""
+
     __tablename__ = "networks"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -68,6 +70,7 @@ class Network(LmsBase):
     # CONSTRAINT `networks_ibfk_1` FOREIGN KEY (`hostid`) REFERENCES `hosts` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Network(id='{self.id}', "
             f"name='{self.name}', "

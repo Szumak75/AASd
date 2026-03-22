@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 01.12.2023
+"""MLMS customer contact model extension.
 
-  Purpose: Redefine the lms CustomerContact class.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-12-01
+
+Purpose: Extend the LMS customer contact model with MLMS-specific mapping details.
 """
 
 
@@ -14,7 +15,7 @@ from libs.db_models.lms.customercontacts import CustomerContact
 
 
 class MCustomerContact(CustomerContact):
-    """LMS customercontacts table."""
+    """Represent the MLMS customer contact ORM model."""
 
     customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
 

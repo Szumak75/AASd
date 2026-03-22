@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-"""
-  connectors.py
-  Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 4.12.2024, 14:00:55
-  
-  Purpose: Database connectors for the project.
+"""Database connector helpers.
 
-  WWW: https://lms.org.pl/
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2024-12-04
+
+Purpose: Build and manage SQLAlchemy connections used by the project.
 """
 
 from typing import Dict, List, Optional, Any
@@ -27,10 +25,7 @@ import libs.db_models.mlms as mlms
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Private Keys definition class.
-
-    For internal purpose only.
-    """
+    """Store internal configuration keys for database connections."""
 
     # for database class
     DB_POOL: str = "__connection_pool__"
@@ -41,7 +36,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
 
 class LmsMysqlDatabase(BDebug, BVerbose, BLogs):
-    """Database class."""
+    """Create and expose database sessions for LMS and MLMS models."""
 
     def __init__(
         self,
@@ -50,7 +45,14 @@ class LmsMysqlDatabase(BDebug, BVerbose, BLogs):
         verbose: bool = False,
         debug: bool = False,
     ) -> None:
-        """Constructor."""
+        """Initialize the database connector.
+
+        ### Arguments:
+        * qlog: LoggerQueue - Shared logging queue.
+        * config: Dict - Database configuration dictionary.
+        * verbose: bool - Enable verbose logging. Defaults to `False`.
+        * debug: bool - Enable debug logging. Defaults to `False`.
+        """
         self.logs = LoggerClient(queue=qlog, name=self._c_name)
         self._debug = debug
         self._verbose = verbose
@@ -89,7 +91,11 @@ class LmsMysqlDatabase(BDebug, BVerbose, BLogs):
         self._set_data(key=_Keys.DB_POOL, value=[], set_default_type=List)
 
     def create_connections(self) -> bool:
-        """Create connection pool, second variant."""
+        """Create the preferred pool of SQLAlchemy engines.
+
+        ### Returns:
+        bool - `True` when at least one working engine was created.
+        """
         for dialect, fail in ("pymysql", False), ("mysqlconnector", True):
             if not fail:
                 for ip in self._get_data(key=_Keys.SQL_SERVER):  # type: ignore
@@ -173,9 +179,10 @@ class LmsMysqlDatabase(BDebug, BVerbose, BLogs):
         return False
 
     def create_connections_failover(self) -> bool:
-        """Create connections pool.
+        """Create the legacy failover pool variant.
 
-        WARNING: incredible slow
+        ### Returns:
+        bool - `True` when at least one working engine was created.
         """
         config: Dict[str, Any] = {
             "db.url": None,

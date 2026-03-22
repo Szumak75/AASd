@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 14.11.2023
+"""Secondary email communication module.
 
-  Purpose: communication module: Email
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-11-14
+
+Purpose: Send queued email notifications through the secondary SMTP channel.
 """
 
 import time
@@ -40,10 +41,7 @@ from libs.app import AppName
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Private Keys definition class.
-
-    For internal purpose only.
-    """
+    """Store internal configuration keys for the email module."""
 
     ADDRESS_FROM: str = "address_from"
     ADDRESS_TO: str = "address_to"
@@ -55,7 +53,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
 
 class _ModuleConf(BModuleConfig):
-    """Module Config private class."""
+    """Provide typed accessors for email module configuration."""
 
     @property
     def smtp_server(self) -> Optional[str]:
@@ -137,7 +135,7 @@ class _ModuleConf(BModuleConfig):
 
 
 class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
-    """Second email alert module."""
+    """Send outbound emails for the secondary communication channel."""
 
     def __init__(
         self,
@@ -147,7 +145,15 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         verbose: bool = False,
         debug: bool = False,
     ) -> None:
-        """Constructor."""
+        """Initialize the secondary email communication worker.
+
+        ### Arguments:
+        * app_name: AppName - Application identifier used by the module.
+        * conf: ConfigTool - Loaded configuration handler.
+        * qlog: LoggerQueue - Shared logging queue.
+        * verbose: bool - Enable verbose logging. Defaults to `False`.
+        * debug: bool - Enable debug logging. Defaults to `False`.
+        """
         # Thread initialization
         Thread.__init__(self, name=self._c_name)
         self._stop_event = Event()
@@ -169,7 +175,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         self.logs = LoggerClient(queue=qlog, name=self._c_name)
 
     def _apply_config(self) -> bool:
-        """Apply config from module_conf"""
+        """Validate and apply runtime configuration values."""
         if self.module_conf is None:
             return False
         try:
@@ -217,7 +223,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         return True
 
     def __init_smtp(self) -> Optional[Union[smtplib.SMTP, smtplib.SMTP_SSL]]:
-        """Try to connect."""
+        """Initialize an SMTP connection using available backend options."""
         if self.module_conf is None or self.module_conf.smtp_server is None:
             return None
         smtp = None
@@ -256,7 +262,14 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         return smtp
 
     def __send_message(self, message: Message) -> bool:
-        """Try to send message."""
+        """Build and send a queued email message.
+
+        ### Arguments:
+        * message: Message - Message payload prepared for the communication queue.
+
+        ### Returns:
+        bool - `True` when the message was sent successfully, otherwise `False`.
+        """
         if (
             self.module_conf is None
             or self.module_conf.address_from is None
@@ -420,7 +433,7 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         return out
 
     def run(self) -> None:
-        """Main loop."""
+        """Run the main processing loop for queued email messages."""
         # initialize local vars
         deferred_shift: int = 15 * 60  # 15 minutes
         deferred = deferred_shift + Timestamp.now()
@@ -511,13 +524,13 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
         self.logs.message_notice = "exit"
 
     def sleep(self) -> None:
-        """Sleep interval for main loop."""
+        """Pause between queue polling iterations."""
         sleep_break: float = Timestamp.now() + self.sleep_period
         while not self._stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:
-        """Set stop event."""
+        """Request worker shutdown."""
         if self.debug:
             self.logs.message_debug = "stop signal received"
         if self._stop_event:
@@ -525,41 +538,41 @@ class MEmailalert2(Thread, ThBaseObject, BModule, IComModule):
 
     @property
     def debug(self) -> bool:
-        """Return debug flag."""
+        """Return the debug logging flag."""
         if self._bm_debug is not None:
             return self._bm_debug
         return False
 
     @property
     def verbose(self) -> bool:
-        """Return verbose flag."""
+        """Return the verbose logging flag."""
         return self._verbose
 
     @property
     def _stopped(self) -> bool:
-        """Return stop flag."""
+        """Return the internal thread stop state."""
         if self._stop_event:
             return self._stop_event.is_set()
         return True
 
     @property
     def module_stopped(self) -> bool:
-        """Return stop flag."""
+        """Return the exposed module stop state."""
         return self._is_stopped  # type: ignore
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
-        """Return module conf object."""
+        """Return the typed module configuration object."""
         return self._module_conf  # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:
-        """Return module name for configuration builder."""
+        """Return the module name for template generation."""
         return cls.__name__.lower()
 
     @classmethod
     def template_module_variables(cls) -> List[TemplateConfigItem]:
-        """Return configuration variables template."""
+        """Return the configuration template for this module."""
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()

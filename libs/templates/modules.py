@@ -1,9 +1,11 @@
 # -*- coding: UTF-8 -*-
 """
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 08.11.2023
+Configuration template helpers.
 
-  Purpose: Template class for configuration elements.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-11-08
+
+Purpose: Provide helper classes for module configuration template definitions.
 """
 
 from typing import Union, List, Optional
@@ -13,7 +15,7 @@ from jsktoolbox.attribtool import ReadOnlyClass
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Keys for configuration elements."""
+    """Define internal storage keys for configuration template items."""
 
     DESC: str = "__desc__"
     VALUE: str = "__val__"
@@ -21,7 +23,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
 
 class TemplateConfigItem(BData):
-    """Template item for config generator."""
+    """Represent one configuration template entry exposed by a module."""
 
     def __init__(
         self,
@@ -29,7 +31,13 @@ class TemplateConfigItem(BData):
         value: Optional[Union[str, int, float, bool, List]] = None,
         desc: Optional[str] = None,
     ) -> None:
-        """Constructor."""
+        """Initialize a configuration template item.
+
+        ### Arguments:
+        * varname: Optional[str] - Variable name to generate in config output.
+        * value: Optional[Union[str, int, float, bool, List]] - Default value.
+        * desc: Optional[str] - Human-readable description line.
+        """
         if varname:
             self.varname = varname
         if value is not None:
@@ -38,27 +46,47 @@ class TemplateConfigItem(BData):
             self.desc = desc
 
     def __repr__(self) -> str:
-        """Returns object as string representation."""
+        """Return a debug representation of the template item.
+
+        ### Returns:
+        str - Debug-friendly string representation.
+        """
         return f"{self._c_name}( varname='{self.varname if self.varname else ''}', value={self.value if self.value is  not None else ''}, desc='{self.desc if self.desc else ''}' )"
 
     @property
     def desc(self) -> Optional[str]:
-        """Return description."""
+        """Return the description line.
+
+        ### Returns:
+        Optional[str] - Description line or `None`.
+        """
         return self._get_data(key=_Keys.DESC, default_value=None)
 
     @desc.setter
     def desc(self, string: str) -> None:
-        """Set description."""
+        """Store the description line.
+
+        ### Arguments:
+        * string: str - Description line.
+        """
         self._set_data(key=_Keys.DESC, value=string, set_default_type=str)
 
     @property
     def value(self) -> Optional[Union[str, int, float, bool, List]]:
-        """Return value."""
+        """Return the default value stored in the template item.
+
+        ### Returns:
+        Optional[Union[str, int, float, bool, List]] - Default value or `None`.
+        """
         return self._get_data(key=_Keys.VALUE, default_value=None)
 
     @value.setter
     def value(self, value: Union[str, int, float, bool, List]) -> None:
-        """Set value."""
+        """Store the default value for the template item.
+
+        ### Arguments:
+        * value: Union[str, int, float, bool, List] - Default configuration value.
+        """
         self._set_data(
             key=_Keys.VALUE,
             value=value,
@@ -67,12 +95,20 @@ class TemplateConfigItem(BData):
 
     @property
     def varname(self) -> Optional[str]:
-        """Return varname."""
+        """Return the configuration variable name.
+
+        ### Returns:
+        Optional[str] - Variable name or `None`.
+        """
         return self._get_data(key=_Keys.VARNAME, default_value=None)
 
     @varname.setter
     def varname(self, name: str) -> None:
-        """Set varname."""
+        """Store the configuration variable name.
+
+        ### Arguments:
+        * name: str - Configuration variable name.
+        """
         self._set_data(
             key=_Keys.VARNAME,
             value=name,

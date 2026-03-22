@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 16 oct 2020
+Created on 16 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -22,6 +22,8 @@ from libs.db_models.lms.location_states import LocationState
 
 
 class LocationDistrict(LmsBase):
+    """Represent the LMS LocationDistrict ORM model."""
+
     __tablename__ = "location_districts"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -40,6 +42,7 @@ class LocationDistrict(LmsBase):
     state: Mapped["LocationState"] = relationship("LocationState")
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"LocationDistrict(id='{self.id}', "
             f"name='{self.name}', "

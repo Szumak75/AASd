@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 01.12.2023
+"""MLMS node assignment model extension.
 
-  Purpose: Redefine the lms NodeAssignment class.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-12-01
+
+Purpose: Extend the LMS node assignment model with MLMS-specific relationships.
 """
 
 from sqlalchemy import ForeignKey
@@ -15,7 +16,7 @@ from libs.db_models.lms.nodeassignments import NodeAssignment
 
 
 class MNodeAssignment(NodeAssignment):
-    """LMS nodeassignments table."""
+    """Represent the MLMS node assignment ORM model."""
 
     nodeid: Mapped[int] = mapped_column(ForeignKey("nodes.id"))
     assignmentid: Mapped[int] = mapped_column(ForeignKey("assignments.id"))

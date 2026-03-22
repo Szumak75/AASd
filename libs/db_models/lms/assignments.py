@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -19,6 +19,8 @@ from libs.db_models.base import LmsBase
 
 
 class Assignment(LmsBase):
+    """Represent the LMS assignment ORM model."""
+
     __tablename__ = "assignments"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -82,6 +84,7 @@ class Assignment(LmsBase):
     # CONSTRAINT `assignments_tariffid_fkey` FOREIGN KEY (`tariffid`) REFERENCES `tariffs` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Assignment(id='{self.id}', "
             # f"tariffid='{self.tariffid}', "

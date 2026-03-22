@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-  mzfssnapshot.py
-  Author : Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 24.10.2024, 09:58:51
-  
-  Purpose: 
+ZFS snapshot automation module.
+
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2024-10-24
+
+Purpose: Create, rotate, and supervise ZFS snapshots for configured volumes.
 """
 
 import time
@@ -34,10 +35,7 @@ from libs.app import AppName
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
-    """Private Keys definition class.
-
-    For internal purpose only.
-    """
+    """Define configuration and runtime key names for snapshot processing."""
 
     S_FREE_SPACE: str = "min_free_space"
     S_INTERVAL: str = "snapshot_interval"
@@ -54,7 +52,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
 
 class _ModuleConf(BModuleConfig):
-    """Module Config private class."""
+    """Provide typed access to the ZFS snapshot module configuration."""
 
     @property
     def min_free_space(self) -> Optional[int]:
@@ -110,10 +108,14 @@ class _ModuleConf(BModuleConfig):
 
 
 class ZfsData(BData):
-    """ZFS data."""
+    """Represent one parsed line of ZFS command output."""
 
     def __init__(self, data: str) -> None:
-        """Initialize ZFS data."""
+        """Initialize the parsed ZFS data container.
+
+        ### Arguments:
+        * data: str - Raw line returned by a ZFS command.
+        """
         self._set_data(key=_Keys.ZD_DATA, value={}, set_default_type=Dict)
         self._set_data(
             key=_Keys.ZD_ERROR, value=self.__parser(data), set_default_type=bool
@@ -121,12 +123,20 @@ class ZfsData(BData):
 
     @property
     def __data(self) -> Dict[str, str]:
-        """Data."""
+        """Return the parsed data dictionary.
+
+        ### Returns:
+        Dict[str, str] - Parsed ZFS fields.
+        """
         return self._get_data(key=_Keys.ZD_DATA)  # type: ignore
 
     @property
     def volume_root(self) -> Optional[str]:
-        """Root of the volume."""
+        """Return the root dataset of the current volume.
+
+        ### Returns:
+        Optional[str] - Root dataset name or `None`.
+        """
         if self.volume:
             tmp: List[str] = self.volume.split(os.path.sep)
             if len(tmp) > 0:
@@ -135,21 +145,33 @@ class ZfsData(BData):
 
     @property
     def volume(self) -> Optional[str]:
-        """ZFS volume."""
+        """Return the ZFS volume name.
+
+        ### Returns:
+        Optional[str] - Volume name or `None`.
+        """
         if self.__data:
             return self.__data["volume"]
         return None
 
     @property
     def used(self) -> Optional[int]:
-        """Used space."""
+        """Return used space reported by ZFS.
+
+        ### Returns:
+        Optional[int] - Used space value or `None`.
+        """
         if self.__data:
             return int(self.__data["used"]) if self.__data["used"] != "-" else None
         return None
 
     @property
     def available(self) -> Optional[int]:
-        """Available space."""
+        """Return available space reported by ZFS.
+
+        ### Returns:
+        Optional[int] - Available space value or `None`.
+        """
         if self.__data:
             return (
                 int(self.__data["available"])
@@ -160,14 +182,22 @@ class ZfsData(BData):
 
     @property
     def mount_point(self) -> Optional[str]:
-        """ZFS  mountpoint."""
+        """Return the mount point of the dataset.
+
+        ### Returns:
+        Optional[str] - Mount point or `None`.
+        """
         if self.__data:
             return self.__data["mount_point"]
         return None
 
     @property
     def snapshot_root(self) -> Optional[str]:
-        """ZFS snapshot root."""
+        """Return the dataset name of the snapshot root.
+
+        ### Returns:
+        Optional[str] - Snapshot root dataset or `None`.
+        """
         if self.__data:
             return (
                 self.__data["snapshot_root"] if "snapshot_root" in self.__data else None
@@ -176,7 +206,11 @@ class ZfsData(BData):
 
     @property
     def snapshot_name(self) -> Optional[str]:
-        """ZFS snapshot name."""
+        """Return the snapshot name suffix.
+
+        ### Returns:
+        Optional[str] - Snapshot name or `None`.
+        """
         if self.__data:
             return (
                 self.__data["snapshot_name"] if "snapshot_name" in self.__data else None
@@ -184,7 +218,14 @@ class ZfsData(BData):
         return None
 
     def __parser(self, data: str) -> bool:
-        """Parse ZFS data."""
+        """Parse one line of ZFS command output.
+
+        ### Arguments:
+        * data: str - Raw line returned by a ZFS command.
+
+        ### Returns:
+        bool - `True` when parsing succeeded.
+        """
         pa: re.Pattern[str] = re.compile(r"^(\S+)\s+(\S+)\s+(\S+)\s+\S+\s+(\S+)$")
         # pa_snap: re.Pattern[str] = re.compile(r"(\S+)@([\d]{14})")
         pa_snap: re.Pattern[str] = re.compile(r"(\S+)@(\S+)")
@@ -205,15 +246,23 @@ class ZfsData(BData):
 
     @property
     def error(self) -> bool:
-        """ZFS data error."""
+        """Return whether parsing failed.
+
+        ### Returns:
+        bool - `True` when parsing failed.
+        """
         return not self._get_data(key=_Keys.ZD_ERROR)
 
 
 class ZfsProcessor(BData):
-    """ZFS processor."""
+    """Execute volume-level ZFS snapshot operations and validations."""
 
     def __init__(self, volume: str) -> None:
-        """Initialize ZFS processor."""
+        """Initialize the processor for one configured volume.
+
+        ### Arguments:
+        * volume: str - ZFS dataset name to process.
+        """
         # volume to  process
         self._set_data(key=_Keys.ZP_VOLUME, value=volume, set_default_type=str)
         # messages container
@@ -432,17 +481,29 @@ class ZfsProcessor(BData):
 
     @property
     def volume(self) -> str:
-        """ZFS volume."""
+        """Return the configured ZFS volume.
+
+        ### Returns:
+        str - ZFS dataset name.
+        """
         return self._get_data(key=_Keys.ZP_VOLUME)  # type: ignore
 
     @property
     def __messages(self) -> List[str]:
-        """List of messages."""
+        """Return the internal message buffer.
+
+        ### Returns:
+        List[str] - Internal message buffer.
+        """
         return self._get_data(key=_Keys.ZP_MESSAGE)  # type: ignore
 
     @property
     def messages(self) -> Optional[List[str]]:
-        """Return messages list."""
+        """Return buffered processor messages.
+
+        ### Returns:
+        Optional[List[str]] - Processor messages or `None`.
+        """
         msg = self.__messages
         if msg:
             return msg
@@ -451,7 +512,7 @@ class ZfsProcessor(BData):
 
 
 class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
-    """MZfssnapshot module."""
+    """Automate snapshot creation and rotation for configured ZFS volumes."""
 
     def __init__(
         self,
@@ -462,7 +523,16 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
         verbose: bool = False,
         debug: bool = False,
     ) -> None:
-        """Constructor."""
+        """Initialize the ZFS snapshot module.
+
+        ### Arguments:
+        * app_name: AppName - Application identity container.
+        * conf: ConfigTool - Configuration handler bound to the module section.
+        * qlog: LoggerQueue - Shared logging queue.
+        * qcom: Queue - Shared communication queue for outbound messages.
+        * verbose: bool - Initial verbose flag value.
+        * debug: bool - Initial debug flag value.
+        """
         # Thread initialization
         Thread.__init__(self, name=self._c_name)
         self._stop_event = Event()
@@ -486,7 +556,11 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
         self.qcom = qcom
 
     def _apply_config(self) -> bool:
-        """Apply config from module_conf"""
+        """Apply runtime configuration to the module.
+
+        ### Returns:
+        bool - `True` when configuration was applied successfully.
+        """
         if self.module_conf is None:
             return False
 
@@ -533,7 +607,7 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
         return True
 
     def run(self) -> None:
-        """Main loop."""
+        """Run the snapshot supervision and rotation loop."""
         self.logs.message_notice = "starting..."
 
         if self.module_conf is None or self.module_conf.message_channel is None:
@@ -631,13 +705,13 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
         self.logs.message_notice = "exit"
 
     def sleep(self) -> None:
-        """Sleep interval for main loop."""
+        """Sleep until the next loop iteration."""
         sleep_break: float = Timestamp.now() + self.sleep_period
         while not self._stopped and sleep_break > Timestamp.now():
             time.sleep(0.2)
 
     def stop(self) -> None:
-        """Set stop event."""
+        """Request module shutdown."""
         if self.debug:
             self.logs.message_debug = "stop signal received"
         if self._stop_event:
@@ -681,41 +755,69 @@ class MZfssnapshot(Thread, ThBaseObject, BModule, IRunModule):
 
     @property
     def _stopped(self) -> bool:
-        """Return stop flag."""
+        """Return whether stop was requested.
+
+        ### Returns:
+        bool - `True` when stop was requested.
+        """
         if self._stop_event:
             return self._stop_event.is_set()
         return True
 
     @property
     def module_stopped(self) -> bool:
-        """Return stop flag."""
+        """Return whether the underlying thread is stopped.
+
+        ### Returns:
+        bool - `True` when the module thread is stopped.
+        """
         return self._is_stopped  # type: ignore
 
     @property
     def debug(self) -> bool:
-        """Return debug flag."""
+        """Return the effective debug flag.
+
+        ### Returns:
+        bool - Debug flag value.
+        """
         if self._bm_debug is not None:
             return self._bm_debug
         return False
 
     @property
     def verbose(self) -> bool:
-        """Return verbose flag."""
+        """Return the effective verbose flag.
+
+        ### Returns:
+        bool - Verbose flag value.
+        """
         return self._verbose
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
-        """Return module conf object."""
+        """Return the typed module configuration.
+
+        ### Returns:
+        Optional[_ModuleConf] - Module configuration adapter.
+        """
         return self._module_conf  # type: ignore
 
     @classmethod
     def template_module_name(cls) -> str:
-        """Return module name for configuration builder."""
+        """Return the configuration section name for this module.
+
+        ### Returns:
+        str - Lowercase configuration section name.
+        """
         return cls.__name__.lower()
 
     @classmethod
     def template_module_variables(cls) -> List[TemplateConfigItem]:
-        """Return configuration variables template."""
+        """Return configuration template items for this module.
+
+        ### Returns:
+        List[TemplateConfigItem] - Configuration template items.
+        """
         out: List[TemplateConfigItem] = []
         # item format:
         # TemplateConfigItem()

@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 9 oct 2020
+Created on 9 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class User(LmsBase):
+    """Represent the LMS User ORM model."""
+
     __tablename__ = "users"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -79,6 +81,7 @@ class User(LmsBase):
     # UNIQUE KEY `login` (`login`)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"User(id='{self.id}', "
             f"login='{self.login}', "

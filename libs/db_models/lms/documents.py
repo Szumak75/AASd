@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class Document(LmsBase):
+    """Represent the LMS Document ORM model."""
+
     __tablename__ = "documents"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -136,6 +138,7 @@ class Document(LmsBase):
     # CONSTRAINT `documents_userid_fkey` FOREIGN KEY (`userid`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"Document(id='{self.id}', "
             f"type='{self.type}', "

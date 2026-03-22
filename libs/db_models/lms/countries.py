@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class Country(LmsBase):
+    """Represent the LMS country ORM model."""
+
     __tablename__ = "countries"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -33,4 +35,5 @@ class Country(LmsBase):
     # UNIQUE KEY `name` (`name`)
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return f"Country(id='{self.id}', " f"name='{self.name}' ) "

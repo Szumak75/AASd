@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 7 oct 2020
+Created on 7 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class RtAttachment(LmsBase):
+    """Represent the LMS RtAttachment ORM model."""
+
     __tablename__ = "rtattachments"
 
     # dummy primary key
@@ -35,6 +37,7 @@ class RtAttachment(LmsBase):
     # CONSTRAINT `rtattachments_ibfk_1` FOREIGN KEY (`messageid`) REFERENCES `rtmessages` (`id`) ON DELETE CASCADE ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"RtAttachment(messageid='{self.messageid}', "
             f"filename='{self.filename}', "

@@ -1,6 +1,6 @@
 # -*- coding: UTF-8 -*-
 """
-Created on 6 oct 2020
+Created on 6 oct 2020.
 
 @author: szumak@virthost.pl
 """
@@ -21,6 +21,8 @@ from libs.db_models.base import LmsBase
 
 
 class CashImport(LmsBase):
+    """Represent the LMS cash import ORM model."""
+
     __tablename__ = "cashimport"
 
     # `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -55,6 +57,7 @@ class CashImport(LmsBase):
     # CONSTRAINT `cashimport_sourceid_fkey` FOREIGN KEY (`sourceid`) REFERENCES `cashsources` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
 
     def __repr__(self) -> str:
+        """Return the developer representation string."""
         return (
             f"CashImport(id='{self.id}', "
             f"date='{self.date}', "

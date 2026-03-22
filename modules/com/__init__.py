@@ -1,1 +1,1 @@
-
+"""Communication modules package."""

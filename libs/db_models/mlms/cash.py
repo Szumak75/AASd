@@ -1,9 +1,10 @@
 # -*- coding: UTF-8 -*-
-"""
-  Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
-  Created: 01.12.2023
+"""MLMS cash model extension.
 
-  Purpose: Redefine the lms Cash class.
+Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
+Created: 2023-12-01
+
+Purpose: Extend the LMS cash model with MLMS-specific relationships.
 """
 
 from typing import Optional
@@ -15,7 +16,7 @@ from libs.db_models.mlms.documents import MDocument
 
 
 class MCash(Cash):
-    """LMS cash table."""
+    """Represent the MLMS cash ORM model."""
 
     customerid: Mapped[int] = mapped_column(ForeignKey("customers.id"))
     docid: Mapped[int] = mapped_column(ForeignKey("documents.id"))
