@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING, Any, Final
 __all__: list[str] = [
     "DispatcherAdapter",
     "PluginHealth",
+    "PluginHealthPolicy",
     "PluginHealthSnapshot",
     "PluginCommonKeys",
     "PluginConfigParser",
@@ -17,6 +18,7 @@ __all__: list[str] = [
     "PluginLoader",
     "PluginRuntime",
     "PluginRegistryService",
+    "PluginRestartPolicy",
     "PluginSkip",
     "PluginServiceReport",
     "PluginState",
@@ -27,6 +29,7 @@ __all__: list[str] = [
 _EXPORTS: Final[dict[str, str]] = {
     "DispatcherAdapter": "libs.plugins.runtime",
     "PluginHealth": "libs.plugins.runtime",
+    "PluginHealthPolicy": "libs.plugins.service",
     "PluginHealthSnapshot": "libs.plugins.runtime",
     "PluginCommonKeys": "libs.plugins.keys",
     "PluginConfigParser": "libs.plugins.config",
@@ -38,6 +41,7 @@ _EXPORTS: Final[dict[str, str]] = {
     "PluginLoader": "libs.plugins.loader",
     "PluginRuntime": "libs.plugins.runtime",
     "PluginRegistryService": "libs.plugins.service",
+    "PluginRestartPolicy": "libs.plugins.service",
     "PluginSkip": "libs.plugins.service",
     "PluginServiceReport": "libs.plugins.service",
     "PluginState": "libs.plugins.runtime",
@@ -51,7 +55,9 @@ if TYPE_CHECKING:
     from libs.plugins.loader import PluginDefinition, PluginLoader
     from libs.plugins.service import (
         PluginFailure,
+        PluginHealthPolicy,
         PluginRegistryService,
+        PluginRestartPolicy,
         PluginSkip,
         PluginServiceReport,
     )

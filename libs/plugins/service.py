@@ -15,6 +15,7 @@ from inspect import currentframe
 from queue import Queue
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
+from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.basetool import BClasses
 from jsktoolbox.logstool import LoggerClient
 from jsktoolbox.raisetool import Raise
@@ -59,10 +60,26 @@ class PluginServiceReport:
 
     dispatch: Optional[ThDispatcher] = None
     failed: List[PluginFailure] = field(default_factory=list)
+    health_policy: str = "transitions_only"
     initialized: List[str] = field(default_factory=list)
+    managed_runtimes: List[PluginRuntime] = field(default_factory=list)
+    restart_policy: str = "none"
     started: List[str] = field(default_factory=list)
-    runtimes: List[PluginRuntime] = field(default_factory=list)
     skipped: List[PluginSkip] = field(default_factory=list)
+
+
+class PluginHealthPolicy(object, metaclass=ReadOnlyClass):
+    """Expose supported supervision health polling policies."""
+
+    # #[CONSTANTS]##############################################################
+    TRANSITIONS_ONLY: str = "transitions_only"
+
+
+class PluginRestartPolicy(object, metaclass=ReadOnlyClass):
+    """Expose supported supervision restart policies."""
+
+    # #[CONSTANTS]##############################################################
+    NONE: str = "none"
 
 
 class PluginRegistryService(BClasses):
@@ -86,7 +103,10 @@ class PluginRegistryService(BClasses):
         ### Returns:
         PluginServiceReport - Supervision result for this startup cycle.
         """
-        report = PluginServiceReport()
+        report = PluginServiceReport(
+            health_policy=PluginHealthPolicy.TRANSITIONS_ONLY,
+            restart_policy=PluginRestartPolicy.NONE,
+        )
         logs.message_info = "starting..."
         discovered_plugins: List[PluginDefinition] = list(conf.get_plugins)
 
@@ -162,6 +182,7 @@ class PluginRegistryService(BClasses):
                     )
                 )
                 runtime.initialize()
+                report.managed_runtimes.append(runtime)
                 initialized_plugins.append((plugin, runtime))
                 report.initialized.append(plugin.instance_name)
                 if conf.debug:
@@ -184,7 +205,6 @@ class PluginRegistryService(BClasses):
         for plugin, runtime in initialized_plugins:
             try:
                 runtime.start()
-                report.runtimes.append(runtime)
                 report.started.append(plugin.instance_name)
                 if conf.debug:
                     logs.message_debug = (
@@ -216,20 +236,14 @@ class PluginRegistryService(BClasses):
         * report: PluginServiceReport - Supervision report holding active runtimes.
         * logs: LoggerClient - Daemon logger used for supervision messages.
         """
-        for runtime in report.runtimes:
+        for runtime in reversed(report.managed_runtimes):
             try:
                 runtime.stop(timeout=2.0)
             except TypeError:
                 runtime.stop()
             except Exception as ex:
                 logs.message_error = f"cannot stop plugin runtime: {ex}"
-            while runtime.state().state not in (
-                PluginState.STOPPED,
-                PluginState.FAILED,
-            ):
-                if hasattr(runtime, "join"):
-                    runtime.join()  # type: ignore
-                time.sleep(0.1)
+            cls.__wait_for_runtime_shutdown(runtime=runtime, logs=logs)
 
         if report.dispatch is None:
             return None
@@ -338,6 +352,33 @@ class PluginRegistryService(BClasses):
                     stage=stage,
                 )
             )
+
+    @classmethod
+    def __wait_for_runtime_shutdown(
+        cls,
+        runtime: PluginRuntime,
+        logs: LoggerClient,
+    ) -> None:
+        """Wait for one runtime to reach a terminal shutdown state.
+
+        ### Arguments:
+        * runtime: PluginRuntime - Managed runtime being stopped.
+        * logs: LoggerClient - Daemon logger used for shutdown warnings.
+        """
+        for _ in range(50):
+            if runtime.state().state in (
+                PluginState.STOPPED,
+                PluginState.FAILED,
+            ):
+                return None
+            if hasattr(runtime, "join"):
+                runtime.join(timeout=0.1)  # type: ignore[misc]
+            time.sleep(0.1)
+
+        logs.message_warning = (
+            "plugin runtime did not reach a terminal shutdown state within "
+            "the supervision timeout"
+        )
 
 
 # #[EOF]#######################################################################

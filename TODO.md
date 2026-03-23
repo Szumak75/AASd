@@ -25,6 +25,9 @@
 - Shared plugin configuration keys are exposed through `libs.plugins.keys`.
 - Plugin supervision is handled through a dedicated registry service in `libs.plugins.service`.
 - The supervision report distinguishes initialized, started, failed, and skipped plugin instances.
+- The registry service keeps explicit defaults of `restart_policy=none` and `health_policy=transitions_only`.
+- Shutdown now covers all initialized runtimes, including runtimes that never reached `start()`.
+- Plugin discovery rejects schemas that collide with daemon-reserved host keys or reuse duplicate field names and aliases.
 - `AppConfig` generates one configuration section per discovered plugin instance and keeps instance configuration separate from implementation identity.
 - Legacy runtime code has been moved to `archive/` and is no longer used by the active execution path.
 - Historical data-model definitions have been moved to `archive/libs/db_models/`.
@@ -51,9 +54,8 @@
 
 ### Runtime Supervision
 
-- Define shutdown behavior for partially initialized plugin sets.
-- Define restart or reinitialization expectations for failed plugins.
-- Define whether the daemon should poll `health()` periodically or only inspect it during lifecycle transitions.
+- Define whether restart policy should remain fixed at `none` in API v1 or become configurable later.
+- Define whether `health()` should remain transition-only in API v1 or gain periodic polling later.
 - Define how failed and skipped plugin instances should be surfaced to operators in logs and status output.
 
 ### Host API Stabilization
@@ -72,7 +74,7 @@
 - Decide whether `libs.templates.modules` remains only as an internal render layer or is fully replaced in the active runtime.
 - Keep communication routing user-defined through config variables only.
 - Ensure configuration mistakes in channel mapping are visible to the user and never create hidden cross-plugin coupling.
-- Validate collisions between daemon-reserved keys from `libs.plugins.keys` and plugin-private field names.
+- Decide whether common keys from `PluginCommonKeys` should remain advisory or become schema-level validated semantics.
 
 ### Plugin Discovery And Registration
 

@@ -13,12 +13,14 @@ import importlib.util
 from dataclasses import dataclass
 from inspect import currentframe
 from pathlib import Path
-from typing import Callable, List, TypeGuard, cast
+from typing import Callable, List, Set, TypeGuard, cast
 
 from jsktoolbox.basetool import BClasses
 from jsktoolbox.raisetool import Raise
 
+from libs.plugins.keys import PluginHostKeys
 from libs.plugins.runtime import PluginKind, PluginSpec
+from libs.templates import PluginConfigSchema
 
 
 @dataclass(slots=True)
@@ -114,6 +116,76 @@ class PluginLoader(BClasses):
         return isinstance(plugin_spec, PluginSpec)
 
     @classmethod
+    def __reserved_host_keys(cls) -> Set[str]:
+        """Return the set of daemon-reserved plugin configuration keys.
+
+        ### Returns:
+        Set[str] - Reserved configuration key names.
+        """
+        out: Set[str] = set()
+        for name, value in PluginHostKeys.__dict__.items():
+            if name.startswith("_"):
+                continue
+            if isinstance(value, str):
+                out.add(value)
+        return out
+
+    @classmethod
+    def __validate_schema(
+        cls,
+        instance_name: str,
+        schema: PluginConfigSchema,
+    ) -> None:
+        """Validate one plugin configuration schema.
+
+        ### Arguments:
+        * instance_name: str - Plugin instance name.
+        * schema: PluginConfigSchema - Plugin schema definition.
+        """
+        used_names: Set[str] = set()
+        reserved_host_keys: Set[str] = cls.__reserved_host_keys()
+
+        for field in schema.fields:
+            if field.name in reserved_host_keys:
+                raise Raise.error(
+                    f"Plugin '{instance_name}' uses reserved host key "
+                    f"'{field.name}' in config schema.",
+                    ValueError,
+                    cls.__name__,
+                    currentframe(),
+                )
+            if field.name in used_names:
+                raise Raise.error(
+                    f"Plugin '{instance_name}' defines duplicate config name "
+                    f"'{field.name}'.",
+                    ValueError,
+                    cls.__name__,
+                    currentframe(),
+                )
+            used_names.add(field.name)
+
+            if field.aliases is None:
+                continue
+            for alias in field.aliases:
+                if alias in reserved_host_keys:
+                    raise Raise.error(
+                        f"Plugin '{instance_name}' uses reserved host key "
+                        f"'{alias}' as config alias.",
+                        ValueError,
+                        cls.__name__,
+                        currentframe(),
+                    )
+                if alias in used_names:
+                    raise Raise.error(
+                        f"Plugin '{instance_name}' defines duplicate config "
+                        f"name or alias '{alias}'.",
+                        ValueError,
+                        cls.__name__,
+                        currentframe(),
+                    )
+                used_names.add(alias)
+
+    @classmethod
     def __validate_spec(cls, instance_name: str, plugin_spec: object) -> PluginSpec:
         """Validate the loaded plugin specification.
 
@@ -141,6 +213,10 @@ class PluginLoader(BClasses):
                 cls.__name__,
                 currentframe(),
             )
+        cls.__validate_schema(
+            instance_name=instance_name,
+            schema=plugin_spec.config_schema,
+        )
         return plugin_spec
 
 

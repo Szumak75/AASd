@@ -26,9 +26,11 @@ from libs.plugins import (
     PluginConfigParser,
     PluginContext,
     PluginHealth,
+    PluginHealthPolicy,
     PluginHostKeys,
-    PluginState,
     PluginLoader,
+    PluginRestartPolicy,
+    PluginState,
 )
 from libs.templates import PluginConfigField, PluginConfigSchema
 
@@ -117,6 +119,8 @@ class TestLibsPlugins(unittest.TestCase):
         self.assertEqual(PluginHostKeys.AUTOSTART, "autostart")
         self.assertEqual(PluginHostKeys.START_DELAY, "start_delay")
         self.assertEqual(PluginHostKeys.RESTART_POLICY, "restart_policy")
+        self.assertEqual(PluginHealthPolicy.TRANSITIONS_ONLY, "transitions_only")
+        self.assertEqual(PluginRestartPolicy.NONE, "none")
 
     def test_01b_dispatcher_adapter_uses_typed_storage_for_queue_access(self) -> None:
         """Publish and register through `DispatcherAdapter` backed by `BData`."""
@@ -198,7 +202,130 @@ class TestLibsPlugins(unittest.TestCase):
             with self.assertRaises(TypeError):
                 PluginLoader.discover(plugins_dir)
 
-    def test_05_parser_should_reject_missing_required_value(self) -> None:
+    def test_05_loader_should_reject_reserved_host_key_in_schema(self) -> None:
+        """Reject plugins that use daemon-reserved host keys in config fields."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            plugins_dir = Path(tmp_dir) / "plugins"
+            plugins_dir.mkdir()
+            broken = plugins_dir / "reserved_key"
+            broken.mkdir()
+            (broken / "load.py").write_text(
+                "\n".join(
+                    [
+                        "from libs.plugins import PluginKind, PluginSpec, PluginHostKeys",
+                        "from libs.templates import PluginConfigField, PluginConfigSchema",
+                        "",
+                        "def _runtime(_context):",
+                        "    class Runtime(object):",
+                        "        def initialize(self):",
+                        "            return None",
+                        "        def start(self):",
+                        "            return None",
+                        "        def stop(self, timeout=None):",
+                        "            return None",
+                        "        def state(self):",
+                        "            from libs.plugins import PluginState, PluginStateSnapshot",
+                        "            return PluginStateSnapshot(state=PluginState.STOPPED)",
+                        "        def health(self):",
+                        "            from libs.plugins import PluginHealth, PluginHealthSnapshot",
+                        "            return PluginHealthSnapshot(health=PluginHealth.HEALTHY)",
+                        "    return Runtime()",
+                        "",
+                        "def get_plugin_spec():",
+                        "    return PluginSpec(",
+                        "        api_version=1,",
+                        "        config_schema=PluginConfigSchema(",
+                        "            title='Broken reserved key plugin.',",
+                        "            fields=[",
+                        "                PluginConfigField(",
+                        "                    name=PluginHostKeys.RESTART_POLICY,",
+                        "                    field_type=str,",
+                        "                    default='none',",
+                        "                    required=False,",
+                        "                    description='Reserved key.',",
+                        "                )",
+                        "            ],",
+                        "        ),",
+                        "        plugin_id='plugin.reserved',",
+                        "        plugin_kind=PluginKind.WORKER,",
+                        "        plugin_name='reserved_key',",
+                        "        runtime_factory=_runtime,",
+                        "    )",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(ValueError):
+                PluginLoader.discover(plugins_dir)
+
+    def test_06_loader_should_reject_duplicate_field_alias_names(self) -> None:
+        """Reject schemas that declare duplicate field names or aliases."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            plugins_dir = Path(tmp_dir) / "plugins"
+            plugins_dir.mkdir()
+            broken = plugins_dir / "duplicate_alias"
+            broken.mkdir()
+            (broken / "load.py").write_text(
+                "\n".join(
+                    [
+                        "from libs.plugins import PluginKind, PluginSpec",
+                        "from libs.templates import PluginConfigField, PluginConfigSchema",
+                        "",
+                        "def _runtime(_context):",
+                        "    class Runtime(object):",
+                        "        def initialize(self):",
+                        "            return None",
+                        "        def start(self):",
+                        "            return None",
+                        "        def stop(self, timeout=None):",
+                        "            return None",
+                        "        def state(self):",
+                        "            from libs.plugins import PluginState, PluginStateSnapshot",
+                        "            return PluginStateSnapshot(state=PluginState.STOPPED)",
+                        "        def health(self):",
+                        "            from libs.plugins import PluginHealth, PluginHealthSnapshot",
+                        "            return PluginHealthSnapshot(health=PluginHealth.HEALTHY)",
+                        "    return Runtime()",
+                        "",
+                        "def get_plugin_spec():",
+                        "    return PluginSpec(",
+                        "        api_version=1,",
+                        "        config_schema=PluginConfigSchema(",
+                        "            title='Broken duplicate alias plugin.',",
+                        "            fields=[",
+                        "                PluginConfigField(",
+                        "                    name='channel',",
+                        "                    field_type=int,",
+                        "                    default=1,",
+                        "                    required=True,",
+                        "                    description='First field.',",
+                        "                    aliases=['shared_alias'],",
+                        "                ),",
+                        "                PluginConfigField(",
+                        "                    name='message_channel',",
+                        "                    field_type=int,",
+                        "                    default=2,",
+                        "                    required=True,",
+                        "                    description='Second field.',",
+                        "                    aliases=['shared_alias'],",
+                        "                )",
+                        "            ],",
+                        "        ),",
+                        "        plugin_id='plugin.duplicate',",
+                        "        plugin_kind=PluginKind.WORKER,",
+                        "        plugin_name='duplicate_alias',",
+                        "        runtime_factory=_runtime,",
+                        "    )",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaises(ValueError):
+                PluginLoader.discover(plugins_dir)
+
+    def test_07_parser_should_reject_missing_required_value(self) -> None:
         """Reject config sections that miss a required non-nullable field."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             config_file = Path(tmp_dir) / "plugin.conf"
@@ -223,7 +350,7 @@ class TestLibsPlugins(unittest.TestCase):
             with self.assertRaises(ValueError):
                 PluginConfigParser.parse(cfg, "plugin", schema)
 
-    def test_06_example_plugins_should_exchange_message_via_dispatcher(self) -> None:
+    def test_08_example_plugins_should_exchange_message_via_dispatcher(self) -> None:
         """Start `example1` and `example2` and verify channel-based dispatching."""
         project_dir = Path(__file__).resolve().parent.parent
         plugins_dir = project_dir / "plugins"

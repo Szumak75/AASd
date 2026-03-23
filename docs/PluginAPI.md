@@ -209,6 +209,8 @@ Rules:
 - plugin authors should import shared keys from `libs.plugins`,
 - plugins may define private keys locally when they are plugin-specific,
 - plugins must not redefine daemon-reserved host key semantics.
+- plugins must not use `PluginHostKeys` names as plugin field names or aliases
+  in `PluginConfigSchema`.
 
 ## PluginContext
 
@@ -268,6 +270,13 @@ types:
   `unknown`, `healthy`, `degraded`, `unhealthy`
 
 This keeps lifecycle supervision separate from runtime health reporting.
+
+Current daemon-side supervision defaults are:
+
+- no automatic restart of failed plugin instances inside the same daemon cycle,
+- `health()` is evaluated during lifecycle transitions only,
+- shutdown must stop every runtime that completed `initialize()`, even if
+  `start()` never succeeded.
 
 ## Dispatcher API
 
@@ -372,6 +381,14 @@ The daemon should use the schema to:
 - preserve existing user-edited values.
 
 The schema must describe instance-local variables only.
+
+Schema validation must reject:
+
+- field names that collide with daemon-reserved keys from `PluginHostKeys`,
+- aliases that collide with daemon-reserved keys from `PluginHostKeys`,
+- duplicate field names,
+- duplicate aliases,
+- aliases that collide with another field name in the same schema.
 
 The main daemon section remains responsible for host-level variables such as:
 

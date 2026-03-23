@@ -484,9 +484,33 @@ The active runtime uses `PluginRegistryService` to coordinate:
 The supervision report currently distinguishes:
 
 - `initialized`
+- `managed_runtimes`
+- `health_policy`
+- `restart_policy`
 - `started`
 - `failed`
 - `skipped`
+
+Current supervision defaults are:
+
+- no automatic restart of failed plugin instances during the active daemon
+  cycle,
+- `health()` is inspected at lifecycle transition boundaries only,
+- shutdown stops all initialized runtimes in reverse order, including runtimes
+  that never reached `start()`.
+
+### Config-schema validation
+
+`PluginLoader` validates plugin config schemas before a plugin instance is
+accepted into the active runtime.
+
+Current validation rules include:
+
+- daemon-reserved keys from `PluginHostKeys` must not be used as plugin field
+  names,
+- daemon-reserved keys from `PluginHostKeys` must not be used as plugin field
+  aliases,
+- field names and aliases must be unique within one plugin schema.
 
 ## Current API Boundaries
 
@@ -505,7 +529,10 @@ The most stable practical API for future refactoring currently appears to be:
 - `PluginContext`
 - `PluginConfigSchema`
 - `PluginConfigParser`
+- `PluginLoader`
+- `PluginHealthPolicy`
 - `PluginRegistryService`
+- `PluginRestartPolicy`
 - `PluginServiceReport`
 
 ### Internal But Important Boundary

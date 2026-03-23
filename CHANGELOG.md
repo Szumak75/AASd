@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.3.0-DEV
+
+- feat: added plugin-schema validation that rejects daemon-reserved host keys in field names and aliases
+- feat: added duplicate field-name and alias detection for plugin config schemas during plugin loading
+- test: added regression coverage for reserved host-key collisions and duplicate alias definitions in plugin schemas
+- docs: documented active schema-validation rules in the plugin API and runtime API guides
+
+## 2.2.0-DEV
+
+- feat: added explicit supervision defaults with `PluginRestartPolicy.NONE` and `PluginHealthPolicy.TRANSITIONS_ONLY`
+- feat: extended `PluginServiceReport` with managed runtime tracking and supervision policy fields
+- refactor: changed plugin shutdown to stop all initialized runtimes in reverse order, including runtimes that never reached `start()`
+- test: added regression coverage for supervision policy defaults and partial-startup shutdown handling
+- docs: documented the current restart, health, and shutdown supervision behavior in the active API guides and `TODO.md`
+
 ## 2.1.15-DEV
 
 - feat: added `libs.plugins.service` with `PluginRegistryService`, `PluginServiceReport`, `PluginFailure`, and `PluginSkip`
