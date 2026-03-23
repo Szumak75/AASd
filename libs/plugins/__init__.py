@@ -5,34 +5,51 @@ from typing import TYPE_CHECKING, Any, Final
 
 __all__: list[str] = [
     "DispatcherAdapter",
+    "PluginHealth",
+    "PluginHealthSnapshot",
+    "PluginCommonKeys",
     "PluginConfigParser",
     "PluginContext",
     "PluginDefinition",
+    "PluginHostKeys",
     "PluginKind",
     "PluginLoader",
     "PluginRuntime",
+    "PluginState",
+    "PluginStateSnapshot",
     "PluginSpec",
 ]
 
 _EXPORTS: Final[dict[str, str]] = {
     "DispatcherAdapter": "libs.plugins.runtime",
+    "PluginHealth": "libs.plugins.runtime",
+    "PluginHealthSnapshot": "libs.plugins.runtime",
+    "PluginCommonKeys": "libs.plugins.keys",
     "PluginConfigParser": "libs.plugins.config",
     "PluginContext": "libs.plugins.runtime",
     "PluginDefinition": "libs.plugins.loader",
+    "PluginHostKeys": "libs.plugins.keys",
     "PluginKind": "libs.plugins.runtime",
     "PluginLoader": "libs.plugins.loader",
     "PluginRuntime": "libs.plugins.runtime",
+    "PluginState": "libs.plugins.runtime",
+    "PluginStateSnapshot": "libs.plugins.runtime",
     "PluginSpec": "libs.plugins.runtime",
 }
 
 if TYPE_CHECKING:
     from libs.plugins.config import PluginConfigParser
+    from libs.plugins.keys import PluginCommonKeys, PluginHostKeys
     from libs.plugins.loader import PluginDefinition, PluginLoader
     from libs.plugins.runtime import (
         DispatcherAdapter,
+        PluginHealth,
+        PluginHealthSnapshot,
         PluginContext,
         PluginKind,
         PluginRuntime,
+        PluginState,
+        PluginStateSnapshot,
         PluginSpec,
     )
 

@@ -13,6 +13,7 @@ After migration:
 - the daemon loads runtime extensions only from `plugins_dir`,
 - the daemon no longer starts `modules.com/*` or `modules.run/*`,
 - the legacy runtime tree exists only in `archive/`,
+- historical data-model definitions exist only in `archive/libs/db_models/`,
 - all new business functionality is implemented as plugins using `Plugin API v1`.
 
 ## Active Code To Replace

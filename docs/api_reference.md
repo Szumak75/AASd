@@ -12,10 +12,9 @@ The generated API reference intentionally includes:
 - message and utility helpers used by plugins,
 - plugin runtime and configuration helpers.
 
-The generated API reference intentionally excludes most of `libs.db_models.*`.
-That package is treated as an internal persistence and integration layer. It is
-documented through source docstrings for maintainers, but it is not currently
-considered part of the public project API.
+The generated API reference intentionally excludes archived implementation
+trees such as `archive/libs/db_models`. Those files are preserved for
+historical reference, not as active runtime API.
 
 ```{eval-rst}
 .. autosummary::
@@ -32,5 +31,6 @@ considered part of the public project API.
    libs.plugins.runtime
    libs.plugins.loader
    libs.plugins.config
+   libs.plugins.keys
    libs.templates.schema
 ```

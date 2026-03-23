@@ -1,10 +1,65 @@
 # Changelog
 
+## 2.1.13-DEV
+
+- style: wrapped the example2 stdout print payload string to align with the shorter line-length convention
+
+## 2.1.12-DEV
+
+- style: wrapped an overlong configuration description string in `plugins/example2/load.py`
+
+## 2.1.11-DEV
+
+- refactor: removed an unused `BClasses` import from `libs.plugins.runtime` after the `DispatcherAdapter` typed-storage cleanup
+
+## 2.1.10-DEV
+
+- refactor: switched `DispatcherAdapter` to typed `BData` storage for dispatcher and queue references
+- test: added regression coverage for `DispatcherAdapter` publish and consumer registration paths
+
+## 2.1.9-DEV
+
+- feat: added public shared plugin configuration key classes in `libs.plugins.keys`
+- refactor: switched example plugins to use shared public plugin key constants instead of raw string literals
+- test: added regression coverage for the public plugin key classes
+- docs: documented `libs.plugins.keys` as part of the active plugin API surface
+
+## 2.1.8-DEV
+
+- refactor: moved `libs/db_models` to `archive/libs/db_models` as historical plugin-specific data-model definitions
+- docs: removed `libs.db_models` from the active runtime documentation surface and updated migration notes
+
+## 2.1.7-DEV
+
+- fix: changed `PluginLoader` validation helper to return `PluginSpec` directly so static type checkers can narrow the loader return type correctly
+
+## 2.1.6-DEV
+
+- refactor: tightened `PluginLoader` typing with `cast` plus `TypeGuard` for `get_plugin_spec()` return validation
+
+## 2.1.5-DEV
+
+- refactor: aligned `PluginKind` with the project-standard `ReadOnlyClass` constant pattern
+
+## 2.1.4-DEV
+
+- fix: replaced `Enum`-based plugin lifecycle constants with the project-standard `ReadOnlyClass` constant pattern
+- refactor: simplified plugin state and health snapshots to store string values compatible with the new constant classes
+
+## 2.1.3-DEV
+
+- feat: defined a stricter plugin runtime lifecycle with `initialize()`, `start()`, `stop()`, `state()`, and `health()`
+- feat: added `PluginState`, `PluginHealth`, and snapshot types to the active plugin runtime API
+- refactor: updated daemon startup and shutdown to use the new two-phase plugin lifecycle
+- test: updated plugin runtime regression coverage for initialization, state, and health reporting
+- docs: documented the stricter runtime lifecycle in the plugin API and active API reference
+
 ## 2.1.2-DEV
 
 - refactor: renamed active base-layer mixins and main-config helpers from module-oriented names to plugin-oriented names
 - refactor: removed the inactive `modules` main-section config entry from active configuration fixtures and main-config internals
 - docs: aligned installation, API, architecture, flow, and API-surface guides with plugin-oriented runtime terminology
+- docs: rewrote `TODO.md` as the active post-migration plan for hardening and extending the plugin runtime
 - test: updated base-layer lazy-export coverage for the renamed plugin mixins
 
 ## 2.1.1-DEV

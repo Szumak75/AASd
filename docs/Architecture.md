@@ -164,18 +164,9 @@ The target plugin entry-point convention is documented in
 
 ## Data Access Layer
 
-The project includes a large SQLAlchemy model tree under `libs/db_models/`.
-This layer is important for persistence but should be treated as a schema and
-integration layer, not as the primary business API.
-
-The archived business logic implementations and future complex worker plugins depend directly on:
-
-- `libs.db_models.connectors.LmsMysqlDatabase`,
-- `libs.db_models.lms.*`,
-- `libs.db_models.mlms.*`.
-
-This means domain logic and data access are only partially separated at the
-moment.
+The historical SQLAlchemy model tree has been moved to `archive/libs/db_models/`.
+It is preserved for reference only and is not part of the active runtime or
+supported plugin API.
 
 ### API Boundary Decision
 
@@ -198,15 +189,8 @@ Public documentation surface:
 - `libs.plugins.*`
 - `libs.templates.schema`
 
-Internal documentation surface:
-
-- `libs.db_models.lms.*`
-- `libs.db_models.mlms.*`
-- `libs.db_models.base`
-- `libs.db_models.connectors`
-
-The ORM tree still needs docstrings and maintenance documentation, but it
-should not be presented as the stable entry point for application behavior.
+There is no active ORM documentation surface in the runtime API. Archived data
+models remain reference material only.
 
 ## Current Strengths
 

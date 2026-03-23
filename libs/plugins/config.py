@@ -12,13 +12,14 @@ from typing import Any, Dict, List, Optional, Union, get_args, get_origin
 
 from inspect import currentframe
 
+from jsktoolbox.basetool import BClasses
 from jsktoolbox.configtool import Config as ConfigTool
 from jsktoolbox.raisetool import Raise
 
 from libs.templates import PluginConfigField, PluginConfigSchema
 
 
-class PluginConfigParser(object):
+class PluginConfigParser(BClasses):
     """Parse plugin config sections according to `PluginConfigSchema`."""
 
     # #[STATIC/CLASS METHODS]#########################################################

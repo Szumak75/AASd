@@ -11,7 +11,7 @@ Purpose: Provide schema-oriented configuration descriptors for plugin API v1.
 from typing import Any, List, Optional
 
 from jsktoolbox.attribtool import ReadOnlyClass
-from jsktoolbox.basetool import BData
+from jsktoolbox.basetool import BData, BClasses
 
 from libs.templates.modules import TemplateConfigItem
 
@@ -331,9 +331,7 @@ class PluginConfigField(BData):
         ### Arguments:
         * value: bool - Restart-required flag.
         """
-        self._set_data(
-            key=_Keys.RESTART_REQUIRED, value=value, set_default_type=bool
-        )
+        self._set_data(key=_Keys.RESTART_REQUIRED, value=value, set_default_type=bool)
 
     @property
     def secret(self) -> bool:
@@ -479,7 +477,7 @@ class PluginConfigSchema(BData):
         self._set_data(key=_Keys.VERSION, value=value, set_default_type=int)
 
 
-class PluginConfigSchemaRenderer(object):
+class PluginConfigSchemaRenderer(BClasses):
     """Render plugin configuration schemas into legacy template rows."""
 
     # #[STATIC/CLASS METHODS]#########################################################
@@ -530,8 +528,7 @@ class PluginConfigSchemaRenderer(object):
             attrs.append("deprecated")
         attrs_text: str = ", ".join(attrs)
         return (
-            f"{field.name} [{field.type_name}] - {field.description}"
-            f" ({attrs_text})"
+            f"{field.name} [{field.type_name}] - {field.description}" f" ({attrs_text})"
         )
 
 

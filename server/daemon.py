@@ -48,6 +48,7 @@ from libs.plugins import (
     PluginDefinition,
     PluginKind,
     PluginRuntime,
+    PluginState,
 )
 
 import server
@@ -599,7 +600,10 @@ class AASd(ProjectClassMixin):
             else:
                 worker_plugins.append(plugin)
 
-        for plugin in comm_plugins + worker_plugins:
+        ordered_plugins: List[PluginDefinition] = comm_plugins + worker_plugins
+        initialized_plugins: List[Tuple[PluginDefinition, PluginRuntime]] = []
+
+        for plugin in ordered_plugins:
             try:
                 parsed_config = PluginConfigParser.parse(
                     self.conf.cf, plugin.instance_name, plugin.spec.config_schema
@@ -611,6 +615,18 @@ class AASd(ProjectClassMixin):
                         dispatcher=dispatcher_adapter,
                     )
                 )
+                runtime.initialize()
+                initialized_plugins.append((plugin, runtime))
+                if self.conf.debug:
+                    self.logs.message_debug = (
+                        f"initialized plugin instance: '{plugin.instance_name}'"
+                    )
+            except Exception as ex:
+                self.logs.message_error = (
+                    f"cannot initialize plugin instance '{plugin.instance_name}': {ex}"
+                )
+        for plugin, runtime in initialized_plugins:
+            try:
                 runtime.start()
                 plugins.append(runtime)
                 if self.conf.debug:
@@ -621,6 +637,10 @@ class AASd(ProjectClassMixin):
                 self.logs.message_error = (
                     f"cannot start plugin instance '{plugin.instance_name}': {ex}"
                 )
+                try:
+                    runtime.stop(timeout=2.0)
+                except Exception:
+                    pass
         return (plugins, dispatch)
 
     def __stop_subsystem(
@@ -635,8 +655,11 @@ class AASd(ProjectClassMixin):
         * dispatch: Optional[ThDispatcher] - Active dispatcher instance.
         """
         for mod in plugins:
-            mod.stop()
-            while mod.is_stopped() != True:
+            try:
+                mod.stop(timeout=2.0)
+            except TypeError:
+                mod.stop()
+            while mod.state().state not in (PluginState.STOPPED, PluginState.FAILED):
                 if hasattr(mod, "join"):
                     mod.join()  # type: ignore
                 time.sleep(0.1)

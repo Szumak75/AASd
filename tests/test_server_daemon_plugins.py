@@ -16,7 +16,16 @@ from jsktoolbox.configtool import Config as ConfigTool
 from jsktoolbox.logstool import LoggerClient, LoggerQueue
 
 from libs import AppConfig, AppName, Keys
-from libs.plugins import PluginConfigParser, PluginDefinition, PluginKind, PluginSpec
+from libs.plugins import (
+    PluginConfigParser,
+    PluginDefinition,
+    PluginHealth,
+    PluginHealthSnapshot,
+    PluginKind,
+    PluginSpec,
+    PluginState,
+    PluginStateSnapshot,
+)
 from libs.templates import PluginConfigField, PluginConfigSchema
 from server.daemon import AASd
 
@@ -34,22 +43,39 @@ class _FakeRuntime(object):
         """
         self._bucket = bucket
         self._name = name
+        self._initialized = False
         self._stopped = False
 
     # #[PUBLIC METHODS]################################################################
-    def is_stopped(self) -> bool:
-        """Return whether runtime is stopped.
+    def health(self) -> PluginHealthSnapshot:
+        """Return a healthy state for the fake runtime.
 
         ### Returns:
-        bool - `True` when runtime is stopped.
+        PluginHealthSnapshot - Fake healthy snapshot.
         """
-        return self._stopped
+        return PluginHealthSnapshot(health=PluginHealth.HEALTHY)
+
+    def initialize(self) -> None:
+        """Record runtime initialization."""
+        self._initialized = True
 
     def start(self) -> None:
         """Record the startup order."""
+        if not self._initialized:
+            raise RuntimeError("Runtime was not initialized.")
         self._bucket.append(self._name)
+        self._stopped = False
 
-    def stop(self) -> None:
+    def state(self) -> PluginStateSnapshot:
+        """Return the current fake lifecycle state.
+
+        ### Returns:
+        PluginStateSnapshot - Fake lifecycle state snapshot.
+        """
+        state = PluginState.STOPPED if self._stopped else PluginState.RUNNING
+        return PluginStateSnapshot(state=state)
+
+    def stop(self, timeout: float | None = None) -> None:
         """Mark the runtime as stopped."""
         self._stopped = True
 

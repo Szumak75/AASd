@@ -13,8 +13,9 @@ import importlib.util
 from dataclasses import dataclass
 from inspect import currentframe
 from pathlib import Path
-from typing import List
+from typing import Callable, List, TypeGuard, cast
 
+from jsktoolbox.basetool import BClasses
 from jsktoolbox.raisetool import Raise
 
 from libs.plugins.runtime import PluginKind, PluginSpec
@@ -29,7 +30,7 @@ class PluginDefinition:
     spec: PluginSpec
 
 
-class PluginLoader(object):
+class PluginLoader(BClasses):
     """Discover plugin instances from the configured plugins directory."""
 
     # #[STATIC/CLASS METHODS]#########################################################
@@ -87,8 +88,8 @@ class PluginLoader(object):
         module = importlib.util.module_from_spec(module_spec)
         module_spec.loader.exec_module(module)
 
-        factory = getattr(module, "get_plugin_spec", None)
-        if factory is None or not callable(factory):
+        factory_obj: object = getattr(module, "get_plugin_spec", None)
+        if factory_obj is None or not callable(factory_obj):
             raise Raise.error(
                 f"Plugin '{instance_name}' does not expose callable 'get_plugin_spec'.",
                 RuntimeError,
@@ -96,19 +97,34 @@ class PluginLoader(object):
                 currentframe(),
             )
 
-        plugin_spec = factory()
-        cls.__validate_spec(instance_name, plugin_spec)
-        return plugin_spec
+        factory: Callable[[], object] = cast(Callable[[], object], factory_obj)
+        plugin_spec: object = factory()
+        return cls.__validate_spec(instance_name, plugin_spec)
 
     @classmethod
-    def __validate_spec(cls, instance_name: str, plugin_spec: PluginSpec) -> None:
+    def __is_plugin_spec(cls, plugin_spec: object) -> TypeGuard[PluginSpec]:
+        """Return whether the provided object is a valid `PluginSpec` instance.
+
+        ### Arguments:
+        * plugin_spec: object - Object returned from plugin entry-point.
+
+        ### Returns:
+        bool - `True` when `plugin_spec` is an instance of `PluginSpec`.
+        """
+        return isinstance(plugin_spec, PluginSpec)
+
+    @classmethod
+    def __validate_spec(cls, instance_name: str, plugin_spec: object) -> PluginSpec:
         """Validate the loaded plugin specification.
 
         ### Arguments:
         * instance_name: str - Plugin instance name.
-        * plugin_spec: PluginSpec - Loaded plugin spec.
+        * plugin_spec: object - Loaded plugin spec candidate.
+
+        ### Returns:
+        PluginSpec - Validated plugin specification.
         """
-        if not isinstance(plugin_spec, PluginSpec):
+        if not cls.__is_plugin_spec(plugin_spec):
             raise Raise.error(
                 f"Plugin '{instance_name}' did not return PluginSpec.",
                 TypeError,
@@ -125,6 +141,7 @@ class PluginLoader(object):
                 cls.__name__,
                 currentframe(),
             )
+        return plugin_spec
 
 
 # #[EOF]#######################################################################

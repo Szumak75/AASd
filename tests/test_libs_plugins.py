@@ -19,11 +19,15 @@ from jsktoolbox.configtool import Config as ConfigTool
 from jsktoolbox.logstool import LoggerClient, LoggerQueue
 
 from libs import AppName
-from libs.com.message import ThDispatcher
+from libs.com.message import Message, ThDispatcher
 from libs.plugins import (
     DispatcherAdapter,
+    PluginCommonKeys,
     PluginConfigParser,
     PluginContext,
+    PluginHealth,
+    PluginHostKeys,
+    PluginState,
     PluginLoader,
 )
 from libs.templates import PluginConfigField, PluginConfigSchema
@@ -49,12 +53,18 @@ class TestLibsPlugins(unittest.TestCase):
                     "",
                     "def _runtime(_context):",
                     "    class Runtime(object):",
+                    "        def initialize(self):",
+                    "            return None",
                     "        def start(self):",
                     "            return None",
-                    "        def stop(self):",
+                    "        def stop(self, timeout=None):",
                     "            return None",
-                    "        def is_stopped(self):",
-                    "            return True",
+                    "        def state(self):",
+                    "            from libs.plugins import PluginState, PluginStateSnapshot",
+                    "            return PluginStateSnapshot(state=PluginState.STOPPED)",
+                    "        def health(self):",
+                    "            from libs.plugins import PluginHealth, PluginHealthSnapshot",
+                    "            return PluginHealthSnapshot(health=PluginHealth.HEALTHY)",
                     "    return Runtime()",
                     "",
                     "def get_plugin_spec():",
@@ -98,6 +108,33 @@ class TestLibsPlugins(unittest.TestCase):
             self.assertEqual([item.instance_name for item in discovered], ["plugin_a", "plugin_b"])
             self.assertEqual(discovered[0].spec.plugin_id, "plugin.test")
             self.assertEqual(discovered[1].spec.plugin_id, "plugin.test")
+
+    def test_01a_public_plugin_key_classes_expose_shared_constants(self) -> None:
+        """Expose shared plugin keys through the public package API."""
+        self.assertEqual(PluginCommonKeys.CHANNEL, "channel")
+        self.assertEqual(PluginCommonKeys.MESSAGE_CHANNEL, "message_channel")
+        self.assertEqual(PluginCommonKeys.SLEEP_PERIOD, "sleep_period")
+        self.assertEqual(PluginHostKeys.AUTOSTART, "autostart")
+        self.assertEqual(PluginHostKeys.START_DELAY, "start_delay")
+        self.assertEqual(PluginHostKeys.RESTART_POLICY, "restart_policy")
+
+    def test_01b_dispatcher_adapter_uses_typed_storage_for_queue_access(self) -> None:
+        """Publish and register through `DispatcherAdapter` backed by `BData`."""
+        qcom: Queue = Queue()
+        dispatcher = ThDispatcher(
+            qlog=LoggerQueue(),
+            qcom=qcom,
+            debug=False,
+            verbose=False,
+        )
+        adapter = DispatcherAdapter(qcom=qcom, dispatcher=dispatcher)
+        message = object.__new__(Message)
+
+        adapter.publish(message)  # type: ignore[arg-type]
+        consumer_queue = adapter.register_consumer(7)
+
+        self.assertIs(qcom.get_nowait(), message)
+        self.assertIsInstance(consumer_queue, Queue)
 
     def test_02_parser_validates_and_returns_schema_values(self) -> None:
         """Parse config values according to the declared schema."""
@@ -256,16 +293,20 @@ class TestLibsPlugins(unittest.TestCase):
 
             with patch("sys.stdout", new_callable=io.StringIO) as stdout_buffer:
                 dispatcher.start()
+                consumer.initialize()
+                producer.initialize()
                 consumer.start()
                 producer.start()
                 producer.join(timeout=1.0)  # type: ignore[attr-defined]
-                consumer.stop()
+                consumer.stop(timeout=1.0)
                 consumer.join(timeout=1.0)  # type: ignore[attr-defined]
                 dispatcher.stop()
                 dispatcher.join(timeout=1.0)
 
                 self.assertIn("[consumer]", stdout_buffer.getvalue())
                 self.assertIn("Hello plugin.", stdout_buffer.getvalue())
+                self.assertEqual(producer.state().state, PluginState.STOPPED)
+                self.assertEqual(consumer.health().health, PluginHealth.HEALTHY)
 
 
 # #[EOF]#######################################################################

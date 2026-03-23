@@ -3,8 +3,7 @@
 **Scope:**
 This document describes the current API surface of the existing business logic
 and runtime contracts. It is intentionally focused on the daemon, shared
-runtime services, worker plugins, and communication plugins. SQLAlchemy
-schema models are listed only as dependencies, not as the primary API.
+runtime services, worker plugins, and communication plugins.
 
 ## API Classification
 
@@ -18,19 +17,6 @@ The following areas should currently be treated as the documented project API:
 - utility helpers used directly by plugins,
 - communication plugins,
 - worker plugins.
-
-### Internal Integration API
-
-The following areas are internal and should not be treated as stable entry
-points for external integrations or higher-level business workflows:
-
-- `libs.db_models.base`
-- `libs.db_models.connectors`
-- `libs.db_models.lms.*`
-- `libs.db_models.mlms.*`
-
-They remain important for maintenance, query tracing, and refactoring, but they
-describe persistence structure rather than public application behavior.
 
 ## Public Runtime Entry Points
 
@@ -180,6 +166,28 @@ Lazy package entry point for the shared base layer.
 - `from libs.base import PluginRuntimeMixin` is supported,
 - exported symbols are resolved from `libs.base.classes` on first access,
 - direct imports from `libs.base.classes` remain valid for compatibility.
+
+### `libs.plugins.keys.PluginCommonKeys`
+
+**Purpose:**
+Public constant class for shared plugin configuration keys.
+
+**Main keys:**
+
+- `channel`
+- `message_channel`
+- `sleep_period`
+
+### `libs.plugins.keys.PluginHostKeys`
+
+**Purpose:**
+Public constant class for daemon-reserved plugin configuration keys.
+
+**Main keys:**
+
+- `autostart`
+- `start_delay`
+- `restart_policy`
 
 **Package exports:**
 
@@ -417,21 +425,6 @@ Lazy package entry point for shared date and ICMP helpers.
 - exported symbols are resolved from `libs.tools.datetool` or `libs.tools.icmp` on first access,
 - direct imports from `libs.tools.datetool` and `libs.tools.icmp` remain valid.
 
-### `libs.db_models.connectors.LmsMysqlDatabase`
-
-**Purpose:**
-Database connector used by LMS/MLMS-related workers.
-
-**Main API:**
-
-- `create_connections() -> bool`
-- `create_connections_failover() -> bool`
-- session and pool accessors exposed through internal state
-
-**Used by:**
-archived LMS-related worker implementations and future database-backed worker
-plugins.
-
 ## Plugin Runtime API
 
 ### Plugin kinds
@@ -450,17 +443,25 @@ expected to expose `get_plugin_spec()`. The returned `PluginSpec` declares:
 - `api_version`
 - `plugin_id`
 - `plugin_kind`
-- `display_name`
+- `plugin_name`
 - `config_schema`
 - `runtime_factory`
 
 ### Runtime lifecycle
 
 The daemon creates a `PluginContext`, parses the plugin section with
-`PluginConfigParser`, and starts plugin runtime objects in two phases:
+`PluginConfigParser`, builds the runtime object, and executes the lifecycle in
+two phases:
 
-- communication plugins first, so channel consumers are registered,
-- worker plugins second, so first-start messages are not lost.
+- `initialize()` for communication plugins first,
+- `initialize()` for worker plugins second,
+- `start()` for communication plugins third, so channel consumers are registered,
+- `start()` for worker plugins last, so first-start messages are not lost.
+
+Active runtime state reporting uses:
+
+- `PluginStateSnapshot` for lifecycle state,
+- `PluginHealthSnapshot` for operational health.
 
 ### Dispatcher integration
 
@@ -493,8 +494,6 @@ The following elements are highly coupled to current implementation details, but
 are still essential for understanding the existing business logic:
 
 - thread-based plugin runtime classes,
-- SQLAlchemy model usage inside worker plugins,
-- `LmsMysqlDatabase`,
 - shell-based ICMP and ZFS utilities.
 
 ## Notes For The Upcoming Refactor

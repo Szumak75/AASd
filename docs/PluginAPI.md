@@ -189,6 +189,27 @@ Configuration rules:
 - the daemon must not delete user config when a plugin instance disappears,
 - config generation must operate on discovered instances, not implementation ids.
 
+## Shared Configuration Keys
+
+Shared plugin configuration keys that are part of the public API should not be
+redeclared as raw strings inside plugin code.
+
+The package `libs.plugins.keys` provides public constant classes for this
+purpose:
+
+- `PluginCommonKeys`
+  Shared keys used by multiple plugin types, for example `channel`,
+  `message_channel`, and `sleep_period`.
+- `PluginHostKeys`
+  Daemon-reserved keys used for host-side lifecycle and management semantics,
+  for example `autostart`, `start_delay`, and `restart_policy`.
+
+Rules:
+
+- plugin authors should import shared keys from `libs.plugins`,
+- plugins may define private keys locally when they are plugin-specific,
+- plugins must not redefine daemon-reserved host key semantics.
+
 ## PluginContext
 
 The daemon should pass a `PluginContext` object to `runtime_factory`.
@@ -222,20 +243,31 @@ Required methods:
 
 ```python
 class PluginRuntime(Protocol):
+    def initialize(self) -> None: ...
     def start(self) -> None: ...
-    def stop(self) -> None: ...
-    def is_stopped(self) -> bool: ...
+    def stop(self, timeout: float | None = None) -> None: ...
+    def state(self) -> PluginStateSnapshot: ...
+    def health(self) -> PluginHealthSnapshot: ...
 ```
 
-Recommended methods:
+The daemon owns the lifecycle order:
 
-```python
-class PluginRuntime(Protocol):
-    def health(self) -> dict[str, str]: ...
-```
+1. build runtime from `runtime_factory`,
+2. call `initialize()` for communication plugins,
+3. call `initialize()` for worker plugins,
+4. call `start()` for communication plugins,
+5. call `start()` for worker plugins,
+6. call `stop()` during shutdown.
 
-API v1 should stay intentionally small. The daemon should own lifecycle
-supervision and the plugin should own only its internal work loop.
+The plugin owns its internal work loop and reports state through two snapshot
+types:
+
+- `PluginStateSnapshot` for lifecycle state:
+  `created`, `initialized`, `starting`, `running`, `stopping`, `stopped`, `failed`
+- `PluginHealthSnapshot` for operational condition:
+  `unknown`, `healthy`, `degraded`, `unhealthy`
+
+This keeps lifecycle supervision separate from runtime health reporting.
 
 ## Dispatcher API
 

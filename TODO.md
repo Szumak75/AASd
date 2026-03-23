@@ -2,130 +2,120 @@
 
 ## Development Direction
 
-- Target architecture: the daemon should become a runtime management and execution-control system, not the place where business logic lives.
-- Current `modules.com/*` and `modules.run/*` are treated as archived historical material and are no longer part of the target runtime model.
-- No backward compatibility layer will be built for the legacy module system.
-- The target state is a plugin-based model where communication plugins and worker plugins are developed independently from the daemon core.
+- The daemon is now a plugin runtime host and execution supervisor, not the place where business logic should live.
+- The legacy `modules.com/*` and `modules.run/*` trees are archived historical material and are no longer part of the active runtime model.
+- No backward compatibility layer will be built for the archived module system.
+- The active extension model is plugin-based: communication plugins and worker plugins are developed independently from the daemon core.
 - Plugins must expose a shared registration and execution API so the daemon can load, supervise, configure, and coordinate them.
 - Bidirectional communication must be handled through the daemon dispatcher as a controlled exchange layer between worker plugins and communication plugins.
 - Plugins must not assume direct communication with other plugins; all routing rules must be explicitly configured by the user in the configuration file.
-- Plugins should keep their own libraries, tools, and runtime dependencies, including their own `requirements.txt`.
+- Plugins may keep their own libraries, tools, runtime dependencies, and packaging metadata, including plugin-local `requirements.txt`.
 - Plugins are expected to become independently developed components, most likely in separate repositories.
-- Shared libraries tightly coupled to the legacy implementation, especially `libs.db_models/*`, are not part of the target architecture unless they can be cleanly adapted to the new plugin API.
+- Shared libraries tightly coupled to the archived implementation, especially `archive/libs/db_models/*`, are not part of the target architecture unless they can be cleanly adapted to the plugin API.
 - The daemon must load plugin instances from the `plugins_dir` configured in the main section.
 - Each directory entry in `plugins_dir`, including symbolic links, represents one plugin instance.
 - The configuration section name for a plugin instance must be derived from the plugin directory or symlink name, not from the implementation identifier.
-- The current `TODO.md` should be treated as the active migration plan for replacing the legacy model with the plugin runtime.
+- This `TODO.md` is the active post-migration plan for hardening and extending the plugin runtime.
 
-## Status
+## Current Status
 
-- Legacy runtime model remains present in the repository and still defines the current execution flow.
-- Target plugin loader, registry, manifest, and unified runtime API do not exist yet.
-- Example replacement plugins are planned but not implemented.
+- The active runtime loads plugins from `plugins_dir` through `load.py` entry-points.
+- `PluginSpec`, `PluginContext`, `PluginLoader`, `PluginConfigParser`, `PluginConfigField`, and `PluginConfigSchema` exist in the active codebase.
+- `AppConfig` generates one configuration section per discovered plugin instance and keeps instance configuration separate from implementation identity.
+- Legacy runtime code has been moved to `archive/` and is no longer used by the active execution path.
+- `example1` and `example2` exist as the first reference plugins for the new runtime.
+- Startup ordering ensures communication plugins are started before worker plugins to avoid losing the first message at daemon startup.
+- Public documentation and active runtime terminology have been aligned with the plugin model.
 
 ## Completed Milestones
 
 - Documented `Plugin API v1` assumptions and the repository migration plan in `docs/PluginAPI.md` and `docs/PluginMigration.md`.
-- Implemented the first schema-based plugin configuration helpers in `libs.templates.schema` and exposed them through package-level lazy exports.
-- Implemented the first active plugin runtime foundation in `libs.plugins`, switched `AppConfig` to plugin-instance discovery from `plugins_dir`, and added `example1` and `example2`.
+- Implemented schema-based plugin configuration helpers in `libs.templates.schema` and exposed the schema API through package-level lazy exports.
+- Implemented the first active plugin runtime foundation in `libs.plugins`.
+- Switched `AppConfig` to plugin-instance discovery from `plugins_dir`.
+- Added `example1` and `example2` as the first reference plugins for the new runtime model.
+- Archived the inactive legacy runtime tree and removed its active execution path.
+- Cleaned the active public API and terminology to describe plugins instead of modules.
 
 ## P1 - Immediate Work
 
-### Runtime Contracts
+### Runtime Supervision
 
-- Define the new plugin API boundary as the only supported extension model.
-- Define a versioned plugin manifest structure returned by the plugin entry-point.
-- Define a strict `plugin_kind` contract with exactly two supported values: `communication` and `worker`.
-- Define lifecycle hooks required by the daemon: registration, initialization, start, stop, and health/state reporting.
-- Define how a plugin receives daemon services during initialization: logger access, dispatcher access, configuration handler bound to the instance section, and application metadata.
-- Define `PluginConfigField` and `PluginConfigSchema` as the public plugin configuration contract.
-- Define the renderer and validator boundary so plugin authors describe schema semantics and the daemon renders the INI section format.
+- Define lifecycle hooks required by the daemon in a stricter form: initialization, start, stop, and state/health reporting.
+- Introduce explicit health/state reporting for plugin runtime instances.
+- Ensure plugin initialization errors do not break unrelated plugin instances.
+- Define shutdown behavior for partially initialized plugin sets.
+- Define restart or reinitialization expectations for failed plugins.
 
-### Plugin Discovery And Loading
+### Host API Stabilization
 
-- Load plugins only from the path declared by `plugins_dir` in the main daemon section.
-- Treat every direct child directory or symlink in `plugins_dir` as one plugin instance candidate.
-- Ignore plugin categorization based on path naming; plugin type must come from the plugin API manifest.
-- Adopt a folder-level entry-point convention based on `load.py`.
-- Define the minimum required exports from `load.py`.
-- Validate plugin API version before registration.
-- Reject invalid, incomplete, or duplicate plugin registrations with explicit logging.
-
-### Configuration Model
-
-- Generate one configuration section per plugin instance using the plugin directory or symlink name.
-- Keep plugin implementation identity separate from plugin instance identity.
-- Ensure adding a new plugin instance automatically adds a new config section with default values.
-- Ensure removing a plugin instance does not silently delete user configuration.
-- Ensure config generation and config updates operate on plugin instances, not on implementation names.
-- Keep communication routing user-defined through config variables only.
-- Avoid any implicit message routing between worker and communication plugins.
-- Replace `TemplateConfigItem` as the public plugin-facing contract with a schema-oriented descriptor model.
-
-### Business Refactoring Preparation
-
-- Identify which parts of `libs.base`, `libs.interfaces`, `libs.templates`, `libs.com.message`, and dispatcher logic can be retained and adapted to the plugin runtime.
-- Identify which parts of the current runtime are legacy-only and should be moved to the archive tree without reuse.
 - Define the future public core surface that plugin authors may rely on.
-- Exclude legacy business implementations from future runtime planning.
-- Decide whether `libs.templates` remains only as an internal render layer or is fully replaced in the active runtime.
+- Stabilize `PluginContext` as the primary daemon-to-plugin service contract.
+- Expose dispatcher and logger access only through stable host-side adapters.
+- Separate plugin instance metadata from runtime objects more explicitly.
+- Decide whether `PluginRuntime` should remain protocol-based or become a stricter concrete interface contract.
 
-### Functional Risks
+### Configuration And Validation
 
-- The current loader depends on file naming conventions and relative paths; this must be eliminated in the new model.
-- The current config generation model is bound to importable Python modules under `modules.*`; this must be replaced with plugin instance discovery from `plugins_dir`.
-- Symbolic-link-based instance duplication requires careful identity handling to avoid section-name collisions and duplicate runtime registration.
-- Plugin initialization errors must not break unrelated plugin instances.
-- Configuration mistakes in channel mapping must be visible to the user and must not result in hidden cross-plugin coupling.
+- Strengthen schema validation and parsed-value validation around `PluginConfigField` and `PluginConfigSchema`.
+- Define which schema features are mandatory for API v1 and which remain optional.
+- Decide whether `libs.templates.modules` remains only as an internal render layer or is fully replaced in the active runtime.
+- Keep communication routing user-defined through config variables only.
+- Ensure configuration mistakes in channel mapping are visible to the user and never create hidden cross-plugin coupling.
+
+### Plugin Discovery And Registration
+
+- Validate plugin API version before registration with stricter diagnostics.
+- Reject invalid, incomplete, or duplicate plugin registrations with explicit logging.
+- Harden symbolic-link-based instance duplication so section-name collisions and duplicate runtime registration are handled predictably.
+- Decide whether plugin manifests should continue to be returned by `get_plugin_spec()` only, or whether another manifest form is needed in future API versions.
 
 ## P2 - Next Refactoring Stage
 
 ### Service Layer Extraction
 
-- Build a plugin registry service responsible for discovery, validation, registration, and lifecycle control.
-- Build a plugin context object passed to plugins during initialization.
-- Build dispatcher-facing adapters so plugin code depends on stable daemon services instead of internal daemon implementation details.
-- Separate plugin instance metadata from runtime objects.
+- Build a dedicated plugin registry service responsible for discovery, validation, registration, and lifecycle control.
+- Move plugin supervision concerns out of `server.daemon.AASd` into a clearer runtime-management layer.
+- Keep plugin instance metadata, manifest data, and runtime object state separate.
 
-### Data Access
+### Shared Runtime Surface
 
-- Stop designing new business logic around the legacy `modules.*` tree.
-- Move legacy business modules and legacy runtime-loading code to an archive tree with preserved structure.
-- Remove legacy runtime code from the active execution path as soon as the plugin loader is ready.
+- Review which parts of `libs.base`, `libs.com.message`, dispatcher logic, and selected `libs.tools` helpers should remain public and supported for plugin authors.
+- Remove or further isolate helper classes that are only historical or internal implementation details.
+- Decide which low-level runtime helpers remain stable API and which must stay daemon-internal.
+
+### Data Access And Business Isolation
+
+- Keep new business logic out of the archived `modules.*` tree.
 - Retain only those helpers that are demonstrably reusable under the new plugin API.
+- Keep `archive/libs/db_models/*` outside the supported plugin API unless a clean adapter boundary is introduced.
 
 ### Tests
 
-- Add discovery tests for plugin directories and symlinked plugin instances.
-- Add validation tests for malformed `load.py` entry-points and invalid plugin manifests.
-- Add config generation tests for per-instance sections created from plugin directory names.
-- Add schema validation tests for `PluginConfigField` and `PluginConfigSchema`.
-- Add dispatcher integration tests for worker-to-communication message routing configured by the user.
-- Add shutdown and lifecycle tests for plugin supervision.
+- Add discovery tests for symlinked plugin instances in the active runtime test suite.
+- Add lifecycle and shutdown tests for plugin supervision.
+- Add tests for partial startup failure and isolated plugin initialization errors.
+- Add more dispatcher integration tests for worker-to-communication routing configured by the user.
+- Add tests for duplicate plugin identity and invalid registration edge cases.
 
 ## P3 - Structural Cleanup
 
-### Naming And Internal API Cleanup
+### Runtime Simplification
 
-- Remove daemon assumptions that plugin type can be inferred from import path.
-- Replace legacy `modules.com` and `modules.run` terminology in active runtime code with plugin-oriented terminology.
-- Introduce consistent naming for plugin implementation id, plugin instance name, and plugin kind.
-- Archive or remove legacy mixins and interfaces that cannot be adapted cleanly.
+- Continue removing daemon internals that still reflect the historical module-oriented implementation.
+- Reduce public surface area where active code still exposes helper layers that are not meant to be stable plugin API.
+- Keep `archive/` strictly non-runtime and non-imported from active code.
 
 ### Documentation Follow-Up
 
-- Document the plugin directory layout and the `load.py` entry-point convention.
-- Document the versioned plugin API and the plugin manifest structure.
-- Document configuration rules for instance naming and explicit channel routing.
-- Document the absence of backward compatibility with the legacy module model.
-- Document the migration of legacy runtime code to the archive area.
-- Provide two example plugins when the API is finalized:
-  - `example1`: worker plugin that emits one message at each daemon start
-  - `example2`: communication plugin that consumes configured messages and prints them to stdout
-- Document that message delivery between `example1` and `example2` depends entirely on user-defined channel configuration.
+- Keep the plugin directory layout and the `load.py` entry-point convention documented and current.
+- Keep the versioned plugin API and manifest structure synchronized with implementation changes.
+- Keep configuration rules for instance naming and explicit channel routing synchronized with implementation changes.
+- Document lifecycle, health/state reporting, and failure-handling rules once the supervision model is finalized.
+- Expand example plugin documentation beyond `example1` and `example2` once the host API is considered stable.
 
 ## Backlog
 
-- Define archive placement rules for the legacy runtime tree while preserving historical structure for reference.
-- Decide whether plugin-local virtual environments are in or out of scope for the first implementation.
-- Decide whether plugin manifests should be returned by a function or by a manifest object exported from `load.py`.
+- Decide whether plugin-local virtual environments are in or out of scope for the first production-ready plugin runtime.
+- Decide whether plugin dependency installation and verification belong to the daemon scope or remain fully external.
+- Decide whether plugin packaging conventions should be standardized beyond `load.py` and `requirements.txt`.
