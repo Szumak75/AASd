@@ -30,6 +30,7 @@ considered part of the public project API.
    libs.com.message
    libs.tools.datetool
    libs.tools.icmp
+   libs.templates.schema
    libs.templates.modules
    modules.com.memailalert
    modules.com.memailalert2

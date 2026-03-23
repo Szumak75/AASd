@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.16-DEV
+
+- feat: added schema-based plugin configuration helpers `PluginConfigField`, `PluginConfigSchema`, and `PluginConfigSchemaRenderer`
+- test: added regression coverage for `libs.templates` lazy exports and schema rendering helpers
+- docs: documented the new schema helpers in the API reference and updated the active migration plan
+
 ## 2.0.15-DEV
 
 - feat: added `AppConfig.get_app_dir` to expose the absolute directory containing `aasd.py`

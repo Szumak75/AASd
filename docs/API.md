@@ -199,6 +199,51 @@ Lazy package entry point for the shared base layer.
 - exported symbols are resolved from `libs.base.classes` on first access,
 - direct imports from `libs.base.classes` remain valid for compatibility.
 
+**Package exports:**
+
+- `PluginConfigField`
+- `PluginConfigSchema`
+- `PluginConfigSchemaRenderer`
+- `TemplateConfigItem`
+
+### `libs.templates.schema.PluginConfigField`
+
+**Purpose:**
+Schema-level descriptor of one plugin configuration field.
+
+**Main fields:**
+
+- `name`
+- `field_type`
+- `default`
+- `required`
+- `description`
+- `secret`
+- `nullable`
+- `choices`
+- `example`
+- `deprecated`
+- `aliases`
+- `group`
+- `restart_required`
+
+### `libs.templates.schema.PluginConfigSchema`
+
+**Purpose:**
+Schema-level descriptor of a complete plugin instance configuration.
+
+**Main fields:**
+
+- `title`
+- `fields`
+- `description`
+- `version`
+
+### `libs.templates.schema.PluginConfigSchemaRenderer`
+
+**Purpose:**
+Daemon-side helper that renders `PluginConfigSchema` into config-template rows.
+
 ### `libs.templates.modules.TemplateConfigItem`
 
 **Purpose:**
@@ -214,8 +259,9 @@ Single configuration template row used during config generation.
 all modules implementing `template_module_variables()`.
 
 The package entry point `libs.templates` exposes `TemplateConfigItem` through a
-lazy export, so `from libs.templates import TemplateConfigItem` does not load
-`libs.templates.modules` until the symbol is accessed.
+lazy export, and also exposes `PluginConfigField`, `PluginConfigSchema`, and
+`PluginConfigSchemaRenderer`, so package-level imports do not load the backing
+implementation modules until the symbols are accessed.
 
 ## Messaging API
 

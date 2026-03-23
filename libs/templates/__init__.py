@@ -4,14 +4,25 @@ from importlib import import_module
 from typing import TYPE_CHECKING, Any, Final
 
 __all__: list[str] = [
+    "PluginConfigField",
+    "PluginConfigSchema",
+    "PluginConfigSchemaRenderer",
     "TemplateConfigItem",
 ]
 
 _EXPORTS: Final[dict[str, str]] = {
-    export_name: "libs.templates.modules" for export_name in __all__
+    "PluginConfigField": "libs.templates.schema",
+    "PluginConfigSchema": "libs.templates.schema",
+    "PluginConfigSchemaRenderer": "libs.templates.schema",
+    "TemplateConfigItem": "libs.templates.modules",
 }
 
 if TYPE_CHECKING:
+    from libs.templates.schema import (
+        PluginConfigField,
+        PluginConfigSchema,
+        PluginConfigSchemaRenderer,
+    )
     from libs.templates.modules import TemplateConfigItem
 
 

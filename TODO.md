@@ -26,6 +26,7 @@
 ## Completed Milestones
 
 - Documented `Plugin API v1` assumptions and the repository migration plan in `docs/PluginAPI.md` and `docs/PluginMigration.md`.
+- Implemented the first schema-based plugin configuration helpers in `libs.templates.schema` and exposed them through package-level lazy exports.
 
 ## P1 - Immediate Work
 
