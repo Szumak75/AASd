@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.13-DEV
+
+- test: expanded regression coverage for `libs.com.message` across schedulers, message payloads, and dispatcher flows
+- docs: documented the messaging coverage expansion for the current development release
+
 ## 2.0.12-DEV
 
 - refactor: normalized `libs.app`, `libs.conf`, and `libs.keys` to the repository class section layout

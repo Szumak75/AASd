@@ -49,7 +49,6 @@ class _Keys(object, metaclass=ReadOnlyClass):
     MSG_TO: str = "__to__"
 
 
-
 class AtChannel(BData):
     """Implement cron-like scheduling for message channels."""
 
@@ -162,9 +161,7 @@ class AtChannel(BData):
         out[_Keys.AT_HOUR] = self.__build_value_list(form=tmp[1], val_range=[0, 23])
         out[_Keys.AT_DAY] = self.__build_value_list(form=tmp[2], val_range=[1, 31])
         out[_Keys.AT_MONTH] = self.__build_value_list(form=tmp[3], val_range=[1, 12])
-        out[_Keys.AT_DAY_WEEK] = self.__build_value_list(
-            form=tmp[4], val_range=[0, 7]
-        )
+        out[_Keys.AT_DAY_WEEK] = self.__build_value_list(form=tmp[4], val_range=[0, 7])
         return out
 
     def __build_value_list(self, form: str, val_range: List[int]) -> List[int]:
@@ -325,20 +322,30 @@ class Channel(BData):
         now: int = Timestamp.now()  # type: ignore
         out: List[str] = []
         for item in self.channels:
-            check_dict: Dict[str, int] = self.get_channels[item]
+            check_dict: Dict[str, Union[int, float]] = self.get_channels[item]
             if check_dict[_Keys.CHECK_NEXT] < now:
                 out.append(item)
                 check_dict[_Keys.CHECK_NEXT] = now + check_dict[_Keys.CHECK_INTERVAL]
         return out
 
     @property
-    def get_channels(self) -> Dict[str, Dict[str, int]]:
+    def get_channels(self) -> Dict[str, Dict[str, Union[int, float]]]:
         """Return the internal interval channel mapping.
 
         ### Returns:
         Dict - Mapping of channel identifiers to scheduling metadata.
         """
-        return self._get_data(key=_Keys.CHANNELS)  # type: ignore
+        obj: Optional[Dict[str, Dict[str, Union[int, float]]]] = self._get_data(
+            key=_Keys.CHANNELS
+        )
+        if obj is None:
+            raise Raise.error(
+                "Internal error: Channel mapping is not initialized.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        return obj
 
     # #[PRIVATE METHODS]###############################################################
     def __add_channel(self, channel: str, interval: int) -> None:
@@ -442,7 +449,14 @@ class Message(BData):
         ### Returns:
         int - Updated counter value.
         """
-        count: int = self._get_data(key=_Keys.MSG_COUNTER)  # type: ignore
+        count: Optional[int] = self._get_data(key=_Keys.MSG_COUNTER)
+        if count is None:
+            raise Raise.error(
+                "Internal error: Message counter is not initialized.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
         count += 1
         self._set_data(key=_Keys.MSG_COUNTER, value=count)
         return count
@@ -490,7 +504,15 @@ class Message(BData):
         ### Returns:
         List[str] - Plain message fragments.
         """
-        return self._get_data(key=_Keys.MSG_MESS)  # type: ignore
+        obj: Optional[List[str]] = self._get_data(key=_Keys.MSG_MESS)
+        if obj is None:
+            raise Raise.error(
+                "Internal error: Message fragments list is not initialized.",
+                ValueError,
+                self._c_name,
+                currentframe(),
+            )
+        return obj
 
     @messages.setter
     def messages(self, message: str) -> None:
@@ -502,11 +524,11 @@ class Message(BData):
         self.messages.append(str(message))
 
     @property
-    def mmessages(self) -> Optional[Dict]:
+    def mmessages(self) -> Optional[Dict[str, Any]]:
         """Return multipart message fragments.
 
         ### Returns:
-        Optional[Dict] - Multipart message mapping or `None`.
+        Optional[Dict[str, Any]] - Multipart message mapping or `None`.
         """
         return self._get_data(key=_Keys.MSG_MULTIPART)
 
@@ -528,9 +550,18 @@ class Message(BData):
                 self._c_name,
                 currentframe(),
             )
-        if self.mmessages is None:
+        mmessages: Optional[Dict[str, Any]] = self.mmessages
+        if mmessages is None:
             self._set_data(key=_Keys.MSG_MULTIPART, value={})
-        self.mmessages.update(msg_dict)  # type: ignore
+            mmessages: Optional[Dict[str, Any]] = self.mmessages
+            if mmessages is None:
+                raise Raise.error(
+                    "Internal error: Multipart message mapping is not initialized.",
+                    ValueError,
+                    self._c_name,
+                    currentframe(),
+                )
+        mmessages.update(msg_dict)
 
     @property
     def sender(self) -> Optional[str]:
@@ -593,7 +624,7 @@ class Message(BData):
         ### Raises:
         * TypeError: If `value` is neither a string nor a list of strings.
         """
-        if not self.to:
+        if self.to is None:
             self._set_data(
                 key=_Keys.MSG_TO,
                 value=[],
