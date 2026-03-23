@@ -37,7 +37,7 @@ class _Runtime(Thread):
         """
         Thread.__init__(self, name=context.instance_name)
         self.daemon = True
-        self._context = context
+        self._context: PluginContext = context
         self._health = PluginHealthSnapshot(health=PluginHealth.UNKNOWN)
         self._stop_event = Event()
         self._state = PluginStateSnapshot(state=PluginState.CREATED)
@@ -158,3 +158,6 @@ def get_plugin_spec() -> PluginSpec:
         runtime_factory=_Runtime,
         description="Example worker plugin emitting a startup message.",
     )
+
+
+# #[EOF]#######################################################################

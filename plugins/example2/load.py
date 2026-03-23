@@ -12,6 +12,7 @@ import time
 
 from queue import Empty, Queue
 from threading import Event, Thread
+from typing import Optional
 
 from libs.com.message import Message
 from libs.plugins import (
@@ -39,10 +40,10 @@ class _Runtime(Thread):
         """
         Thread.__init__(self, name=context.instance_name)
         self.daemon = True
-        self._context = context
+        self._context: PluginContext = context
         self._health = PluginHealthSnapshot(health=PluginHealth.UNKNOWN)
         self._stop_event = Event()
-        self._queue: Queue | None = None
+        self._queue: Optional[Queue] = None
         self._state = PluginStateSnapshot(state=PluginState.CREATED)
 
     def initialize(self) -> None:
@@ -123,7 +124,7 @@ class _Runtime(Thread):
             )
         return self._state
 
-    def stop(self, timeout: float | None = None) -> None:
+    def stop(self, timeout: Optional[float] = None) -> None:
         """Request plugin shutdown."""
         if self._state.state not in (PluginState.STOPPED, PluginState.FAILED):
             self._state = PluginStateSnapshot(
@@ -179,3 +180,6 @@ def get_plugin_spec() -> PluginSpec:
         runtime_factory=_Runtime,
         description="Example communication plugin printing routed messages.",
     )
+
+
+# #[EOF]#######################################################################
