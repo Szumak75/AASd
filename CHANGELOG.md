@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.15-DEV
+
+- feat: added `AppConfig.get_app_dir` to expose the absolute directory containing `aasd.py`
+- test: added regression coverage for the application root accessor
+
 ## 2.0.14-DEV
 
 - feat: allow `plugins_dir` in the main daemon section to be updated through `-U` on existing config files

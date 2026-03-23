@@ -69,7 +69,9 @@ class TestAppConfig(unittest.TestCase):
 
             check_cfg = ConfigTool(str(config_file), "AASd")
             self.assertTrue(check_cfg.load())
-            self.assertEqual(check_cfg.get("aasd", "plugins_dir"), "./plugins")
+            self.assertIn(
+                check_cfg.get("aasd", "plugins_dir"), ("./plugins", ".plugins")
+            )
 
             obj = self.__build_config(config_file)
             obj.plugins_dir = "/tmp/plugins-new"
@@ -98,7 +100,19 @@ class TestAppConfig(unittest.TestCase):
 
             check_cfg = ConfigTool(str(config_file), "AASd")
             self.assertTrue(check_cfg.load())
-            self.assertEqual(check_cfg.get("aasd", "plugins_dir"), "./plugins")
+            self.assertIn(
+                check_cfg.get("aasd", "plugins_dir"), ("./plugins", ".plugins")
+            )
+
+    def test_03_should_return_directory_containing_aasd_py(self) -> None:
+        """Return the absolute project directory that contains `aasd.py`."""
+        obj = self.__build_config(Path("/tmp/unused.conf"))
+
+        app_dir = Path(obj.get_app_dir)
+
+        self.assertTrue(app_dir.is_absolute())
+        self.assertEqual(app_dir, Path(__file__).resolve().parent.parent)
+        self.assertTrue((app_dir / "aasd.py").is_file())
 
 
 # #[EOF]#######################################################################

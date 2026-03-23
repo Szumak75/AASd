@@ -35,7 +35,7 @@ from jsktoolbox.logstool import (
     LogFormatterDateTime,
     LogFormatterNull,
 )
-from jsktoolbox.systemtool import CommandLineParser
+from jsktoolbox.systemtool import CommandLineParser, PathChecker
 from jsktoolbox.stringtool import SimpleCrypto
 
 from libs import AppConfig, AppName, Keys
@@ -134,6 +134,9 @@ class AASd(ProjectClassMixin, ImporterMixin):
         # others
         if self.conf.app_name:
             setproctitle.setproctitle(self.conf.app_name)
+
+        # check plugins directory
+        self.__check_plugins_dir()
 
         # automatic garbage collector
         gc.enable()
@@ -246,6 +249,40 @@ class AASd(ProjectClassMixin, ImporterMixin):
         sys.exit(0)
 
     # #[PRIVATE METHODS]###############################################################
+    def __check_plugins_dir(self) -> None:
+        """Check if the plugins directory exists and is accessible."""
+        if self.conf is None:
+            return None
+        if self.conf.plugins_dir is None:
+            self.logs.message_critical = (
+                "plugins directory is not set in the configuration."
+            )
+            return None
+        pc = PathChecker(self.conf.plugins_dir + "/")
+        if not pc.exists:
+            self.logs.message_warning = (
+                f"plugins directory '{self.conf.plugins_dir}' does not exist."
+            )
+            try:
+                if pc.create():
+                    self.logs.message_info = (
+                        f"plugins directory '{self.conf.plugins_dir}' created."
+                    )
+            except Exception as ex:
+                self.logs.message_critical = (
+                    f"error creating plugins directory '{self.conf.plugins_dir}': {ex}"
+                )
+                self.loop = False
+        elif not pc.is_dir:
+            self.logs.message_critical = (
+                f"plugins directory '{self.conf.plugins_dir}' is not a directory."
+            )
+            self.loop = False
+        else:
+            self.logs.message_info = (
+                f"plugins directory '{self.conf.plugins_dir}' is ready."
+            )
+
     def __help(self, command_conf: Dict) -> None:
         """Render command line help and terminate the process.
 

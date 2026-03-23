@@ -11,6 +11,7 @@ Purpose: Provide configuration loading, generation, and module discovery logic.
 import socket
 
 from inspect import currentframe
+from pathlib import Path
 from typing import Dict, Optional, List, Union, Tuple
 
 from jsktoolbox.attribtool import ReadOnlyClass
@@ -250,6 +251,15 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         return socket.getfqdn()
 
     @property
+    def get_app_dir(self) -> str:
+        """Return the directory containing the main application script.
+
+        ### Returns:
+        str - Absolute path to the directory containing `aasd.py`.
+        """
+        return str(Path(__file__).resolve().parent.parent)
+
+    @property
     def get_com_modules(self) -> List[IComModule]:
         """Return the enabled communication module classes.
 
@@ -309,7 +319,21 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         ### Returns:
         Optional[str] - Path to the plugins directory or `None`.
         """
-        return self.__main._get_data(key=_Keys.MC_PLUGINS_DIR, default_value=None)
+        obj: Optional[str] = self.__main._get_data(
+            key=_Keys.MC_PLUGINS_DIR, default_value=None
+        )
+        if obj is None:
+            obj2: Optional[str] = (
+                self._cfh.get(self._section, _Keys.MC_PLUGINS_DIR)
+                if self._cfh and self._section
+                else None
+            )
+            if obj2 is not None:
+                self.__main._set_data(
+                    key=_Keys.MC_PLUGINS_DIR, value=obj2, set_default_type=str
+                )
+                return obj2
+        return obj
 
     @plugins_dir.setter
     def plugins_dir(self, value: str) -> None:
@@ -618,7 +642,7 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         self._cfh.set(
             target_section,
             varname=_Keys.MC_PLUGINS_DIR,
-            value=plugins_dir or "./plugins",
+            value=plugins_dir or f"{self.get_app_dir}/plugins",
             desc="path to the plugins directory",
         )
         if self.debug:
@@ -648,7 +672,7 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         self._cfh.set(
             self._section,
             varname=_Keys.MC_PLUGINS_DIR,
-            value=self.plugins_dir or "./plugins",
+            value=self.plugins_dir or f"{self.get_app_dir}/plugins",
             desc="path to the plugins directory",
         )
 

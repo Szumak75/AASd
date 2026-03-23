@@ -127,6 +127,7 @@ Main configuration service for the daemon.
 - `app_name`
 - `config_file`
 - `debug`
+- `get_app_dir`
 - `password`
 - `update`
 - `module_conf`
@@ -137,6 +138,7 @@ Main configuration service for the daemon.
 **Key behavior:**
 
 - creates the initial config file if missing,
+- exposes the absolute project directory that contains `aasd.py`,
 - scans `modules.com` and `modules.run`,
 - asks modules for configuration templates,
 - returns only enabled modules listed in config.
