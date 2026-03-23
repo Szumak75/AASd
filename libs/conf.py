@@ -59,6 +59,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     MC_MODULES: str = "modules"
     MC_SALT: str = "salt"
     MC_VERBOSE: str = "verbose"
+    MC_PLUGINS_DIR: str = "plugins_dir"
 
 
 class _ModuleConf(ModuleConfigMixin):
@@ -107,6 +108,15 @@ class _ModuleConf(ModuleConfigMixin):
                         currentframe(),
                     )
         return sorted(tmp)
+
+    @property
+    def plugins_dir(self) -> Optional[str]:
+        """Return the plugins directory path from the main section.
+
+        ### Returns:
+        Optional[str] - Path to the plugins directory or `None`.
+        """
+        return self._get(_Keys.MC_PLUGINS_DIR)
 
     @property
     def salt(self) -> int:
@@ -293,6 +303,24 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         self.__main._set_data(key=_Keys.PASSWORD, value=value, set_default_type=bool)
 
     @property
+    def plugins_dir(self) -> Optional[str]:
+        """Return the plugins directory path from the main section.
+
+        ### Returns:
+        Optional[str] - Path to the plugins directory or `None`.
+        """
+        return self._get_data(key=_Keys.MC_PLUGINS_DIR, default_value=None)
+
+    @plugins_dir.setter
+    def plugins_dir(self, value: str) -> None:
+        """Store the plugins directory path in the main section.
+
+        ### Arguments:
+        * value: str - Path to the plugins directory.
+        """
+        self._set_data(key=_Keys.MC_PLUGINS_DIR, value=value, set_default_type=str)
+
+    @property
     def update(self) -> bool:
         """Return the configuration update flag.
 
@@ -325,11 +353,19 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         ### Returns:
         bool - Verbose flag value.
         """
-        if self.__main._get_data(key=_Keys.VERBOSE, default_value=None) is None:
+        verbose: Optional[bool] = self.__main._get_data(
+            key=_Keys.VERBOSE, default_value=None
+        )
+        if verbose is None:
             self.__main._set_data(key=_Keys.VERBOSE, value=False, set_default_type=bool)
-        if self._cfh and self._section and self._cfh.get(self._section, _Keys.MC_VERBOSE):
+            verbose = False
+        if (
+            self._cfh
+            and self._section
+            and self._cfh.get(self._section, _Keys.MC_VERBOSE)
+        ):
             return True
-        return self.__main._get_data(key=_Keys.VERBOSE)  # type: ignore
+        return verbose
 
     @verbose.setter
     def verbose(self, value: bool) -> None:
@@ -564,6 +600,18 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         """
         if self._cfh is None or self._section is None:
             return False
+        self._cfh.set(self._section, varname=_Keys.MC_DEBUG, value=False)
+        self._cfh.set(self._section, varname=_Keys.MC_VERBOSE, value=False)
+        self._cfh.set(
+            self._section,
+            varname=_Keys.MC_SALT,
+            value=SimpleCrypto.salt_generator(6),
+            desc="[int] salt for passwords encode/decode",
+        )
+        # default plugins dir is located in the same directory as the project main script
+        self._cfh.set(self._section, varname=_Keys.MC_PLUGINS_DIR, value="./plugins")
+
+        # collect config templates from modules
         (com_mods, run_mods, config) = self.__get_modules_config()
         self._cfh.set(self._section, desc=f"{self._section} configuration file")
         self._cfh.set(self._section, desc="[ communication modules ]:")
@@ -579,14 +627,6 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
             varname=_Keys.MC_MODULES,
             value=[],
             desc="list of modules to activate",
-        )
-        self._cfh.set(self._section, varname=_Keys.MC_DEBUG, value=False)
-        self._cfh.set(self._section, varname=_Keys.MC_VERBOSE, value=False)
-        self._cfh.set(
-            self._section,
-            varname=_Keys.MC_SALT,
-            value=SimpleCrypto.salt_generator(6),
-            desc="[int] salt for passwords encode/decode",
         )
         if self.debug:
             self.logs.message_debug = f"Found communication modules list: {com_mods}"
