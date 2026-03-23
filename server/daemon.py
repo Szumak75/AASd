@@ -128,7 +128,7 @@ class AASd(ProjectClassMixin, ImporterMixin):
         # signal handling
         signal.signal(signal.SIGTERM, self.__sig_exit)
         signal.signal(signal.SIGHUP, self.__sig_hup)
-        # interrupt [ctrl-c]
+        # interrupt [ctrl-c], the real processor should be set in the constructor
         signal.signal(signal.SIGINT, self.__sig_exit)
 
         # others
@@ -146,9 +146,9 @@ class AASd(ProjectClassMixin, ImporterMixin):
         ### Returns:
         bool - `True` when subsystem restart has been requested.
         """
-        obj:Optional[bool] = self._get_data(key=Keys.HUP, default_value=False)
+        obj: Optional[bool] = self._get_data(key=Keys.HUP, default_value=False)
         if obj is None:
-            return False    
+            return False
         return obj
 
     @hup.setter
@@ -174,12 +174,8 @@ class AASd(ProjectClassMixin, ImporterMixin):
             key=Keys.PROC_LOGS, default_value=None
         )
         if processor is None:
-            raise Raise.error(
-                "Logger processor is not initialized.",
-                ValueError,
-                self._c_name,
-                currentframe(),
-            )
+            # Fake processor to avoid type errors in first access.
+            processor = ThLoggerProcessor()
         return processor
 
     @logs_processor.setter
@@ -200,7 +196,7 @@ class AASd(ProjectClassMixin, ImporterMixin):
         ### Returns:
         bool - `True` while the daemon main loop should continue.
         """
-        obj:Optional[bool] = self._get_data(key=Keys.LOOP, default_value=False)
+        obj: Optional[bool] = self._get_data(key=Keys.LOOP, default_value=False)
         if obj is None:
             return False
         return obj
@@ -311,6 +307,13 @@ class AASd(ProjectClassMixin, ImporterMixin):
         parser.configure_argument("d", "debug", "debug logging level")
         parser.configure_argument("U", "updateconf", "update configuration file")
         parser.configure_argument(
+            "P",
+            "plugins_dir",
+            "directory for plugins",
+            has_value=True,
+            example_value="./plugins",
+        )
+        parser.configure_argument(
             "f",
             "file",
             "path to configuration file",
@@ -347,6 +350,8 @@ class AASd(ProjectClassMixin, ImporterMixin):
             self.conf.verbose = True
         if parser.get_option("updateconf") is not None:
             self.conf.update = True
+        if parser.get_option("plugins_dir") is not None:
+            self.conf.plugins_dir = parser.get_option("plugins_dir")  # type: ignore
         if parser.get_option("file") is not None:
             self.conf.config_file = parser.get_option("file")  # type: ignore
         if parser.get_option("password") is not None:

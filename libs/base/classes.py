@@ -37,7 +37,7 @@ class AppNameMixin(BData):
         ### Returns:
         AppName - Runtime application identity container.
         """
-        obj: Optional[AppName] = self._get_data(key=Keys.APP_NAME, default_value=None)
+        obj: Optional[AppName] = self._get_data(key=Keys.APP_NAME, default_value="")
         if obj is None:
             raise Raise.error(
                 "Application identity not set.",
@@ -55,7 +55,6 @@ class AppNameMixin(BData):
         * value: AppName - Runtime application identity container.
         """
         self._set_data(key=Keys.APP_NAME, value=value, set_default_type=AppName)
-
 
 
 class ConfigHandlerMixin(BData):
@@ -81,7 +80,6 @@ class ConfigHandlerMixin(BData):
         self._set_data(
             key=Keys.CFH, value=config_handler, set_default_type=Optional[ConfigTool]
         )
-
 
 
 class ConfigSectionMixin(BData):
@@ -113,7 +111,6 @@ class ConfigSectionMixin(BData):
         else:
             sn = section_name
         self._set_data(key=Keys.SECTION, value=sn, set_default_type=Optional[str])
-
 
 
 class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
@@ -219,7 +216,6 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
         return None
 
 
-
 class ImporterMixin(BData):
     """Mixin that discovers and imports runtime modules using the current naming convention.
 
@@ -278,7 +274,6 @@ class ImporterMixin(BData):
         return getattr(module, name)
 
 
-
 class LogsMixin(BData):
     """Mixin that exposes a typed logger client property."""
 
@@ -314,7 +309,6 @@ class LogsMixin(BData):
         self._set_data(key=Keys.CLOG, value=logs, set_default_type=LoggerClient)
 
 
-
 class ComMixin(BData):
     """Mixin that exposes a typed communication queue property."""
 
@@ -336,7 +330,6 @@ class ComMixin(BData):
         * queue: Queue - Communication queue instance.
         """
         self._set_data(key=Keys.QCOM, value=queue, set_default_type=Queue)
-
 
 
 class ConfigMixin(BData):
@@ -364,10 +357,8 @@ class ConfigMixin(BData):
         self._set_data(key=Keys.CONF, value=conf, set_default_type=AppConfig)
 
 
-
 class ProjectClassMixin(LogsMixin, ConfigMixin, AppNameMixin):
     """Compose mixins used by the daemon core."""
-
 
 
 class ModuleMixin(
@@ -470,7 +461,6 @@ class ModuleMixin(
         self._set_data(key=Keys.VERBOSE, value=verbose, set_default_type=bool)
 
 
-
 class DebugMixin(BData):
     """Mixin that exposes a simple debug flag property."""
 
@@ -496,7 +486,6 @@ class DebugMixin(BData):
         * debug: bool - Debug flag value.
         """
         self._set_data(key=Keys.DEBUG, value=debug, set_default_type=bool)
-
 
 
 class VerboseMixin(BData):
@@ -526,10 +515,8 @@ class VerboseMixin(BData):
         self._set_data(key=Keys.VERBOSE, value=verbose, set_default_type=bool)
 
 
-
 class ThProcessorMixin(ComMixin, VerboseMixin, LogsMixin):
     """Compose mixins used by threaded communication processors."""
-
 
 
 # #[EOF]#######################################################################

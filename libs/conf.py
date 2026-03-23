@@ -309,7 +309,7 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         ### Returns:
         Optional[str] - Path to the plugins directory or `None`.
         """
-        return self._get_data(key=_Keys.MC_PLUGINS_DIR, default_value=None)
+        return self.__main._get_data(key=_Keys.MC_PLUGINS_DIR, default_value=None)
 
     @plugins_dir.setter
     def plugins_dir(self, value: str) -> None:
@@ -318,7 +318,9 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         ### Arguments:
         * value: str - Path to the plugins directory.
         """
-        self._set_data(key=_Keys.MC_PLUGINS_DIR, value=value, set_default_type=str)
+        self.__main._set_data(
+            key=_Keys.MC_PLUGINS_DIR, value=value, set_default_type=str
+        )
 
     @property
     def update(self) -> bool:
@@ -600,6 +602,7 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         """
         if self._cfh is None or self._section is None:
             return False
+        self._cfh.set(self._section, desc=f"{self._section} configuration file")
         self._cfh.set(self._section, varname=_Keys.MC_DEBUG, value=False)
         self._cfh.set(self._section, varname=_Keys.MC_VERBOSE, value=False)
         self._cfh.set(
@@ -609,11 +612,15 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
             desc="[int] salt for passwords encode/decode",
         )
         # default plugins dir is located in the same directory as the project main script
-        self._cfh.set(self._section, varname=_Keys.MC_PLUGINS_DIR, value="./plugins")
+        self._cfh.set(
+            self._section,
+            varname=_Keys.MC_PLUGINS_DIR,
+            value=self.plugins_dir or "./plugins",
+            desc="path to the plugins directory",
+        )
 
         # collect config templates from modules
         (com_mods, run_mods, config) = self.__get_modules_config()
-        self._cfh.set(self._section, desc=f"{self._section} configuration file")
         self._cfh.set(self._section, desc="[ communication modules ]:")
         for item in com_mods:
             self._cfh.set(self._section, desc=f"{item}")
