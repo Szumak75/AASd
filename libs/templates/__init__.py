@@ -7,14 +7,12 @@ __all__: list[str] = [
     "PluginConfigField",
     "PluginConfigSchema",
     "PluginConfigSchemaRenderer",
-    "TemplateConfigItem",
 ]
 
 _EXPORTS: Final[dict[str, str]] = {
     "PluginConfigField": "libs.templates.schema",
     "PluginConfigSchema": "libs.templates.schema",
     "PluginConfigSchemaRenderer": "libs.templates.schema",
-    "TemplateConfigItem": "libs.templates.modules",
 }
 
 if TYPE_CHECKING:
@@ -23,7 +21,6 @@ if TYPE_CHECKING:
         PluginConfigSchema,
         PluginConfigSchemaRenderer,
     )
-    from libs.templates.modules import TemplateConfigItem
 
 
 def __dir__() -> list[str]:

@@ -12,8 +12,8 @@ from libs.templates import (
     PluginConfigField,
     PluginConfigSchema,
     PluginConfigSchemaRenderer,
-    TemplateConfigItem,
 )
+from libs.templates.modules import TemplateConfigItem
 
 
 class TestLibsTemplatesSchema(unittest.TestCase):

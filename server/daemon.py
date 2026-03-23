@@ -591,7 +591,15 @@ class AASd(ProjectClassMixin):
         if self.conf.cf is None:
             return (plugins, dispatch)
 
+        comm_plugins: List[PluginDefinition] = []
+        worker_plugins: List[PluginDefinition] = []
         for plugin in self.conf.get_plugins:
+            if plugin.spec.plugin_kind == PluginKind.COMMUNICATION:
+                comm_plugins.append(plugin)
+            else:
+                worker_plugins.append(plugin)
+
+        for plugin in comm_plugins + worker_plugins:
             try:
                 parsed_config = PluginConfigParser.parse(
                     self.conf.cf, plugin.instance_name, plugin.spec.config_schema

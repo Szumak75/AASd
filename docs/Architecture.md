@@ -197,9 +197,6 @@ Public documentation surface:
   datetime, interval, ICMP, and traceroute helpers.
 - `libs.plugins.*`
 - `libs.templates.schema`
-- `libs.templates.modules`
-  The `TemplateConfigItem` helper follows the repository class-section layout
-  with explicit constructor, public property, and private method blocks.
 
 Internal documentation surface:
 

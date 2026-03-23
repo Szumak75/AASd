@@ -153,11 +153,8 @@ Typed adapter over a module configuration section.
 - `message_channel`
 - `sleep_period`
 
-Each business module extends this class with its own typed config accessors.
-
-- module file starts with `m`,
-- imported class name is derived from the file name,
-- current convention strongly influences runtime discovery.
+Worker and communication plugins can extend this class with their own typed
+config accessors when a dedicated config wrapper is needed.
 
 ### `libs.base`
 
@@ -172,7 +169,6 @@ Lazy package entry point for the shared base layer.
 - `ConfigHandlerMixin`
 - `ConfigSectionMixin`
 - `DebugMixin`
-- `ImporterMixin`
 - `LogsMixin`
 - `ModuleMixin`
 - `ModuleConfigMixin`
@@ -191,7 +187,6 @@ Lazy package entry point for the shared base layer.
 - `PluginConfigField`
 - `PluginConfigSchema`
 - `PluginConfigSchemaRenderer`
-- `TemplateConfigItem`
 
 ### `libs.templates.schema.PluginConfigField`
 
@@ -231,31 +226,18 @@ Schema-level descriptor of a complete plugin instance configuration.
 **Purpose:**
 Daemon-side helper that renders `PluginConfigSchema` into config-template rows.
 
-### `libs.templates.modules.TemplateConfigItem`
-
-**Purpose:**
-Single configuration template row used during config generation.
-
-**Fields:**
-
-- `varname`
-- `value`
-- `desc`
-
-**Used by:**
-all modules implementing `template_module_variables()`.
-
-The package entry point `libs.templates` exposes `TemplateConfigItem` through a
-lazy export, and also exposes `PluginConfigField`, `PluginConfigSchema`, and
-`PluginConfigSchemaRenderer`, so package-level imports do not load the backing
-implementation modules until the symbols are accessed.
+The package entry point `libs.templates` exposes `PluginConfigField`,
+`PluginConfigSchema`, and `PluginConfigSchemaRenderer` through lazy exports, so
+package-level imports do not load the backing implementation module until the
+symbols are accessed.
 
 ## Messaging API
 
 ### `libs.com.message.Message`
 
 **Purpose:**
-Message payload exchanged between `modules/run` and `modules/com`.
+Message payload exchanged between worker plugins, the dispatcher, and
+communication plugins.
 
 **Main fields:**
 
@@ -448,189 +430,45 @@ Database connector used by LMS/MLMS-related modules.
 - session and pool accessors exposed through internal state
 
 **Used by:**
-`mlmspayment`, `mlmstariff`.
+archived LMS-related worker implementations and future database-backed worker
+plugins.
 
-## Communication Module API
+## Plugin Runtime API
 
-### `modules.com.memailalert.MEmailalert`
+### Plugin kinds
 
-**Purpose:**
-SMTP-based outbound e-mail delivery module.
+The active runtime distinguishes plugin roles through `PluginKind` rather than
+directory-based categorization:
 
-**Runtime role:**
-Consumes `Message` objects from a dedicated channel queue and sends email.
+- `communication`
+- `worker`
 
-**Config API:**
+### Plugin contract
 
-- `channel`
-- `smtp_server`
-- `smtp_user`
-- `smtp_pass`
-- `address_from`
-- `address_to`
-- `debug_bcc`
-- `sleep_period`
+Each plugin instance is loaded from `plugins_dir/<instance_name>/load.py` and is
+expected to expose `get_plugin_spec()`. The returned `PluginSpec` declares:
 
-### `modules.com.memailalert2.MEmailalert2`
+- `api_version`
+- `plugin_id`
+- `plugin_kind`
+- `display_name`
+- `config_schema`
+- `runtime_factory`
 
-**Purpose:**
-Second SMTP delivery module with the same delivery contract as `MEmailalert`.
+### Runtime lifecycle
 
-**Runtime role:**
-Allows alternative mail configuration without changing the producer side.
+The daemon creates a `PluginContext`, parses the plugin section with
+`PluginConfigParser`, and starts plugin runtime objects in two phases:
 
-## Task Module API
+- communication plugins first, so channel consumers are registered,
+- worker plugins second, so first-start messages are not lost.
 
-### `modules.run.micmp.MIcmp`
+### Dispatcher integration
 
-**Purpose:**
-Detects IPv4 reachability changes and generates incident notifications.
-
-**Dependencies:**
-
-- `Pinger`
-- `Channel`
-- `Message`
-- `MDateTime`
-
-**Config API:**
-
-- `hosts`
-- `message_channel`
-- `sleep_period`
-
-**Related helper type:**
-
-- `Ipv4Test` - tracks host state transitions and timestamps.
-
-### `modules.run.mlmspayment.MLmspayment`
-
-**Purpose:**
-Generates payment reminders and diagnostic summaries using LMS/MLMS data.
-
-**Dependencies:**
-
-- `AtChannel`
-- `Message`
-- `LmsMysqlDatabase`
-- `libs.db_models.lms`
-- `libs.db_models.mlms`
-
-**Config API:**
-
-- `at_channel`
-- `diagnostic_channel`
-- `message_channel`
-- `payment_message`
-- `default_paytime`
-- `cutoff_time`
-- `skip_groups`
-- `sql_server`
-- `sql_database`
-- `sql_user`
-- `sql_pass`
-- `lms_url`
-- `user_url`
-- `message_footer`
-
-**Business role:**
-This is one of the central domain modules in the current codebase.
-
-### `modules.run.mlmstariff.MLmstariff`
-
-**Purpose:**
-Checks tariff assignments for nodes using LMS/MLMS-backed data.
-
-**Dependencies:**
-
-- `AtChannel`
-- `LmsMysqlDatabase`
-- `libs.db_models.lms`
-- `libs.db_models.mlms`
-
-**Config API:**
-
-- `at_channel`
-- `message_channel`
-- `sql_server`
-- `sql_database`
-- `sql_user`
-- `sql_pass`
-- `sleep_period`
-
-**Business role:**
-Database-driven scheduled verification module for tariff consistency.
-
-### `modules.run.mzfssnapshot.MZfssnapshot`
-
-**Purpose:**
-Automates ZFS snapshot creation and rotation.
-
-**Dependencies:**
-
-- shell access to `zfs` tools,
-- `Channel`,
-- `ZfsData`,
-- `ZfsProcessor`,
-- `MIntervals`,
-- `Message`.
-
-**Config API:**
-
-- `volumes`
-- `snapshot_interval`
-- `max_snapshot_count`
-- `min_free_space`
-- `message_channel`
-- `sleep_period`
-
-**Related helper types:**
-
-- `ZfsData` - parsed representation of ZFS command output,
-- `ZfsProcessor` - volume-oriented snapshot workflow helper.
-
-### `modules.run.memailtest.MEmailtest`
-
-**Purpose:**
-Development/test module for producing sample multipart e-mail messages.
-
-**Config API:**
-
-- `message_channel`
-- `sleep_period`
-
-### `modules.run.mtest.MTest`
-
-**Purpose:**
-Development/test module for periodic logging.
-
-**Config API:**
-
-- `sleep_period`
-
-## Interface Contract For Modules
-
-### `libs.interfaces.IRunModule` and `IComModule`
-
-All runtime modules are expected to implement the following contract:
-
-- `debug`
-- `verbose`
-- `module_conf`
-- `_apply_config()`
-- `run()`
-- `sleep()`
-- `stop()`
-- `_stopped`
-- `module_stopped`
-- `template_module_name()`
-- `template_module_variables()`
-
-This interface is the current canonical runtime contract for both module types.
-
-The package entry point `libs.interfaces` exposes these interfaces through lazy
-exports, so package-level imports such as `from libs.interfaces import IRunModule`
-do not load `libs.interfaces.modules` until the requested symbol is accessed.
+- communication plugins register consumer queues for configured channels,
+- worker plugins publish `Message` objects through the dispatcher adapter,
+- plugin-to-plugin communication is configuration-driven and never implied by
+  discovery alone.
 
 ## Current API Boundaries
 
@@ -645,16 +483,18 @@ The most stable practical API for future refactoring currently appears to be:
 - `Channel`
 - `AtChannel`
 - `ThDispatcher`
-- `ModuleConfigMixin`
-- module configuration templates
+- `PluginSpec`
+- `PluginContext`
+- `PluginConfigSchema`
+- `PluginConfigParser`
 
 ### Internal But Important Boundary
 
 The following elements are highly coupled to current implementation details, but
 are still essential for understanding the existing business logic:
 
-- thread-based module classes,
-- SQLAlchemy model usage inside task modules,
+- thread-based plugin runtime classes,
+- SQLAlchemy model usage inside worker plugins,
 - `LmsMysqlDatabase`,
 - shell-based ICMP and ZFS utilities.
 

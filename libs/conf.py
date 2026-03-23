@@ -29,7 +29,8 @@ from libs.base import (
     ModuleConfigMixin,
 )
 from libs.plugins import PluginDefinition, PluginLoader
-from libs.templates import PluginConfigSchemaRenderer, TemplateConfigItem
+from libs.templates import PluginConfigSchemaRenderer
+from libs.templates.modules import TemplateConfigItem
 
 
 class _Keys(object, metaclass=ReadOnlyClass):

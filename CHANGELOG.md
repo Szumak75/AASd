@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.1.1-DEV
+
+- refactor: removed `TemplateConfigItem` from the active `libs.templates` public export surface
+- docs: cleaned the active API and architecture guides to describe only the plugin runtime public contract
+- test: updated `libs.templates` lazy-export regression coverage for the schema-only public package surface
+
 ## 2.1.0-DEV
 
 - feat: expanded plugin runtime tests for loader validation, config parsing, and daemon-level plugin-section generation

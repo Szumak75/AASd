@@ -9,9 +9,8 @@ The generated API reference intentionally includes:
 
 - daemon orchestration,
 - shared runtime contracts,
-- message and utility helpers used by modules,
-- communication modules,
-- business-task modules.
+- message and utility helpers used by plugins,
+- plugin runtime and configuration helpers.
 
 The generated API reference intentionally excludes most of `libs.db_models.*`.
 That package is treated as an internal persistence and integration layer. It is
@@ -34,5 +33,4 @@ considered part of the public project API.
    libs.plugins.loader
    libs.plugins.config
    libs.templates.schema
-   libs.templates.modules
 ```
