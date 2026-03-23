@@ -4,6 +4,7 @@
 
 - feat: added `AppConfig.get_app_dir` to expose the absolute directory containing `aasd.py`
 - test: added regression coverage for the application root accessor
+- docs: rewrote `TODO.md` to define the plugin-only target runtime, archival of the legacy module model, and the planned example communication flow
 
 ## 2.0.14-DEV
 
