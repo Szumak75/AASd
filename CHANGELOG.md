@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.0.14-DEV
+
+- feat: allow `plugins_dir` in the main daemon section to be updated through `-U` on existing config files
+- test: added regression coverage for `AppConfig` main-section updates of `plugins_dir`
+
 ## 2.0.13-DEV
 
 - test: expanded regression coverage for `libs.com.message` across schedulers, message payloads, and dispatcher flows

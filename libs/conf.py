@@ -560,6 +560,8 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         test = False
         if self._cfh is None:
             return False
+        if self.__check_main_config_updates():
+            test = True
         (com_mods, run_mods, config) = self.__get_modules_config()
         for name in com_mods + run_mods:
             if not self._cfh.has_section(name):
@@ -593,6 +595,37 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
                             f"to section: [{name}]"
                         )
         return test
+
+    def __check_main_config_updates(self) -> bool:
+        """Update selected main-section values during config refresh.
+
+        Only `plugins_dir` is allowed to be updated on an existing main section.
+        The rest of the daemon-level settings keep the existing manual-edit policy.
+
+        ### Returns:
+        bool - `True` when the main section was modified.
+        """
+        if self._cfh is None or self.app_name is None or not self.update:
+            return False
+
+        target_section: str = self.app_name.lower()
+        plugins_dir: Optional[str] = self.plugins_dir
+        if plugins_dir is None and self._cfh.has_varname(
+            target_section, _Keys.MC_PLUGINS_DIR
+        ):
+            return False
+
+        self._cfh.set(
+            target_section,
+            varname=_Keys.MC_PLUGINS_DIR,
+            value=plugins_dir or "./plugins",
+            desc="path to the plugins directory",
+        )
+        if self.debug:
+            self.logs.message_debug = (
+                f"update main section variable '{_Keys.MC_PLUGINS_DIR}'"
+            )
+        return True
 
     def __create_config_file(self) -> bool:
         """Create a default configuration file using discovered module templates.

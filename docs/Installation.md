@@ -144,6 +144,18 @@ The main section `[aasd]` contains the `salt` variable used to simply encrypt pa
 The second important variable is `modules` - it is a list of modules that we want to activate after configuration.\
 The remaining sections contain a description and configuration variables of the current module list.
 
+When you refresh an existing configuration file with `-U`, the daemon still adds
+only missing module-level settings by default. The main daemon section remains
+manual-edit only, with one exception: `plugins_dir` can be updated from the
+command line with `-P`.
+
+```bash
+./aasd.py -P /tmp -U
+```
+
+If `plugins_dir` is missing in an older configuration file, the same update mode
+adds it with the default value `./plugins`.
+
 ## Password encryption
 
 This function requires explanation at the current stage of preparing the system for operation.
