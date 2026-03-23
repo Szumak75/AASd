@@ -263,6 +263,7 @@ class TestMessage(unittest.TestCase):
         obj.sender = "sender@example.com"
         obj.subject = "subject"
         obj.messages = "body"
+        obj.messages = ["line-1", "line-2"]
         obj.messages = 123  # type: ignore[assignment]
         obj.mmessages = {Multipart.PLAIN: "plain"}
         obj.mmessages = {Multipart.HTML: "<b>html</b>"}
@@ -274,7 +275,7 @@ class TestMessage(unittest.TestCase):
         self.assertEqual(obj.reply_to, "reply@example.com")
         self.assertEqual(obj.sender, "sender@example.com")
         self.assertEqual(obj.subject, "subject")
-        self.assertEqual(obj.messages, ["body", "123"])
+        self.assertEqual(obj.messages, ["body", "line-1", "line-2", "123"])
         self.assertEqual(
             obj.mmessages,
             {

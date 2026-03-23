@@ -1,7 +1,7 @@
 # Documentation Index
 
-This directory contains project documentation, operational notes, module guides,
-and generated API-oriented reference material for the current codebase.
+This directory contains project documentation, operational notes, and
+API-oriented reference material for the active plugin-based runtime.
 
 Deployment documentation assumes `requirements.txt` is the production runtime
 installation source, while Poetry remains a development-only tool.
@@ -9,19 +9,13 @@ installation source, while Poetry remains a development-only tool.
 ## Core Documents
 
 - [Installation](./Installation.md) - environment setup and service preparation.
-- [Modules](./Modules.md) - module catalogue and configuration entry points.
+- [Modules](./Modules.md) - archived module model summary and migration context.
 - [Flow](./Flow.md) - runtime flow and subsystem relationships.
 - [Architecture](./Architecture.md) - project-wide structural analysis.
 - [API](./API.md) - business logic API and runtime contracts.
 - [API Surface](./API-Surface.md) - boundary between public runtime API and internal ORM layer.
-
-## Module Guides
-
-- [MEmailAlert](./MEmailAlert.md)
-- [MIcmp](./MIcmp.md)
-- [MLmsPayment](./MLmsPayment.md)
-- [MLmsTariff](./MLmsTariff.md)
-- [MZfsSnapshot](./MZfsSnapshot.md)
+- [Plugin API](./PluginAPI.md) - public contract for plugin implementations.
+- [Plugin Migration](./PluginMigration.md) - migration plan and archive boundary.
 
 ## Operational Assets
 

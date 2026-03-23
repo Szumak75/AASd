@@ -10,7 +10,6 @@ import tempfile
 import unittest
 
 from pathlib import Path
-from unittest.mock import patch
 
 from jsktoolbox.configtool import Config as ConfigTool
 from jsktoolbox.logstool import LoggerQueue
@@ -63,9 +62,7 @@ class TestAppConfig(unittest.TestCase):
 
             obj = self.__build_config(config_file)
             obj.plugins_dir = "/tmp/plugins-new"
-
-            with patch.object(AppConfig, "import_name_list", return_value=[]):
-                self.assertTrue(obj.load())
+            self.assertTrue(obj.load())
 
             check_cfg = ConfigTool(str(config_file), "AASd")
             self.assertTrue(check_cfg.load())
@@ -76,9 +73,7 @@ class TestAppConfig(unittest.TestCase):
             obj = self.__build_config(config_file)
             obj.plugins_dir = "/tmp/plugins-new"
             obj.update = True
-
-            with patch.object(AppConfig, "import_name_list", return_value=[]):
-                self.assertTrue(obj.load())
+            self.assertTrue(obj.load())
 
             check_cfg = ConfigTool(str(config_file), "AASd")
             self.assertTrue(check_cfg.load())
@@ -94,14 +89,13 @@ class TestAppConfig(unittest.TestCase):
 
             obj = self.__build_config(config_file)
             obj.update = True
-
-            with patch.object(AppConfig, "import_name_list", return_value=[]):
-                self.assertTrue(obj.load())
+            self.assertTrue(obj.load())
 
             check_cfg = ConfigTool(str(config_file), "AASd")
             self.assertTrue(check_cfg.load())
-            self.assertIn(
-                check_cfg.get("aasd", "plugins_dir"), ("./plugins", ".plugins")
+            self.assertEqual(
+                check_cfg.get("aasd", "plugins_dir"),
+                f"{Path(__file__).resolve().parent.parent}/plugins",
             )
 
     def test_03_should_return_directory_containing_aasd_py(self) -> None:
@@ -113,6 +107,65 @@ class TestAppConfig(unittest.TestCase):
         self.assertTrue(app_dir.is_absolute())
         self.assertEqual(app_dir, Path(__file__).resolve().parent.parent)
         self.assertTrue((app_dir / "aasd.py").is_file())
+
+    def test_04_should_create_plugin_sections_for_discovered_instances(self) -> None:
+        """Create default plugin sections for discovered plugin instances."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "aasd.conf"
+            plugins_dir = Path(tmp_dir) / "plugins"
+            plugins_dir.mkdir()
+            plugin_dir = plugins_dir / "sample_plugin"
+            plugin_dir.mkdir()
+            (plugin_dir / "load.py").write_text(
+                "\n".join(
+                    [
+                        "from libs.plugins import PluginKind, PluginSpec",
+                        "from libs.templates import PluginConfigField, PluginConfigSchema",
+                        "",
+                        "def _runtime(_context):",
+                        "    class Runtime(object):",
+                        "        def start(self):",
+                        "            return None",
+                        "        def stop(self):",
+                        "            return None",
+                        "        def is_stopped(self):",
+                        "            return True",
+                        "    return Runtime()",
+                        "",
+                        "def get_plugin_spec():",
+                        "    return PluginSpec(",
+                        "        api_version=1,",
+                        "        config_schema=PluginConfigSchema(",
+                        "            title='Sample plugin.',",
+                        "            fields=[",
+                        "                PluginConfigField(",
+                        "                    name='channel',",
+                        "                    field_type=int,",
+                        "                    default=3,",
+                        "                    required=True,",
+                        "                    description='Sample channel.',",
+                        "                )",
+                        "            ],",
+                        "        ),",
+                        "        plugin_id='sample.plugin',",
+                        "        plugin_kind=PluginKind.WORKER,",
+                        "        plugin_name='sample_plugin',",
+                        "        runtime_factory=_runtime,",
+                        "    )",
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            obj = self.__build_config(config_file)
+            obj.plugins_dir = str(plugins_dir)
+
+            self.assertTrue(obj.load())
+
+            check_cfg = ConfigTool(str(config_file), "AASd")
+            self.assertTrue(check_cfg.load())
+            self.assertTrue(check_cfg.has_section("sample_plugin"))
+            self.assertEqual(check_cfg.get("sample_plugin", "channel"), 3)
 
 
 # #[EOF]#######################################################################

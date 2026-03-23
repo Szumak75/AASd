@@ -30,14 +30,9 @@ considered part of the public project API.
    libs.com.message
    libs.tools.datetool
    libs.tools.icmp
+   libs.plugins.runtime
+   libs.plugins.loader
+   libs.plugins.config
    libs.templates.schema
    libs.templates.modules
-   modules.com.memailalert
-   modules.com.memailalert2
-   modules.run.micmp
-   modules.run.mlmspayment
-   modules.run.mlmstariff
-   modules.run.mzfssnapshot
-   modules.run.memailtest
-   modules.run.mtest
 ```

@@ -515,13 +515,20 @@ class Message(BData):
         return obj
 
     @messages.setter
-    def messages(self, message: str) -> None:
-        """Append one plain message fragment.
+    def messages(self, message: Union[str, List[str]]) -> None:
+        """Append one or many plain message fragments.
 
         ### Arguments:
-        * message: str - Plain message fragment to append.
+        * message: Union[str, List[str]] - Plain message fragment or fragment
+          list to append.
         """
-        self.messages.append(str(message))
+        if isinstance(message, str):
+            self.messages.append(message)
+        elif isinstance(message, List):
+            for item in message:
+                self.messages.append(str(item))
+        else:
+            self.messages.append(str(message))
 
     @property
     def mmessages(self) -> Optional[Dict[str, Any]]:

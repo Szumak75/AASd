@@ -131,17 +131,16 @@ Main configuration service for the daemon.
 - `password`
 - `update`
 - `module_conf`
-- `get_com_modules`
-- `get_run_modules`
+- `get_plugins`
 - `cf`
 
 **Key behavior:**
 
 - creates the initial config file if missing,
 - exposes the absolute project directory that contains `aasd.py`,
-- scans `modules.com` and `modules.run`,
-- asks modules for configuration templates,
-- returns only enabled modules listed in config.
+- scans plugin instances from `plugins_dir`,
+- asks plugins for configuration schemas,
+- renders and updates per-instance config sections.
 
 ### `libs.base.classes.ModuleConfigMixin`
 
@@ -155,18 +154,6 @@ Typed adapter over a module configuration section.
 - `sleep_period`
 
 Each business module extends this class with its own typed config accessors.
-
-### `libs.base.classes.ImporterMixin`
-
-**Purpose:**
-Dynamic module discovery and import helper.
-
-**Operational API:**
-
-- `import_name_list(package: str) -> list`
-- `import_module(package: str, name: str) -> object | None`
-
-**Naming contract:**
 
 - module file starts with `m`,
 - imported class name is derived from the file name,
@@ -290,6 +277,62 @@ Message payload exchanged between `modules/run` and `modules/com`.
 
 Task modules create `Message` instances and place them on the shared queue.
 Communication modules consume the routed messages and deliver them externally.
+
+## Plugin Runtime API
+
+### `libs.plugins.runtime.PluginKind`
+
+**Purpose:**
+Expose the supported plugin kinds used by the daemon runtime.
+
+**Constants:**
+
+- `COMMUNICATION`
+- `WORKER`
+
+### `libs.plugins.runtime.PluginContext`
+
+**Purpose:**
+Runtime context object passed to plugin factories.
+
+**Main fields:**
+
+- `app_meta`
+- `config`
+- `config_handler`
+- `debug`
+- `dispatcher`
+- `instance_name`
+- `logger`
+- `plugin_id`
+- `plugin_kind`
+- `qlog`
+- `verbose`
+
+### `libs.plugins.runtime.PluginSpec`
+
+**Purpose:**
+Manifest returned by plugin `load.py` entry-points.
+
+**Main fields:**
+
+- `api_version`
+- `config_schema`
+- `plugin_id`
+- `plugin_kind`
+- `plugin_name`
+- `runtime_factory`
+
+### `libs.plugins.loader.PluginLoader`
+
+**Purpose:**
+Discover plugin instances from `plugins_dir` and load `PluginSpec` from
+`load.py`.
+
+### `libs.plugins.config.PluginConfigParser`
+
+**Purpose:**
+Validate and parse plugin config values using `PluginConfigSchema`.
 
 ### `libs.com.message.Channel`
 

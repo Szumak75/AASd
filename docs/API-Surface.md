@@ -17,12 +17,14 @@ The public documentation surface currently includes:
 - `libs.com.message`
 - `libs.tools.datetool`
 - `libs.tools.icmp`
+- `libs.plugins.runtime`
+- `libs.plugins.loader`
+- `libs.plugins.config`
+- `libs.templates.schema`
 - `libs.templates.modules`
-- `modules.com.*`
-- `modules.run.*`
 
-These modules define the runtime contracts that shape daemon startup,
-configuration loading, messaging, and business-task execution.
+These modules define the active plugin runtime contracts that shape daemon
+startup, configuration loading, messaging, and plugin execution.
 
 ## Internal API
 

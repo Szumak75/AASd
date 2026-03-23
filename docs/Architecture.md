@@ -7,22 +7,24 @@ defines the architectural direction toward the plugin-only runtime model.
 
 ## Overview
 
-AASd currently contains a threaded daemon built around dynamically loaded
-modules. The repository is organized into a small runtime core and a set of
-legacy pluggable implementations:
+AASd now exposes a plugin-based active runtime. The repository also preserves
+an archived copy of the former module-based runtime for historical reference.
+
+The active repository layout is organized into a small runtime core and a set
+of plugin-oriented helpers:
 
 - `aasd.py` is the process entry point.
 - `server/daemon.py` contains the daemon orchestration logic.
 - `libs/` contains shared runtime infrastructure, configuration helpers,
   communication objects, utility classes, and database connectors/models.
-- `modules/com/` contains legacy outbound communication modules.
-- `modules/run/` contains legacy business-task modules that perform checks,
-  queries, or scheduled actions.
+- `plugins/` contains active reference plugins for the new runtime model.
+- `archive/modules/` contains archived outbound communication and task modules
+  from the former runtime model.
 - `tests/` contains a mixed set of regression and exploratory tests.
 
-The target architecture is no longer based on `modules/com` and `modules/run`.
-Those trees are now historical and scheduled for removal from the active
-runtime path.
+The active architecture is no longer based on `modules/com` and `modules/run`.
+Those trees are now historical and already removed from the active runtime
+path.
 
 ## Legacy Runtime Composition
 
@@ -42,14 +44,11 @@ application. `AASd` is responsible for:
 - loading and updating the configuration file,
 - parsing command line arguments,
 - creating the communication dispatcher,
-- starting and stopping legacy `modules/com` and `modules/run`,
+- starting and stopping active plugin instances discovered from `plugins_dir`,
 - reacting to `SIGTERM`, `SIGINT`, and `SIGHUP`.
 
-The runtime model is thread-based. Each module runs independently in its own
-thread and is supervised by the daemon.
-
-This description applies to the current repository state, not the target
-architecture.
+The runtime model is thread-based. Each plugin instance runs independently in
+its own runtime object and is supervised by the daemon.
 
 ## Core Infrastructure
 
@@ -71,8 +70,7 @@ The most important classes are:
 
 - `ProjectClassMixin` for daemon-level objects,
 - `ModuleMixin` for module implementations,
-- `ModuleConfigMixin` for typed access to module configuration,
-- `ImporterMixin` for dynamic module discovery and imports,
+- `ModuleConfigMixin` for typed access to shared config patterns,
 - `LogsMixin`, `ComMixin`, `ConfigMixin`, `DebugMixin`, `VerboseMixin` for cross-cutting state.
 
 This layer is the primary glue between `jsktoolbox` primitives and the project
@@ -95,9 +93,9 @@ configuration service for the whole daemon. Its responsibilities include:
 - locating the config file,
 - loading and saving the config file,
 - generating a default config when none exists,
-- scanning available legacy modules,
-- collecting configuration templates from legacy modules,
-- returning enabled legacy communication and task modules.
+- scanning available plugin instances in `plugins_dir`,
+- collecting configuration schemas from plugin manifests,
+- generating per-instance config sections for discovered plugins.
 
 `AppConfig` is one of the most important runtime objects in the project because
 it bridges file configuration, module discovery, and daemon startup.
@@ -128,34 +126,13 @@ The current business logic depends mainly on:
 - [`libs/templates/modules.py`](../libs/templates/modules.py) for module configuration templates,
 - [`libs/db_models/connectors.py`](../libs/db_models/connectors.py) for database connection pools.
 
-## Legacy Business Logic Modules
+## Archived Legacy Runtime
 
 ### Communication Modules
 
-Legacy communication modules are consumers of `Message` objects. Currently the
-project contains:
-
-- `memailalert` - primary SMTP e-mail sender,
-- `memailalert2` - secondary SMTP e-mail sender with equivalent behavior.
-
-These modules are delivery adapters rather than independent business workflows.
-
-### Task Modules
-
-Legacy task modules are the main holders of business logic:
-
-- `micmp` - detects host reachability changes and emits incident notifications,
-- `mlmspayment` - queries LMS/MLMS data and builds payment reminders,
-- `mlmstariff` - queries LMS/MLMS data and checks tariff assignments on nodes,
-- `mzfssnapshot` - manages ZFS snapshot creation and rotation,
-- `memailtest` - test helper for outbound message generation,
-- `mtest` - logger-oriented development test module.
-
-In practice, the business value of the project currently lives mostly in the
-legacy `modules/run/` package.
-
-These modules are now treated as reference material only and are expected to be
-moved into an archive tree when the new plugin runtime is implemented.
+The former module-based runtime, its interfaces, and its business
+implementations now live in the `archive/` tree and are no longer started by
+the daemon. They remain available only as historical reference material.
 
 ## Target Plugin Architecture
 
@@ -218,11 +195,11 @@ Public documentation surface:
 - `libs.tools.*` used by runtime modules
   The tools layer now follows the repository class-section layout for the
   datetime, interval, ICMP, and traceroute helpers.
+- `libs.plugins.*`
+- `libs.templates.schema`
 - `libs.templates.modules`
   The `TemplateConfigItem` helper follows the repository class-section layout
   with explicit constructor, public property, and private method blocks.
-- `modules.com.*`
-- `modules.run.*`
 
 Internal documentation surface:
 

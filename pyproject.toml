@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aasd"
-version = "2.0.16-DEV"
+version = "2.1.0-DEV"
 description = "Autonomous Administrative System daemon"
 authors = ["Jacek 'Szumak' Kotlarski <szumak@virthost.pl>"]
 license = "MIT"
@@ -30,6 +30,9 @@ myst-parser = "^4.0.1"
 sphinxcontrib-mermaid = "^2.0.1"
 coverage = "^7.13.5"
 pytest-cov = "^7.1.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
 
 [build-system]
 requires = ["poetry-core"]

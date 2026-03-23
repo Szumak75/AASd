@@ -1,9 +1,19 @@
 # Changelog
 
+## 2.1.0-DEV
+
+- feat: expanded plugin runtime tests for loader validation, config parsing, and daemon-level plugin-section generation
+- refactor: archived the inactive `modules.*` runtime tree and removed legacy loader contracts from the active runtime API
+- docs: updated the public API surface to describe only the active plugin runtime model
+
 ## 2.0.16-DEV
 
 - feat: added schema-based plugin configuration helpers `PluginConfigField`, `PluginConfigSchema`, and `PluginConfigSchemaRenderer`
+- feat: added the initial plugin runtime foundation with `PluginSpec`, `PluginContext`, `PluginLoader`, and `PluginConfigParser`
+- feat: switched active config generation to plugin-instance discovery from `plugins_dir`
+- feat: added `plugins/example1` and `plugins/example2` as the first reference plugins for the new runtime model
 - test: added regression coverage for `libs.templates` lazy exports and schema rendering helpers
+- test: added regression coverage for plugin discovery, config parsing, and plugin-section generation in `AppConfig`
 - docs: documented the new schema helpers in the API reference and updated the active migration plan
 
 ## 2.0.15-DEV

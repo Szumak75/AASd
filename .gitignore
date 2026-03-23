@@ -20,7 +20,12 @@ parts/
 sdist/
 var/
 wheels/
-plugins/
+/plugins/*
+!/plugins/example1/
+!/plugins/example1/load.py
+!/plugins/example2/
+!/plugins/example2/load.py
+!/libs/plugins/
 share/python-wheels/
 *.egg-info/
 .installed.cfg

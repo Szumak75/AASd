@@ -39,14 +39,21 @@ from jsktoolbox.systemtool import CommandLineParser, PathChecker
 from jsktoolbox.stringtool import SimpleCrypto
 
 from libs import AppConfig, AppName, Keys
-from libs.base import ImporterMixin, ProjectClassMixin
-from libs.interfaces import IRunModule, IComModule
+from libs.base import ProjectClassMixin
 from libs.com.message import ThDispatcher
+from libs.plugins import (
+    DispatcherAdapter,
+    PluginConfigParser,
+    PluginContext,
+    PluginDefinition,
+    PluginKind,
+    PluginRuntime,
+)
 
 import server
 
 
-class AASd(ProjectClassMixin, ImporterMixin):
+class AASd(ProjectClassMixin):
     """Orchestrate daemon startup, runtime supervision, and shutdown."""
 
     # #[CONSTRUCTOR]##################################################################
@@ -221,23 +228,23 @@ class AASd(ProjectClassMixin, ImporterMixin):
         # logger processor
         self.logs_processor.start()
 
-        com_mods, run_mods, dispatch = self.__start_subsystem()
+        plugins, dispatch = self.__start_subsystem()
 
         # main loop
         self.logs.message_info = "entering to the main loop"
         while self.loop:
             if self.hup:
                 # reload configuration and restart subsystems
-                self.__stop_subsystem(com_mods, run_mods, dispatch)
+                self.__stop_subsystem(plugins, dispatch)
                 self.hup = False
                 if not self.conf.load():
                     # critical message
                     self.logs.message_critical = "cannot reload config file"
                     self.loop = False
-                com_mods, run_mods, dispatch = self.__start_subsystem()
+                plugins, dispatch = self.__start_subsystem()
             time.sleep(0.5)
 
-        self.__stop_subsystem(com_mods, run_mods, dispatch)
+        self.__stop_subsystem(plugins, dispatch)
 
         # logger processor
         self.logs_processor.stop()
@@ -556,19 +563,17 @@ class AASd(ProjectClassMixin, ImporterMixin):
             self.logs.message_debug = "HUP signal received."
         self.hup = True
 
-    def __start_subsystem(
-        self,
-    ) -> Tuple[List[IComModule], List[IRunModule], Optional[ThDispatcher]]:
-        """Start dispatcher, communication modules, and task modules.
+    def __start_subsystem(self) -> Tuple[List[PluginRuntime], Optional[ThDispatcher]]:
+        """Start dispatcher and discovered plugin instances.
 
         ### Returns:
-        Tuple[List[IComModule], List[IRunModule], Optional[ThDispatcher]] -
-        Started communication modules, task modules, and dispatcher instance.
+        Tuple[List[PluginRuntime], Optional[ThDispatcher]] - Started plugin
+        instances and dispatcher instance.
         """
         self.logs.message_info = "starting..."
 
         if self.logs is None or self.conf is None or self.logs.logs_queue is None:
-            return ([], [], None)
+            return ([], None)
 
         qcom: Queue = Queue()
         dispatch = ThDispatcher(
@@ -580,63 +585,52 @@ class AASd(ProjectClassMixin, ImporterMixin):
         dispatch.start()
         time.sleep(1)
 
-        com_mods: List[IComModule] = []
-        for com_mod in self.conf.get_com_modules:
-            try:
-                obj_mod = com_mod(
-                    app_name=self.application,
-                    conf=self.conf.cf,
-                    qlog=self.logs.logs_queue,
-                    verbose=self.conf.verbose,
-                    debug=self.conf.debug,
-                )  # type: ignore
-                obj_mod.qcom = dispatch.register_queue(obj_mod.module_conf.channel)
-                obj_mod.start()
-                com_mods.append(obj_mod)
-            except Exception as ex:
-                if self.conf.debug:
-                    self.logs.message_debug = f"{ex}"
+        plugins: List[PluginRuntime] = []
+        dispatcher_adapter = DispatcherAdapter(qcom=qcom, dispatcher=dispatch)
 
-        run_mods: List[IRunModule] = []
-        for run_mod in self.conf.get_run_modules:
+        if self.conf.cf is None:
+            return (plugins, dispatch)
+
+        for plugin in self.conf.get_plugins:
             try:
-                obj_mod = run_mod(
-                    app_name=self.application,
-                    conf=self.conf.cf,
-                    qlog=self.logs.logs_queue,
-                    qcom=qcom,
-                    verbose=self.conf.verbose,
-                    debug=self.conf.debug,
-                )  # type: ignore
-                obj_mod.start()
-                run_mods.append(obj_mod)
-            except Exception as ex:
+                parsed_config = PluginConfigParser.parse(
+                    self.conf.cf, plugin.instance_name, plugin.spec.config_schema
+                )
+                runtime = plugin.spec.runtime_factory(
+                    self.__build_plugin_context(
+                        plugin=plugin,
+                        config=parsed_config,
+                        dispatcher=dispatcher_adapter,
+                    )
+                )
+                runtime.start()
+                plugins.append(runtime)
                 if self.conf.debug:
-                    self.logs.message_debug = f"{ex}"
-        return (com_mods, run_mods, dispatch)
+                    self.logs.message_debug = (
+                        f"started plugin instance: '{plugin.instance_name}'"
+                    )
+            except Exception as ex:
+                self.logs.message_error = (
+                    f"cannot start plugin instance '{plugin.instance_name}': {ex}"
+                )
+        return (plugins, dispatch)
 
     def __stop_subsystem(
         self,
-        com_mods: List[IComModule],
-        run_mods: List[IRunModule],
+        plugins: List[PluginRuntime],
         dispatch: Optional[ThDispatcher],
     ) -> None:
-        """Stop all started runtime subsystems in a controlled order.
+        """Stop all started plugin subsystems in a controlled order.
 
         ### Arguments:
-        * com_mods: List[IComModule] - Started communication module instances.
-        * run_mods: List[IRunModule] - Started task module instances.
+        * plugins: List[PluginRuntime] - Started plugin instances.
         * dispatch: Optional[ThDispatcher] - Active dispatcher instance.
         """
-        for mod in run_mods:
+        for mod in plugins:
             mod.stop()
-            while mod.module_stopped != True:
-                mod.join()  # type: ignore
-                time.sleep(0.1)
-        for mod in com_mods:
-            mod.stop()
-            while mod.module_stopped != True:
-                mod.join()  # type: ignore
+            while mod.is_stopped() != True:
+                if hasattr(mod, "join"):
+                    mod.join()  # type: ignore
                 time.sleep(0.1)
 
         if dispatch is None:
@@ -647,6 +641,43 @@ class AASd(ProjectClassMixin, ImporterMixin):
             dispatch.join()
             time.sleep(0.1)
         dispatch.join()
+
+    def __build_plugin_context(
+        self,
+        plugin: PluginDefinition,
+        config: Dict[str, Any],
+        dispatcher: DispatcherAdapter,
+    ) -> PluginContext:
+        """Build runtime context for one plugin instance.
+
+        ### Arguments:
+        * plugin: PluginDefinition - Discovered plugin instance definition.
+        * config: Dict[str, Any] - Parsed plugin config values.
+        * dispatcher: DispatcherAdapter - Plugin-facing dispatcher adapter.
+
+        ### Returns:
+        PluginContext - Runtime context passed to the plugin factory.
+        """
+        if self.conf is None or self.conf.cf is None or self.logs.logs_queue is None:
+            raise Raise.error(
+                "Daemon configuration context is incomplete.",
+                RuntimeError,
+                self._c_name,
+                currentframe(),
+            )
+        return PluginContext(
+            app_meta=self.application,
+            config=config,
+            config_handler=self.conf.cf,
+            debug=self.conf.debug,
+            dispatcher=dispatcher,
+            instance_name=plugin.instance_name,
+            logger=LoggerClient(queue=self.logs.logs_queue, name=plugin.instance_name),
+            plugin_id=plugin.spec.plugin_id,
+            plugin_kind=plugin.spec.plugin_kind,
+            qlog=self.logs.logs_queue,
+            verbose=self.conf.verbose,
+        )
 
 
 # #[EOF]#######################################################################

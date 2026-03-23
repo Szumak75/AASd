@@ -12,7 +12,7 @@ import socket
 
 from inspect import currentframe
 from pathlib import Path
-from typing import Dict, Optional, List, Union, Tuple
+from typing import Dict, Optional, List
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
@@ -25,13 +25,11 @@ from libs import AppName
 from libs.base import (
     ConfigHandlerMixin,
     ConfigSectionMixin,
-    ImporterMixin,
     LogsMixin,
     ModuleConfigMixin,
 )
-
-from libs.interfaces import IComModule, IRunModule
-from libs.templates import TemplateConfigItem
+from libs.plugins import PluginDefinition, PluginLoader
+from libs.templates import PluginConfigSchemaRenderer, TemplateConfigItem
 
 
 class _Keys(object, metaclass=ReadOnlyClass):
@@ -141,7 +139,7 @@ class _ModuleConf(ModuleConfigMixin):
         return var
 
 
-class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin):
+class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
     """Manage daemon configuration, module discovery, and config generation."""
 
     # #[CONSTRUCTOR]##################################################################
@@ -260,22 +258,20 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         return str(Path(__file__).resolve().parent.parent)
 
     @property
-    def get_com_modules(self) -> List[IComModule]:
-        """Return the enabled communication module classes.
+    def get_plugins(self) -> List[PluginDefinition]:
+        """Return discovered plugin instance definitions from `plugins_dir`.
 
         ### Returns:
-        List[IComModule] - Imported communication module classes.
+        List[PluginDefinition] - Discovered plugin instance definitions.
         """
-        return self.__get_modules_list("modules.com")  # type: ignore
-
-    @property
-    def get_run_modules(self) -> List[IRunModule]:
-        """Return the enabled task module classes.
-
-        ### Returns:
-        List[IRunModule] - Imported task module classes.
-        """
-        return self.__get_modules_list("modules.run")  # type: ignore
+        plugins_dir: Optional[str] = self.plugins_dir
+        if plugins_dir is None:
+            return []
+        try:
+            return PluginLoader.discover(Path(plugins_dir))
+        except Exception as ex:
+            self.logs.message_error = f"cannot discover plugins: '{ex}'"
+            return []
 
     @property
     def module_conf(self) -> Optional[_ModuleConf]:
@@ -533,13 +529,14 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
             if out:
                 if self.debug:
                     self.logs.message_debug = "config file loaded successful"
-                if self.module_conf and self.module_conf.modules:
+                discovered_plugins: List[PluginDefinition] = self.get_plugins
+                if discovered_plugins:
                     self.logs.message_info = (
-                        f"list of modules to enable: {self.module_conf.modules}"
+                        f"list of plugin instances to load: {[item.instance_name for item in discovered_plugins]}"
                     )
-            if self.__check_module_config_updates():
+            if self.__check_plugin_config_updates():
                 if self.debug:
-                    self.logs.message_debug = "found new module configuration"
+                    self.logs.message_debug = "found new plugin configuration"
                 if not self._cfh.save():
                     self.logs.message_critical = "cannot update config file."
             return out
@@ -575,8 +572,8 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
         return False
 
     # #[PRIVATE METHODS]##############################################################
-    def __check_module_config_updates(self) -> bool:
-        """Ensure that discovered modules have all required config entries.
+    def __check_plugin_config_updates(self) -> bool:
+        """Ensure that discovered plugin instances have all required config entries.
 
         ### Returns:
         bool - `True` when the configuration file requires an update.
@@ -586,11 +583,11 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
             return False
         if self.__check_main_config_updates():
             test = True
-        (com_mods, run_mods, config) = self.__get_modules_config()
-        for name in com_mods + run_mods:
+        plugin_config = self.__get_plugins_config()
+        for name in plugin_config:
             if not self._cfh.has_section(name):
                 test = True
-                for item in config[name]:
+                for item in plugin_config[name]:
                     tci: TemplateConfigItem = item
                     self._cfh.set(
                         name,
@@ -600,10 +597,10 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
                     )
                 if self.debug:
                     self.logs.message_debug = (
-                        f"add default configuration for section: [{name}]"
+                        f"add default configuration for plugin section: [{name}]"
                     )
                 continue
-            for item in config[name]:
+            for item in plugin_config[name]:
                 tci: TemplateConfigItem = item
                 if tci.varname and not self._cfh.has_varname(name, tci.varname):
                     test = True
@@ -616,7 +613,7 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
                     if self.debug:
                         self.logs.message_debug = (
                             f"add default new variable '{tci.varname}' "
-                            f"to section: [{name}]"
+                            f"to plugin section: [{name}]"
                         )
         return test
 
@@ -676,56 +673,24 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
             desc="path to the plugins directory",
         )
 
-        # collect config templates from modules
-        (com_mods, run_mods, config) = self.__get_modules_config()
-        self._cfh.set(self._section, desc="[ communication modules ]:")
-        for item in com_mods:
+        plugin_config = self.__get_plugins_config()
+        self._cfh.set(self._section, desc="[ plugin instances ]:")
+        for item in sorted(plugin_config.keys()):
             self._cfh.set(self._section, desc=f"{item}")
         self._cfh.set(self._section, desc="##")
-        self._cfh.set(self._section, desc="[ running modules ]:")
-        for item in run_mods:
-            self._cfh.set(self._section, desc=f"{item}")
-        self._cfh.set(self._section, desc="##")
-        self._cfh.set(
-            self._section,
-            varname=_Keys.MC_MODULES,
-            value=[],
-            desc="list of modules to activate",
-        )
         if self.debug:
-            self.logs.message_debug = f"Found communication modules list: {com_mods}"
-        if com_mods:
-            for name in com_mods:
-                if name not in config:
-                    self.logs.message_critical = (
-                        f"cannot found config template for module: '{name}'"
-                    )
-                    continue
-                for item in config[name]:
-                    tci: TemplateConfigItem = item
-                    self._cfh.set(
-                        name,
-                        varname=tci.varname,
-                        value=tci.value,
-                        desc=tci.desc,
-                    )
-        if self.debug:
-            self.logs.message_debug = f"Found running modules list: {run_mods}"
-        if run_mods:
-            for name in run_mods:
-                if name not in config:
-                    self.logs.message_critical = (
-                        f"cannot found config template for module: '{name}'"
-                    )
-                    continue
-                for item in config[name]:
-                    tci: TemplateConfigItem = item
-                    self._cfh.set(
-                        name,
-                        varname=tci.varname,
-                        value=tci.value,
-                        desc=tci.desc,
-                    )
+            self.logs.message_debug = (
+                f"Found plugin instances list: {sorted(plugin_config.keys())}"
+            )
+        for name in plugin_config:
+            for item in plugin_config[name]:
+                tci: TemplateConfigItem = item
+                self._cfh.set(
+                    name,
+                    varname=tci.varname,
+                    value=tci.value,
+                    desc=tci.desc,
+                )
         try:
             return self.save()
         except Exception as ex:
@@ -736,59 +701,18 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin, ImporterMixin
                 self.logs.message_debug = f"{ex}"
             return False
 
-    def __get_modules_config(self) -> Tuple[List[str], List[str], Dict]:
-        """Collect configuration templates for discovered communication and task modules.
+    def __get_plugins_config(self) -> Dict[str, List[TemplateConfigItem]]:
+        """Collect rendered config rows for discovered plugin instances.
 
         ### Returns:
-        Tuple[List[str], List[str], Dict] - Communication module names, task
-        module names, and their configuration template definitions.
+        Dict[str, List[TemplateConfigItem]] - Plugin instance config rows.
         """
-        com_mods = sorted(self.import_name_list("modules.com"))
-        run_mods = sorted(self.import_name_list("modules.run"))
-        config = dict()
-        for item in com_mods:
-            config[item] = []
-            com_mod: IComModule = self.import_module("modules.com", item)  # type: ignore
-            if com_mod:
-                for mod_item in com_mod.template_module_variables():
-                    config[item].append(mod_item)
-            else:
-                self.logs.message_error = f"Cannot load module: modules.com.{item}"
-        for item in run_mods:
-            config[item] = []
-            run_mod: IRunModule = self.import_module("modules.run", item)  # type: ignore
-            if run_mod:
-                for mod_item in run_mod.template_module_variables():
-                    config[item].append(mod_item)
-            else:
-                self.logs.message_error = f"Cannot load module: modules.run.{item}"
-        return com_mods, run_mods, config
-
-    def __get_modules_list(self, package: str) -> List[Union[IRunModule, IComModule]]:
-        """Return enabled modules available in the selected package.
-
-        ### Arguments:
-        * package: str - Dotted package path, for example `modules.com`.
-
-        ### Returns:
-        List[Union[IRunModule, IComModule]] - Imported module classes enabled in config.
-        """
-        out = []
-        if self.module_conf and self.module_conf.modules:
-            name_list = self.import_name_list(package)
-            if self.debug:
-                self.logs.message_debug = f"found module list: {name_list}"
-            tmp = dict(zip(self.module_conf.modules, self.module_conf.modules))
-            for name in name_list:
-                if name in tmp:
-                    imod = self.import_module(package, name)
-                    if imod:
-                        out.append(imod)
-                    else:
-                        self.logs.message_error = (
-                            f"cannot import module: '{package}.{name}'"
-                        )
-        return out
+        config: Dict[str, List[TemplateConfigItem]] = {}
+        for plugin in self.get_plugins:
+            config[plugin.instance_name] = PluginConfigSchemaRenderer.render(
+                plugin.spec.config_schema
+            )
+        return config
 
 
 # #[EOF]#######################################################################

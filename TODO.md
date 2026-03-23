@@ -27,6 +27,7 @@
 
 - Documented `Plugin API v1` assumptions and the repository migration plan in `docs/PluginAPI.md` and `docs/PluginMigration.md`.
 - Implemented the first schema-based plugin configuration helpers in `libs.templates.schema` and exposed them through package-level lazy exports.
+- Implemented the first active plugin runtime foundation in `libs.plugins`, switched `AppConfig` to plugin-instance discovery from `plugins_dir`, and added `example1` and `example2`.
 
 ## P1 - Immediate Work
 

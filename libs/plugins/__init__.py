@@ -1,41 +1,39 @@
-"""Base package exposing shared mixin classes through lazy exports."""
+"""Plugin runtime package with lazy exports."""
 
 from importlib import import_module
 from typing import TYPE_CHECKING, Any, Final
 
 __all__: list[str] = [
-    "AppNameMixin",
-    "ComMixin",
-    "ConfigMixin",
-    "ConfigHandlerMixin",
-    "ConfigSectionMixin",
-    "DebugMixin",
-    "LogsMixin",
-    "ModuleMixin",
-    "ModuleConfigMixin",
-    "ProjectClassMixin",
-    "ThProcessorMixin",
-    "VerboseMixin",
+    "DispatcherAdapter",
+    "PluginConfigParser",
+    "PluginContext",
+    "PluginDefinition",
+    "PluginKind",
+    "PluginLoader",
+    "PluginRuntime",
+    "PluginSpec",
 ]
 
 _EXPORTS: Final[dict[str, str]] = {
-    export_name: "libs.base.classes" for export_name in __all__
+    "DispatcherAdapter": "libs.plugins.runtime",
+    "PluginConfigParser": "libs.plugins.config",
+    "PluginContext": "libs.plugins.runtime",
+    "PluginDefinition": "libs.plugins.loader",
+    "PluginKind": "libs.plugins.runtime",
+    "PluginLoader": "libs.plugins.loader",
+    "PluginRuntime": "libs.plugins.runtime",
+    "PluginSpec": "libs.plugins.runtime",
 }
 
 if TYPE_CHECKING:
-    from libs.base.classes import (
-        AppNameMixin,
-        ComMixin,
-        ConfigMixin,
-        ConfigHandlerMixin,
-        ConfigSectionMixin,
-        DebugMixin,
-        LogsMixin,
-        ModuleMixin,
-        ModuleConfigMixin,
-        ProjectClassMixin,
-        ThProcessorMixin,
-        VerboseMixin,
+    from libs.plugins.config import PluginConfigParser
+    from libs.plugins.loader import PluginDefinition, PluginLoader
+    from libs.plugins.runtime import (
+        DispatcherAdapter,
+        PluginContext,
+        PluginKind,
+        PluginRuntime,
+        PluginSpec,
     )
 
 
