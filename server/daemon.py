@@ -146,7 +146,10 @@ class AASd(ProjectClassMixin, ImporterMixin):
         ### Returns:
         bool - `True` when subsystem restart has been requested.
         """
-        return self._get_data(key=Keys.HUP, default_value=False)  # type: ignore
+        obj:Optional[bool] = self._get_data(key=Keys.HUP, default_value=False)
+        if obj is None:
+            return False    
+        return obj
 
     @hup.setter
     def hup(self, value: bool) -> None:
@@ -197,7 +200,10 @@ class AASd(ProjectClassMixin, ImporterMixin):
         ### Returns:
         bool - `True` while the daemon main loop should continue.
         """
-        return self._get_data(key=Keys.LOOP, default_value=False)  # type:ignore
+        obj:Optional[bool] = self._get_data(key=Keys.LOOP, default_value=False)
+        if obj is None:
+            return False
+        return obj
 
     @loop.setter
     def loop(self, value: bool) -> None:
