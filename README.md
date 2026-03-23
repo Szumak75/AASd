@@ -4,13 +4,29 @@ Autonomous Administrative System daemon.
 
 ## Purpose
 
-The main goal of the project is to create a modular platform supporting UNIX system administration tasks in the field of monitoring environmental parameters and process status as well as responding to incidents. However, due to the assumed architecture of the platform, there is a lot of freedom in creating the functionalities of working modules.
+The main goal of the project is to create a modular platform supporting UNIX
+system administration tasks in the field of monitoring environmental parameters
+and process status as well as responding to incidents.
 
-The platform integrates two types of modules: intended for communication with the platform user: **_modules.com_** and intended for performing tasks: **_modules.run_**.
+The repository currently still contains a legacy module runtime based on
+`modules.com` and `modules.run`, but this model is no longer the target
+architecture.
 
-Modules are loaded dynamically based on rules defined in the main section of the configuration file.
+The target architecture is plugin-based:
 
-Each module is launched in a separate thread and is executed independently of the other modules of the platform, according to the rules specified in its configuration section.
+- plugins are discovered from the directory configured as `plugins_dir`,
+- each plugin directory or symlink is one plugin instance,
+- each instance gets its own config section derived from the entry name,
+- plugin type is declared by the plugin API, not by directory category,
+- worker plugins emit messages through the dispatcher,
+- communication plugins consume routed messages from configured channels.
+
+The daemon must not assume direct plugin-to-plugin communication. Message
+routing is valid only when the user defines matching channel rules in the
+configuration file.
+
+The current legacy modules are treated as historical reference material and are
+planned for removal from the active runtime path.
 
 The project is entirely written in python3 and runs in a dedicated virtual environment.
 
@@ -39,6 +55,8 @@ current Poetry runtime lock set.
 1. [Modules](https://github.com/Szumak75/AASd/blob/master/docs/Modules.md)
 1. [Flow Diagram](https://github.com/Szumak75/AASd/blob/master/docs/Flow.md)
 1. [Architecture Analysis](https://github.com/Szumak75/AASd/blob/master/docs/Architecture.md)
+1. [Plugin API v1](https://github.com/Szumak75/AASd/blob/master/docs/PluginAPI.md)
+1. [Plugin Migration Plan](https://github.com/Szumak75/AASd/blob/master/docs/PluginMigration.md)
 1. [Business Logic API](https://github.com/Szumak75/AASd/blob/master/docs/API.md)
 
 ## Documentation Build

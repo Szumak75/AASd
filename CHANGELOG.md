@@ -5,6 +5,8 @@
 - feat: added `AppConfig.get_app_dir` to expose the absolute directory containing `aasd.py`
 - test: added regression coverage for the application root accessor
 - docs: rewrote `TODO.md` to define the plugin-only target runtime, archival of the legacy module model, and the planned example communication flow
+- docs: added `Plugin API v1` and migration planning documents and aligned architecture docs with the plugin-only target model
+- docs: selected a schema-based plugin configuration contract built around `PluginConfigField` and `PluginConfigSchema`
 
 ## 2.0.14-DEV
 

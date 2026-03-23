@@ -1,24 +1,30 @@
 # Architecture Analysis
 
 **Scope:**
-This document summarizes the current structure of the AASd codebase and
-highlights the runtime architecture used by the daemon and its modules.
+This document summarizes the current structure of the AASd codebase,
+highlights the legacy runtime architecture still present in the repository, and
+defines the architectural direction toward the plugin-only runtime model.
 
 ## Overview
 
-AASd is a threaded daemon built around dynamically loaded modules. The project
-is organized into a small runtime core and a set of pluggable implementations:
+AASd currently contains a threaded daemon built around dynamically loaded
+modules. The repository is organized into a small runtime core and a set of
+legacy pluggable implementations:
 
 - `aasd.py` is the process entry point.
 - `server/daemon.py` contains the daemon orchestration logic.
 - `libs/` contains shared runtime infrastructure, configuration helpers,
   communication objects, utility classes, and database connectors/models.
-- `modules/com/` contains outbound communication modules.
-- `modules/run/` contains business-task modules that perform checks, queries, or
-  scheduled actions.
+- `modules/com/` contains legacy outbound communication modules.
+- `modules/run/` contains legacy business-task modules that perform checks,
+  queries, or scheduled actions.
 - `tests/` contains a mixed set of regression and exploratory tests.
 
-## Runtime Composition
+The target architecture is no longer based on `modules/com` and `modules/run`.
+Those trees are now historical and scheduled for removal from the active
+runtime path.
+
+## Legacy Runtime Composition
 
 ### Process Entry
 
@@ -36,11 +42,14 @@ application. `AASd` is responsible for:
 - loading and updating the configuration file,
 - parsing command line arguments,
 - creating the communication dispatcher,
-- starting and stopping `modules/com` and `modules/run`,
+- starting and stopping legacy `modules/com` and `modules/run`,
 - reacting to `SIGTERM`, `SIGINT`, and `SIGHUP`.
 
 The runtime model is thread-based. Each module runs independently in its own
 thread and is supervised by the daemon.
+
+This description applies to the current repository state, not the target
+architecture.
 
 ## Core Infrastructure
 
@@ -86,9 +95,9 @@ configuration service for the whole daemon. Its responsibilities include:
 - locating the config file,
 - loading and saving the config file,
 - generating a default config when none exists,
-- scanning available modules,
-- collecting configuration templates from modules,
-- returning enabled communication and task modules.
+- scanning available legacy modules,
+- collecting configuration templates from legacy modules,
+- returning enabled legacy communication and task modules.
 
 `AppConfig` is one of the most important runtime objects in the project because
 it bridges file configuration, module discovery, and daemon startup.
@@ -106,7 +115,9 @@ convention with explicit section markers inside each class.
 - `AtChannel` handles cron-like schedules,
 - `ThDispatcher` routes messages from the shared queue to communication-module queues.
 
-This subsystem is the key boundary between business events and outbound delivery.
+This subsystem is the key boundary between business events and outbound
+delivery, and it is also the strongest candidate to remain in the future
+plugin-based runtime.
 
 ### Utility Layer
 
@@ -117,12 +128,12 @@ The current business logic depends mainly on:
 - [`libs/templates/modules.py`](../libs/templates/modules.py) for module configuration templates,
 - [`libs/db_models/connectors.py`](../libs/db_models/connectors.py) for database connection pools.
 
-## Business Logic Modules
+## Legacy Business Logic Modules
 
 ### Communication Modules
 
-Communication modules are consumers of `Message` objects. Currently the project
-contains:
+Legacy communication modules are consumers of `Message` objects. Currently the
+project contains:
 
 - `memailalert` - primary SMTP e-mail sender,
 - `memailalert2` - secondary SMTP e-mail sender with equivalent behavior.
@@ -131,7 +142,7 @@ These modules are delivery adapters rather than independent business workflows.
 
 ### Task Modules
 
-Task modules are the main holders of business logic:
+Legacy task modules are the main holders of business logic:
 
 - `micmp` - detects host reachability changes and emits incident notifications,
 - `mlmspayment` - queries LMS/MLMS data and builds payment reminders,
@@ -141,7 +152,38 @@ Task modules are the main holders of business logic:
 - `mtest` - logger-oriented development test module.
 
 In practice, the business value of the project currently lives mostly in the
-`modules/run/` package.
+legacy `modules/run/` package.
+
+These modules are now treated as reference material only and are expected to be
+moved into an archive tree when the new plugin runtime is implemented.
+
+## Target Plugin Architecture
+
+The target architecture replaces module loading from repository paths with
+plugin instance loading from the directory configured as `plugins_dir` in the
+main daemon section.
+
+Core rules:
+
+- each direct child entry in `plugins_dir` is one plugin instance,
+- normal directories and symbolic links are treated equally as instances,
+- instance configuration section names are derived from entry names,
+- plugin kind is declared by plugin API metadata, not by file system path,
+- worker plugins emit messages through the dispatcher,
+- communication plugins consume routed messages from dispatcher channels,
+- message delivery depends only on explicit user configuration.
+
+The target runtime should introduce:
+
+- a plugin loader,
+- a plugin registry,
+- a plugin context object,
+- a versioned plugin manifest,
+- plugin lifecycle supervision,
+- automatic per-instance config generation.
+
+The target plugin entry-point convention is documented in
+[`PluginAPI.md`](./PluginAPI.md).
 
 ## Data Access Layer
 
@@ -195,7 +237,8 @@ should not be presented as the stable entry point for application behavior.
 ## Current Strengths
 
 - Clear runtime split between daemon core, task modules, and communication modules.
-- Dynamic module loading keeps deployment flexible.
+- Dynamic loading keeps deployment flexible and can be repurposed for the new
+  plugin runtime.
 - Shared message abstraction reduces direct coupling between producers and consumers.
 - Configuration templates make default config generation practical.
 
@@ -203,21 +246,34 @@ should not be presented as the stable entry point for application behavior.
 
 - Business logic is concentrated inside thread classes, which mixes orchestration
   and domain behavior.
+- The current runtime infers extension behavior from repository layout and file
+  naming conventions.
 - Module configuration classes are typed, but docstring quality and API
   descriptions are inconsistent.
 - The database-backed modules have direct knowledge of SQLAlchemy models and
   query details, which makes later refactoring harder.
 - Existing Markdown documentation covers selected modules but not the shared API surface.
 
+## Migration Direction
+
+The approved migration direction is:
+
+1. Define and implement `Plugin API v1`.
+2. Replace active module discovery with plugin discovery from `plugins_dir`.
+3. Archive the legacy `modules.*` runtime tree and related loader logic.
+4. Create new plugins from scratch against the new API.
+5. Finalize the new runtime with two example plugins proving channel-based
+   dispatch behavior.
+
 ## Recommended Documentation Strategy
 
-Before the planned refactoring, the safest documentation-first path is:
+Before and during the runtime rewrite, the safest documentation-first path is:
 
-1. Normalize docstrings in the shared infrastructure and business modules.
-2. Keep a curated Markdown API reference for the current public runtime surface.
-3. Document runtime contracts before extracting services or refactoring modules.
-4. Keep ORM models documented but outside the public API reference.
-5. Separate operational docs from API docs and from future architecture notes.
+1. Document the target plugin contract before implementing the new loader.
+2. Keep the legacy runtime documented only as historical architecture.
+3. Document archive boundaries when the old runtime is removed from the active path.
+4. Keep ORM models documented but outside the public plugin API reference.
+5. Separate operational docs from API docs and from migration planning notes.
 
 This document is intended to serve as the project-wide architectural baseline
 for that work.

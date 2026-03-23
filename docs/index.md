@@ -9,6 +9,8 @@ Installation
 Modules
 Flow
 Architecture
+PluginAPI
+PluginMigration
 API
 API-Surface
 api_reference

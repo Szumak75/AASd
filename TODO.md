@@ -25,6 +25,8 @@
 
 ## Completed Milestones
 
+- Documented `Plugin API v1` assumptions and the repository migration plan in `docs/PluginAPI.md` and `docs/PluginMigration.md`.
+
 ## P1 - Immediate Work
 
 ### Runtime Contracts
@@ -34,7 +36,8 @@
 - Define a strict `plugin_kind` contract with exactly two supported values: `communication` and `worker`.
 - Define lifecycle hooks required by the daemon: registration, initialization, start, stop, and health/state reporting.
 - Define how a plugin receives daemon services during initialization: logger access, dispatcher access, configuration handler bound to the instance section, and application metadata.
-- Define the plugin configuration template contract so every plugin can provide default variables and comments for automatic config generation.
+- Define `PluginConfigField` and `PluginConfigSchema` as the public plugin configuration contract.
+- Define the renderer and validator boundary so plugin authors describe schema semantics and the daemon renders the INI section format.
 
 ### Plugin Discovery And Loading
 
@@ -55,6 +58,7 @@
 - Ensure config generation and config updates operate on plugin instances, not on implementation names.
 - Keep communication routing user-defined through config variables only.
 - Avoid any implicit message routing between worker and communication plugins.
+- Replace `TemplateConfigItem` as the public plugin-facing contract with a schema-oriented descriptor model.
 
 ### Business Refactoring Preparation
 
@@ -62,6 +66,7 @@
 - Identify which parts of the current runtime are legacy-only and should be moved to the archive tree without reuse.
 - Define the future public core surface that plugin authors may rely on.
 - Exclude legacy business implementations from future runtime planning.
+- Decide whether `libs.templates` remains only as an internal render layer or is fully replaced in the active runtime.
 
 ### Functional Risks
 
@@ -92,6 +97,7 @@
 - Add discovery tests for plugin directories and symlinked plugin instances.
 - Add validation tests for malformed `load.py` entry-points and invalid plugin manifests.
 - Add config generation tests for per-instance sections created from plugin directory names.
+- Add schema validation tests for `PluginConfigField` and `PluginConfigSchema`.
 - Add dispatcher integration tests for worker-to-communication message routing configured by the user.
 - Add shutdown and lifecycle tests for plugin supervision.
 
@@ -121,4 +127,3 @@
 - Define archive placement rules for the legacy runtime tree while preserving historical structure for reference.
 - Decide whether plugin-local virtual environments are in or out of scope for the first implementation.
 - Decide whether plugin manifests should be returned by a function or by a manifest object exported from `load.py`.
-- Decide whether plugin configuration templates should keep using `TemplateConfigItem` or move to a new plugin-specific descriptor class.
