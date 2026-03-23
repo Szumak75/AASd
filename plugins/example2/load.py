@@ -25,7 +25,8 @@ from libs.plugins import (
     PluginState,
     PluginStateSnapshot,
 )
-from libs.templates import PluginConfigField, PluginConfigSchema
+from libs.templates import PluginConfigField
+from libs.templates import PluginConfigSchema
 
 
 class _Runtime(Thread):

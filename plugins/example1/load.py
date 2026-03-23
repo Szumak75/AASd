@@ -8,8 +8,8 @@ Created: 2026-03-23
 Purpose: Emit one startup message to a configured dispatcher channel.
 """
 
-from threading import Event, Thread
 from time import time
+from threading import Event, Thread
 
 from libs.com.message import Message
 from libs.plugins import (
