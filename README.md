@@ -32,7 +32,7 @@ The project is entirely written in python3 and runs in a dedicated virtual envir
 
 The main process is executed in the foreground and it is assumed that it will be supervised by a service manager such as "**runit**" or "**daemontools**".
 
-The project is dedicated and tested on FreeBSD platforms, most of the modules should work properly in the Linux environment.
+The project is dedicated and tested on FreeBSD platforms, most of the plugins should work properly in the Linux environment.
 
 ## Environment Policy
 

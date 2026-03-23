@@ -398,7 +398,7 @@ class Multipart(object, metaclass=ReadOnlyClass):
 
 
 class Message(BData):
-    """Store a message exchanged between task and communication modules."""
+    """Store a message exchanged between worker and communication plugins."""
 
     # #[CONSTRUCTOR]##################################################################
     def __init__(self) -> None:
@@ -475,7 +475,7 @@ class Message(BData):
         """Store the message footer.
 
         ### Arguments:
-        * value: str - Footer text appended by the delivery module.
+        * value: str - Footer text appended by the delivery plugin.
         """
         self._set_data(key=_Keys.MSG_FOOTER, value=value, set_default_type=str)
 
@@ -652,7 +652,7 @@ class Message(BData):
 
 
 class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
-    """Route outbound messages to queues registered for communication modules."""
+    """Route outbound messages to queues registered for communication plugins."""
 
     # #[CONSTRUCTOR]##################################################################
     def __init__(
@@ -686,7 +686,7 @@ class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
         # communication queue for reading
         self.qcom = qcom
 
-        # communication queues for target modules
+        # communication queues for target plugins
         # example:
         # {
         #    level_1: [registered_queue1, registered_queue2, ]
@@ -709,7 +709,7 @@ class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
         """Register a target queue for the selected communication channel.
 
         ### Arguments:
-        * channel: int - Channel identifier handled by a communication module.
+        * channel: int - Channel identifier handled by a communication plugin.
 
         ### Returns:
         Queue - Newly created queue registered for the channel.

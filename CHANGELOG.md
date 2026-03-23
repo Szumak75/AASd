@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.1.2-DEV
+
+- refactor: renamed active base-layer mixins and main-config helpers from module-oriented names to plugin-oriented names
+- refactor: removed the inactive `modules` main-section config entry from active configuration fixtures and main-config internals
+- docs: aligned installation, API, architecture, flow, and API-surface guides with plugin-oriented runtime terminology
+- test: updated base-layer lazy-export coverage for the renamed plugin mixins
+
 ## 2.1.1-DEV
 
 - refactor: removed `TemplateConfigItem` from the active `libs.templates` public export surface

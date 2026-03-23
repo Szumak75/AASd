@@ -3,7 +3,7 @@
 **Scope:**
 This document describes the current API surface of the existing business logic
 and runtime contracts. It is intentionally focused on the daemon, shared
-runtime services, business-task modules, and communication modules. SQLAlchemy
+runtime services, worker plugins, and communication plugins. SQLAlchemy
 schema models are listed only as dependencies, not as the primary API.
 
 ## API Classification
@@ -15,9 +15,9 @@ The following areas should currently be treated as the documented project API:
 - daemon bootstrap and runtime orchestration,
 - shared configuration and importer contracts,
 - messaging and dispatching abstractions,
-- utility helpers used directly by modules,
-- communication modules,
-- business-task modules.
+- utility helpers used directly by plugins,
+- communication plugins,
+- worker plugins.
 
 ### Internal Integration API
 
@@ -70,8 +70,8 @@ Main application orchestrator.
 
 **Important internal helpers:**
 
-- `__start_subsystem()` - starts dispatcher and modules.
-- `__stop_subsystem()` - stops dispatcher and modules.
+- `__start_subsystem()` - starts dispatcher and plugins.
+- `__stop_subsystem()` - stops dispatcher and plugins.
 - `__init_command_line()` - binds CLI options to config changes.
 - `__password_encoding()` - updates encrypted passwords in config.
 
@@ -109,7 +109,7 @@ Carries the application name, version, and host name.
 - `app_host_name: str`
 
 **Used by:**
-daemon, task modules, communication modules, message builders.
+daemon, worker plugins, communication plugins, message builders.
 
 ### `libs.conf.AppConfig`
 
@@ -130,7 +130,6 @@ Main configuration service for the daemon.
 - `get_app_dir`
 - `password`
 - `update`
-- `module_conf`
 - `get_plugins`
 - `cf`
 
@@ -142,10 +141,10 @@ Main configuration service for the daemon.
 - asks plugins for configuration schemas,
 - renders and updates per-instance config sections.
 
-### `libs.base.classes.ModuleConfigMixin`
+### `libs.base.classes.PluginConfigMixin`
 
 **Purpose:**
-Typed adapter over a module configuration section.
+Typed adapter over a plugin configuration section.
 
 **Shared configuration keys exposed by the base class:**
 
@@ -170,15 +169,15 @@ Lazy package entry point for the shared base layer.
 - `ConfigSectionMixin`
 - `DebugMixin`
 - `LogsMixin`
-- `ModuleMixin`
-- `ModuleConfigMixin`
+- `PluginRuntimeMixin`
+- `PluginConfigMixin`
 - `ProjectClassMixin`
 - `ThProcessorMixin`
 - `VerboseMixin`
 
 **Import contract:**
 
-- `from libs.base import ModuleMixin` is supported,
+- `from libs.base import PluginRuntimeMixin` is supported,
 - exported symbols are resolved from `libs.base.classes` on first access,
 - direct imports from `libs.base.classes` remain valid for compatibility.
 
@@ -257,8 +256,8 @@ communication plugins.
 
 **Usage contract:**
 
-Task modules create `Message` instances and place them on the shared queue.
-Communication modules consume the routed messages and deliver them externally.
+Worker plugins create `Message` instances and place them on the shared queue.
+Communication plugins consume the routed messages and deliver them externally.
 
 ## Plugin Runtime API
 
@@ -363,8 +362,8 @@ communication-module queues.
 
 **Contract:**
 
-- task modules write to one shared queue,
-- communication modules register per-channel queues,
+- worker plugins write to one shared queue,
+- communication plugins register per-channel queues,
 - dispatcher fans out messages by `message.channel`.
 
 ## Utility API Used By Business Logic
@@ -421,7 +420,7 @@ Lazy package entry point for shared date and ICMP helpers.
 ### `libs.db_models.connectors.LmsMysqlDatabase`
 
 **Purpose:**
-Database connector used by LMS/MLMS-related modules.
+Database connector used by LMS/MLMS-related workers.
 
 **Main API:**
 

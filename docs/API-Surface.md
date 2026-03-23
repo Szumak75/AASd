@@ -21,7 +21,6 @@ The public documentation surface currently includes:
 - `libs.plugins.loader`
 - `libs.plugins.config`
 - `libs.templates.schema`
-- `libs.templates.modules`
 
 These modules define the active plugin runtime contracts that shape daemon
 startup, configuration loading, messaging, and plugin execution.
@@ -43,7 +42,7 @@ not considered the stable application API.
 
 When adding or updating generated API docs:
 
-1. Include runtime modules and business modules in the Sphinx autosummary tree.
+1. Include runtime plugins and shared runtime helpers in the Sphinx autosummary tree.
 2. Keep ORM models documented with source docstrings.
 3. Do not promote ORM models to the public API reference unless the project
    explicitly decides to expose a supported data-access contract.

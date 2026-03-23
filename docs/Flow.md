@@ -19,20 +19,20 @@ flowchart LR
     end
     A1 o==o com
     A1 o==o run
-    subgraph com [communication modules]
-    C1[module 1] --> C2[logger\nclient]
+    subgraph com [communication plugins]
+    C1[plugin 1] --> C2[logger\nclient]
     CONF --> C1
     C2 --> LQ
     CQ --> C1
     C1 -...-> CE(["send\nreceived\nmessages"])
     end
-    subgraph run [task modules]
-    R1[module 1] --> R2[logger\nclient]
+    subgraph run [worker plugins]
+    R1[plugin 1] --> R2[logger\nclient]
     CONF --> R1
     R2 --> LQ
     R1 --> CQ
     R1 <-...-> RE1(["complete the tasks"])
-    R3[module 2] --> R4[logger\nclient]
+    R3[plugin 2] --> R4[logger\nclient]
     CONF --> R3
     R4 --> LQ
     R3 --> CQ

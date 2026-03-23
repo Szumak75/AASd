@@ -8,17 +8,16 @@ The future runtime will use plugins loaded from `plugins_dir`. See
 
 ## Legacy Types
 
-The historical runtime contains two legacy module types:
+The historical runtime contained two legacy component types:
 
 - communication modules,
 - task modules.
 
 ## Legacy Communication Modules
 
-Each configured communication module is identified by a unique `channel`
+Each configured communication module was identified by a unique `channel`
 configuration variable, which defines the communication queue number. This
-number is the qualifier for selecting the communication method for the legacy
-work modules.
+number selected the delivery path for legacy worker logic.
 
 1. `memailalert`
 
@@ -27,9 +26,9 @@ work modules.
 
 ## Legacy Task Modules
 
-The method of configuring legacy task modules may vary depending on their
-purpose and is described in the module documentation and in the configuration
-file. Variables common to most legacy modules are:
+The method of configuring legacy task modules varied depending on their
+purpose and was described in the module documentation and in the configuration
+file. Variables common to most legacy modules were:
 
 - `sleep_period` [float]: which defines the length of the break between subsequent executions of module tasks,
 - `message_channel` [list]: which defines a list of communication channels (if used by the module) with optional additional information about the frequency of sent notifications.

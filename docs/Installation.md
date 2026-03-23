@@ -118,17 +118,14 @@ For DEVEL version: '/var/tmp/aasd.conf'
 [AASd]: [Config] ... complete
 [AASd->WARNING]: [Config] config file '/etc/aasd.conf' does not exist
 [AASd->WARNING]: [Config] try to create default one
-[AASd->DEBUG]: [Config] Found communication modules list: ['memailalert', 'memailalert2']
-[AASd->DEBUG]: [Config] Found running modules list: ['memailtest', 'micmp', 'mlmspayment', 'mtest']
+[AASd->DEBUG]: [Config] Found plugin instances list: ['example1', 'example2']
 [AASd->DEBUG]: [Config] config file saved successful
 [AASd->DEBUG]: [Config] try to load config file: '/etc/aasd.conf'...
 [AASd->DEBUG]: [Config] config file loaded successful
-[AASd]: [Config] list of modules to enable: ['']
+[AASd]: [Config] list of plugin instances to load: ['example1', 'example2']
 [AASd->DEBUG]: [ThLoggerProcessor] Start.
 [AASd]: starting...
 [AASd->DEBUG]: [ThDispatcher] entering to the main loop
-[AASd->DEBUG]: [Config] found module list: ['memailalert', 'memailalert2']
-[AASd->DEBUG]: [Config] found module list: ['memailtest', 'micmp', 'mlmspayment', 'mtest']
 [AASd]: entering to the main loop
 ^C[AASd->DEBUG]: TERM or INT signal received.
 [AASd->DEBUG]: [ThDispatcher] stop signal received
@@ -141,11 +138,11 @@ To interrupt a running process, send the interrupt signal [ctrl]-[c] or the TERM
 
 The configuration file is divided into sections containing variables.\
 The main section `[aasd]` contains the `salt` variable used to simply encrypt password variables.\
-The second important variable is `modules` - it is a list of modules that we want to activate after configuration.\
-The remaining sections contain a description and configuration variables of the current module list.
+The second important variable is `plugins_dir` - it points to the directory scanned for plugin instances at daemon startup.\
+The remaining sections contain descriptions and configuration variables for each discovered plugin instance.
 
 When you refresh an existing configuration file with `-U`, the daemon still adds
-only missing module-level settings by default. The main daemon section remains
+only missing plugin-level settings by default. The main daemon section remains
 manual-edit only, with one exception: `plugins_dir` can be updated from the
 command line with `-P`.
 

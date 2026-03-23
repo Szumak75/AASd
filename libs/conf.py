@@ -5,7 +5,7 @@ Application configuration service.
 Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
 Created: 2023-11-07
 
-Purpose: Provide configuration loading, generation, and module discovery logic.
+Purpose: Provide configuration loading, generation, and plugin discovery logic.
 """
 
 import socket
@@ -26,7 +26,7 @@ from libs.base import (
     ConfigHandlerMixin,
     ConfigSectionMixin,
     LogsMixin,
-    ModuleConfigMixin,
+    PluginConfigMixin,
 )
 from libs.plugins import PluginDefinition, PluginLoader
 from libs.templates import PluginConfigSchemaRenderer
@@ -44,8 +44,7 @@ class _Keys(object, metaclass=ReadOnlyClass):
     CONF_UPDATE: str = "__config_update__"
     DEBUG: str = "__DEBUG__"
     MAIN: str = "__MAIN__"
-    MODULE_CONF: str = "__MODULE_CONF__"
-    MODULES: str = "__MODULES__"
+    MAIN_CONF: str = "__MAIN_CONF__"
     NAME: str = "__NAME__"
     PASSWORD: str = "__password__"
     PASSWORD_SECTION: str = "__pass_section__"
@@ -56,13 +55,12 @@ class _Keys(object, metaclass=ReadOnlyClass):
 
     # config keys
     MC_DEBUG: str = "debug"
-    MC_MODULES: str = "modules"
     MC_SALT: str = "salt"
     MC_VERBOSE: str = "verbose"
     MC_PLUGINS_DIR: str = "plugins_dir"
 
 
-class _ModuleConf(ModuleConfigMixin):
+class _MainConfig(PluginConfigMixin):
     """Provide typed access to the daemon main-section configuration."""
 
     # #[PUBLIC PROPERTIES]############################################################
@@ -77,37 +75,6 @@ class _ModuleConf(ModuleConfigMixin):
         if var is None:
             return False
         return var
-
-    @property
-    def modules(self) -> List[str]:
-        """Return the sorted list of enabled module names.
-
-        ### Returns:
-        List[str] - Sorted names of enabled runtime modules.
-
-        ### Raises:
-        * TypeError: If the configuration value is not a list of strings.
-        """
-        tmp: Optional[List[str]] = self._get(_Keys.MC_MODULES)
-        if tmp is None:
-            return []
-        if not isinstance(tmp, List):
-            raise Raise.error(
-                "Expected type 'List' in variable 'modules'.",
-                TypeError,
-                self._c_name,
-                currentframe(),
-            )
-        if tmp:
-            for item in tmp:
-                if not isinstance(item, str):
-                    raise Raise.error(
-                        "Names were expected as strings in the module list.",
-                        TypeError,
-                        self._c_name,
-                        currentframe(),
-                    )
-        return sorted(tmp)
 
     @property
     def plugins_dir(self) -> Optional[str]:
@@ -141,7 +108,7 @@ class _ModuleConf(ModuleConfigMixin):
 
 
 class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
-    """Manage daemon configuration, module discovery, and config generation."""
+    """Manage daemon configuration, plugin discovery, and config generation."""
 
     # #[CONSTRUCTOR]##################################################################
     def __init__(self, qlog: LoggerQueue, app_name: str) -> None:
@@ -156,12 +123,11 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
         self.logs = LoggerClient(queue=qlog, name=self._c_name)
         self.logs.message_info = "Config initialization..."
         self._set_data(key=_Keys.MAIN, value=BData(), set_default_type=BData)
-        self._set_data(key=_Keys.MODULES, value={}, set_default_type=Dict)
         self.__main._set_data(
             key=_Keys.START_TIME, value=Timestamp.now(), set_default_type=int
         )
         self._set_data(
-            key=_Keys.MODULE_CONF, value=None, set_default_type=Optional[_ModuleConf]
+            key=_Keys.MAIN_CONF, value=None, set_default_type=Optional[_MainConfig]
         )
         self.app_name = app_name
         self._set_data(key=_Keys.CF, value=None)
@@ -273,15 +239,6 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
         except Exception as ex:
             self.logs.message_error = f"cannot discover plugins: '{ex}'"
             return []
-
-    @property
-    def module_conf(self) -> Optional[_ModuleConf]:
-        """Return the typed main-section configuration adapter.
-
-        ### Returns:
-        Optional[_ModuleConf] - Typed configuration adapter or `None`.
-        """
-        return self._get_data(key=_Keys.MODULE_CONF, default_value=None)
 
     @property
     def password(self) -> bool:
@@ -476,26 +433,8 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
             )
         return obj
 
-    @property
-    def __modules(self) -> Dict:
-        """Return the internal module-state container.
-
-        ### Returns:
-        Dict - Internal module state dictionary.
-        """
-        obj: Optional[Dict] = self._get_data(key=_Keys.MODULES)
-        if obj is None:
-            raise Raise.error(
-                "Module state container is not initialized.",
-                RuntimeError,
-                self._c_name,
-                currentframe(),
-            )
-        return obj
-
-    # #[PUBLIC METHODS]###############################################################
     def load(self) -> bool:
-        """Load the configuration file and refresh discovered module settings.
+        """Load the configuration file and refresh discovered plugin settings.
 
         ### Returns:
         bool - `True` when the configuration was loaded successfully.
@@ -511,9 +450,7 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
         if self._cfh is None:
             config = ConfigTool(self.config_file, self._section)
             self._cfh = config
-            self._set_data(
-                key=_Keys.MODULE_CONF, value=_ModuleConf(config, self._section)
-            )
+            self._set_data(key=_Keys.MAIN_CONF, value=_MainConfig(config, self._section))
             if not config.file_exists:
                 self.logs.message_warning = (
                     f"config file '{self.config_file}' does not exist"
@@ -650,7 +587,7 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
         return True
 
     def __create_config_file(self) -> bool:
-        """Create a default configuration file using discovered module templates.
+        """Create a default configuration file using discovered plugin templates.
 
         ### Returns:
         bool - `True` when the configuration file was created successfully.

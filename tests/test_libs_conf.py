@@ -48,7 +48,6 @@ class TestAppConfig(unittest.TestCase):
         cfg.set("aasd", varname="debug", value=False)
         cfg.set("aasd", varname="verbose", value=False)
         cfg.set("aasd", varname="salt", value=123456)
-        cfg.set("aasd", varname="modules", value=[])
         if with_plugins_dir:
             cfg.set("aasd", varname="plugins_dir", value="./plugins")
         self.assertTrue(cfg.save())

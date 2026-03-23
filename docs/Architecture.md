@@ -18,7 +18,7 @@ of plugin-oriented helpers:
 - `libs/` contains shared runtime infrastructure, configuration helpers,
   communication objects, utility classes, and database connectors/models.
 - `plugins/` contains active reference plugins for the new runtime model.
-- `archive/modules/` contains archived outbound communication and task modules
+- `archive/modules/` contains archived outbound communication and worker plugins
   from the former runtime model.
 - `tests/` contains a mixed set of regression and exploratory tests.
 
@@ -60,7 +60,7 @@ its own runtime object and is supervised by the daemon.
 - application version,
 - host name.
 
-This object is passed into runtime modules and reused when building messages and
+This object is passed into runtime plugins and reused when building messages and
 logs.
 
 ### Base Classes
@@ -69,8 +69,8 @@ logs.
 The most important classes are:
 
 - `ProjectClassMixin` for daemon-level objects,
-- `ModuleMixin` for module implementations,
-- `ModuleConfigMixin` for typed access to shared config patterns,
+- `PluginRuntimeMixin` for plugin implementations,
+- `PluginConfigMixin` for typed access to shared config patterns,
 - `LogsMixin`, `ComMixin`, `ConfigMixin`, `DebugMixin`, `VerboseMixin` for cross-cutting state.
 
 This layer is the primary glue between `jsktoolbox` primitives and the project
@@ -78,7 +78,7 @@ runtime.
 
 The package entry point [`libs/base/__init__.py`](../libs/base/__init__.py)
 now exposes these symbols through lazy exports, so package-level imports such as
-`from libs.base import ModuleMixin` do not load `libs.base.classes` until the
+`from libs.base import PluginRuntimeMixin` do not load `libs.base.classes` until the
 requested symbol is accessed.
 
 The implementation file [`libs/base/classes.py`](../libs/base/classes.py) is
@@ -98,7 +98,7 @@ configuration service for the whole daemon. Its responsibilities include:
 - generating per-instance config sections for discovered plugins.
 
 `AppConfig` is one of the most important runtime objects in the project because
-it bridges file configuration, module discovery, and daemon startup.
+it bridges file configuration, plugin discovery, and daemon startup.
 
 ### Messaging Subsystem
 
@@ -108,10 +108,10 @@ message-dispatching layer:
 The implementation file is normalized to the repository class-structure
 convention with explicit section markers inside each class.
 
-- `Message` is the payload container passed from task modules to communication modules,
+- `Message` is the payload container passed from worker plugins to communication plugins,
 - `Channel` handles interval-based notification schedules,
 - `AtChannel` handles cron-like schedules,
-- `ThDispatcher` routes messages from the shared queue to communication-module queues.
+- `ThDispatcher` routes messages from the shared queue to communication-plugin queues.
 
 This subsystem is the key boundary between business events and outbound
 delivery, and it is also the strongest candidate to remain in the future
@@ -123,7 +123,7 @@ The current business logic depends mainly on:
 
 - [`libs/tools/datetool.py`](../libs/tools/datetool.py) for date formatting and interval parsing,
 - [`libs/tools/icmp.py`](../libs/tools/icmp.py) for ICMP and traceroute shell wrappers,
-- [`libs/templates/modules.py`](../libs/templates/modules.py) for module configuration templates,
+- [`libs/templates/modules.py`](../libs/templates/modules.py) for internal config rendering helpers,
 - [`libs/db_models/connectors.py`](../libs/db_models/connectors.py) for database connection pools.
 
 ## Archived Legacy Runtime
@@ -168,7 +168,7 @@ The project includes a large SQLAlchemy model tree under `libs/db_models/`.
 This layer is important for persistence but should be treated as a schema and
 integration layer, not as the primary business API.
 
-The business modules currently depend directly on:
+The archived business logic implementations and future complex worker plugins depend directly on:
 
 - `libs.db_models.connectors.LmsMysqlDatabase`,
 - `libs.db_models.lms.*`,
@@ -192,7 +192,7 @@ Public documentation surface:
   for application identity, shared keys, and configuration services.
 - `libs.base.classes`
 - `libs.com.message`
-- `libs.tools.*` used by runtime modules
+- `libs.tools.*` used by runtime plugins
   The tools layer now follows the repository class-section layout for the
   datetime, interval, ICMP, and traceroute helpers.
 - `libs.plugins.*`
@@ -210,7 +210,7 @@ should not be presented as the stable entry point for application behavior.
 
 ## Current Strengths
 
-- Clear runtime split between daemon core, task modules, and communication modules.
+- Clear runtime split between daemon core, worker plugins, and communication plugins.
 - Dynamic loading keeps deployment flexible and can be repurposed for the new
   plugin runtime.
 - Shared message abstraction reduces direct coupling between producers and consumers.
@@ -224,9 +224,9 @@ should not be presented as the stable entry point for application behavior.
   naming conventions.
 - Module configuration classes are typed, but docstring quality and API
   descriptions are inconsistent.
-- The database-backed modules have direct knowledge of SQLAlchemy models and
+- The database-backed worker implementations have direct knowledge of SQLAlchemy models and
   query details, which makes later refactoring harder.
-- Existing Markdown documentation covers selected modules but not the shared API surface.
+- Existing Markdown documentation covers selected components but not the shared API surface.
 
 ## Migration Direction
 

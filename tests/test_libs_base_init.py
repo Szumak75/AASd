@@ -27,11 +27,11 @@ class TestLibsBaseInit(unittest.TestCase):
 
         self.assertNotIn("libs.base.classes", sys.modules)
 
-        lazy_export = getattr(base_module, "ModuleMixin")
+        lazy_export = getattr(base_module, "PluginRuntimeMixin")
 
         self.assertIn("libs.base.classes", sys.modules)
         direct_export = getattr(
-            importlib.import_module("libs.base.classes"), "ModuleMixin"
+            importlib.import_module("libs.base.classes"), "PluginRuntimeMixin"
         )
         self.assertIs(lazy_export, direct_export)
 
@@ -39,8 +39,8 @@ class TestLibsBaseInit(unittest.TestCase):
         """Test nr 02."""
         base_module = importlib.import_module("libs.base")
 
-        self.assertIn("ModuleMixin", base_module.__all__)
-        self.assertIn("ModuleMixin", dir(base_module))
+        self.assertIn("PluginRuntimeMixin", base_module.__all__)
+        self.assertIn("PluginRuntimeMixin", dir(base_module))
         with self.assertRaises(AttributeError):
             getattr(base_module, "NotExported")
 

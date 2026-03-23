@@ -5,7 +5,7 @@ Shared project base classes.
 Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
 Created: 2023-11-06
 
-Purpose: Provide shared mixin-style helper classes used by the daemon and runtime modules.
+Purpose: Provide shared mixin-style helper classes used by the daemon and runtime plugins.
 """
 
 import os
@@ -113,12 +113,12 @@ class ConfigSectionMixin(BData):
         self._set_data(key=Keys.SECTION, value=sn, set_default_type=Optional[str])
 
 
-class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
-    """Mixin-style adapter that provides typed access to module configuration."""
+class PluginConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
+    """Mixin-style adapter that provides typed access to plugin configuration."""
 
     # #[CONSTANTS]#####################################################################
     class Keys(object, metaclass=ReadOnlyClass):
-        """Define shared configuration key names for module settings."""
+        """Define shared configuration key names for plugin settings."""
 
         CHANNEL: str = "channel"
         MESSAGE_CHANNEL: str = "message_channel"
@@ -127,11 +127,11 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
 
     # #[CONSTRUCTOR]##################################################################
     def __init__(self, cfh: ConfigTool, section: Optional[str]) -> None:
-        """Initialize the module configuration adapter.
+        """Initialize the plugin configuration adapter.
 
         ### Arguments:
         * cfh: ConfigTool - Configuration handler used for value lookups.
-        * section: Optional[str] - Configuration section bound to the module.
+        * section: Optional[str] - Configuration section bound to the plugin.
         """
         self._cfh = cfh
         self._section = section
@@ -139,7 +139,7 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
     # #[PUBLIC PROPERTIES]#############################################################
     @property
     def channel(self) -> Optional[int]:
-        """Return the communication channel configured for a module.
+        """Return the communication channel configured for a plugin.
 
         ### Returns:
         Optional[int] - Communication channel number or `None`.
@@ -147,7 +147,7 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
         ### Raises:
         * TypeError: If the configured value is not an integer.
         """
-        var: Optional[int] = self._get(varname=ModuleConfigMixin.Keys.CHANNEL)
+        var: Optional[int] = self._get(varname=PluginConfigMixin.Keys.CHANNEL)
         if var is not None and not isinstance(var, int):
             raise Raise.error(
                 "Expected int type.",
@@ -159,7 +159,7 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
 
     @property
     def message_channel(self) -> Optional[List[str]]:
-        """Return the message channel configuration for a task module.
+        """Return the message channel configuration for a worker plugin.
 
         ### Returns:
         Optional[List[str]] - Channel schedule definitions or `None`.
@@ -167,7 +167,7 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
         ### Raises:
         * TypeError: If the configured value is not a list.
         """
-        var = self._get(varname=ModuleConfigMixin.Keys.MESSAGE_CHANNEL)
+        var = self._get(varname=PluginConfigMixin.Keys.MESSAGE_CHANNEL)
         if var is not None and not isinstance(var, List):
             raise Raise.error(
                 "Expected list type.",
@@ -179,7 +179,7 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
 
     @property
     def sleep_period(self) -> Optional[float]:
-        """Return the module sleep interval.
+        """Return the plugin sleep interval.
 
         ### Returns:
         Optional[float] - Sleep interval in seconds or `None`.
@@ -188,7 +188,7 @@ class ModuleConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
         * TypeError: If the configured value is neither `int` nor `float`.
         """
         var: Optional[Union[int, float]] = self._get(
-            varname=ModuleConfigMixin.Keys.SLEEP_PERIOD
+            varname=PluginConfigMixin.Keys.SLEEP_PERIOD
         )
         if var is None:
             return None
@@ -303,14 +303,14 @@ class ProjectClassMixin(LogsMixin, ConfigMixin, AppNameMixin):
     """Compose mixins used by the daemon core."""
 
 
-class ModuleMixin(
+class PluginRuntimeMixin(
     ConfigHandlerMixin, ConfigSectionMixin, LogsMixin, ComMixin, AppNameMixin
 ):
-    """Compose mixins used by communication and task modules."""
+    """Compose mixins used by communication and worker plugins."""
 
     # #[CONSTANTS]#####################################################################
     class Keys(object, metaclass=ReadOnlyClass):
-        """Define internal key names used by module runtime state."""
+        """Define internal key names used by plugin runtime state."""
 
         DEBUG: str = "debug"
         VERBOSE: str = "verbose"
@@ -318,14 +318,14 @@ class ModuleMixin(
     # #[PROTECTED PROPERTIES]##########################################################
     @property
     def _bm_debug(self) -> bool:
-        """Return the module debug flag.
+        """Return the plugin debug flag.
 
         ### Returns:
         bool - Effective debug flag derived from runtime state and configuration.
         """
 
         cfh_debug: Optional[bool] = (
-            self._cfh.get(self._section, ModuleMixin.Keys.DEBUG)
+            self._cfh.get(self._section, PluginRuntimeMixin.Keys.DEBUG)
             if self._cfh and self._section
             else None
         )
@@ -340,7 +340,7 @@ class ModuleMixin(
 
     @_bm_debug.setter
     def _bm_debug(self, debug: bool) -> None:
-        """Store the module debug flag.
+        """Store the plugin debug flag.
 
         ### Arguments:
         * debug: bool - Debug flag value.
@@ -348,39 +348,39 @@ class ModuleMixin(
         self._set_data(key=Keys.DEBUG, value=debug, set_default_type=bool)
 
     @property
-    def _module_conf(self) -> Optional[ModuleConfigMixin]:
-        """Return the typed module configuration adapter.
+    def _plugin_conf(self) -> Optional[PluginConfigMixin]:
+        """Return the typed plugin configuration adapter.
 
         ### Returns:
-        Optional[ModuleConfigMixin] - Module configuration adapter or `None`.
+        Optional[PluginConfigMixin] - Plugin configuration adapter or `None`.
         """
-        out: Optional[ModuleConfigMixin] = self._get_data(
-            key=ModuleConfigMixin.Keys.MODULE_CONF, default_value=None
+        out: Optional[PluginConfigMixin] = self._get_data(
+            key=PluginConfigMixin.Keys.MODULE_CONF, default_value=None
         )
         return out
 
-    @_module_conf.setter
-    def _module_conf(self, value: ModuleConfigMixin) -> None:
-        """Store the typed module configuration adapter.
+    @_plugin_conf.setter
+    def _plugin_conf(self, value: PluginConfigMixin) -> None:
+        """Store the typed plugin configuration adapter.
 
         ### Arguments:
-        * value: ModuleConfigMixin - Module configuration adapter.
+        * value: PluginConfigMixin - Plugin configuration adapter.
         """
         self._set_data(
-            key=ModuleConfigMixin.Keys.MODULE_CONF,
+            key=PluginConfigMixin.Keys.MODULE_CONF,
             value=value,
-            set_default_type=ModuleConfigMixin,
+            set_default_type=PluginConfigMixin,
         )
 
     @property
     def _verbose(self) -> bool:
-        """Return the module verbose flag.
+        """Return the plugin verbose flag.
 
         ### Returns:
         bool - Effective verbose flag derived from runtime state and configuration.
         """
         cfh_verbose: Optional[bool] = (
-            self._cfh.get(self._section, ModuleMixin.Keys.VERBOSE)
+            self._cfh.get(self._section, PluginRuntimeMixin.Keys.VERBOSE)
             if self._cfh and self._section
             else None
         )
@@ -395,7 +395,7 @@ class ModuleMixin(
 
     @_verbose.setter
     def _verbose(self, verbose: bool) -> None:
-        """Store the module verbose flag.
+        """Store the plugin verbose flag.
 
         ### Arguments:
         * verbose: bool - Verbose flag value.
