@@ -1,8 +1,17 @@
 # Changelog
 
+## 2.1.15-DEV
+
+- feat: added `libs.plugins.service` with `PluginRegistryService`, `PluginServiceReport`, `PluginFailure`, and `PluginSkip`
+- refactor: moved plugin discovery and lifecycle orchestration out of `server.daemon.AASd` into the registry service
+- feat: added partial startup failure reporting with explicit failed and skipped plugin instances
+- test: split startup-order verification to the registry-service layer and added daemon delegation and failure-isolation coverage
+- docs: updated the active API surface and `TODO.md` to reflect the new supervision service and report model
+
 ## 2.1.13-DEV
 
 - style: wrapped the example2 stdout print payload string to align with the shorter line-length convention
+- docs: updated `TODO.md` to reflect the implemented plugin lifecycle, shared plugin keys, archived data models, and the current supervision backlog
 
 ## 2.1.12-DEV
 

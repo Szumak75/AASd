@@ -21,8 +21,13 @@
 
 - The active runtime loads plugins from `plugins_dir` through `load.py` entry-points.
 - `PluginSpec`, `PluginContext`, `PluginLoader`, `PluginConfigParser`, `PluginConfigField`, and `PluginConfigSchema` exist in the active codebase.
+- The runtime lifecycle already uses `initialize()`, `start()`, `stop()`, `state()`, and `health()`.
+- Shared plugin configuration keys are exposed through `libs.plugins.keys`.
+- Plugin supervision is handled through a dedicated registry service in `libs.plugins.service`.
+- The supervision report distinguishes initialized, started, failed, and skipped plugin instances.
 - `AppConfig` generates one configuration section per discovered plugin instance and keeps instance configuration separate from implementation identity.
 - Legacy runtime code has been moved to `archive/` and is no longer used by the active execution path.
+- Historical data-model definitions have been moved to `archive/libs/db_models/`.
 - `example1` and `example2` exist as the first reference plugins for the new runtime.
 - Startup ordering ensures communication plugins are started before worker plugins to avoid losing the first message at daemon startup.
 - Public documentation and active runtime terminology have been aligned with the plugin model.
@@ -32,28 +37,33 @@
 - Documented `Plugin API v1` assumptions and the repository migration plan in `docs/PluginAPI.md` and `docs/PluginMigration.md`.
 - Implemented schema-based plugin configuration helpers in `libs.templates.schema` and exposed the schema API through package-level lazy exports.
 - Implemented the first active plugin runtime foundation in `libs.plugins`.
+- Implemented a dedicated plugin registry service for discovery, lifecycle control, and startup reporting.
 - Switched `AppConfig` to plugin-instance discovery from `plugins_dir`.
 - Added `example1` and `example2` as the first reference plugins for the new runtime model.
+- Implemented the stricter plugin lifecycle contract with state and health snapshots.
+- Added public shared plugin configuration key classes in `libs.plugins.keys`.
+- Switched `DispatcherAdapter` to typed `BData` storage.
 - Archived the inactive legacy runtime tree and removed its active execution path.
+- Archived the historical SQLAlchemy model tree under `archive/libs/db_models`.
 - Cleaned the active public API and terminology to describe plugins instead of modules.
 
 ## P1 - Immediate Work
 
 ### Runtime Supervision
 
-- Define lifecycle hooks required by the daemon in a stricter form: initialization, start, stop, and state/health reporting.
-- Introduce explicit health/state reporting for plugin runtime instances.
-- Ensure plugin initialization errors do not break unrelated plugin instances.
 - Define shutdown behavior for partially initialized plugin sets.
 - Define restart or reinitialization expectations for failed plugins.
+- Define whether the daemon should poll `health()` periodically or only inspect it during lifecycle transitions.
+- Define how failed and skipped plugin instances should be surfaced to operators in logs and status output.
 
 ### Host API Stabilization
 
 - Define the future public core surface that plugin authors may rely on.
 - Stabilize `PluginContext` as the primary daemon-to-plugin service contract.
-- Expose dispatcher and logger access only through stable host-side adapters.
+- Expose daemon-facing services only through stable host-side adapters.
 - Separate plugin instance metadata from runtime objects more explicitly.
 - Decide whether `PluginRuntime` should remain protocol-based or become a stricter concrete interface contract.
+- Define which keys in `PluginHostKeys` are enforced by the daemon in API v1.
 
 ### Configuration And Validation
 
@@ -62,6 +72,7 @@
 - Decide whether `libs.templates.modules` remains only as an internal render layer or is fully replaced in the active runtime.
 - Keep communication routing user-defined through config variables only.
 - Ensure configuration mistakes in channel mapping are visible to the user and never create hidden cross-plugin coupling.
+- Validate collisions between daemon-reserved keys from `libs.plugins.keys` and plugin-private field names.
 
 ### Plugin Discovery And Registration
 
@@ -74,9 +85,8 @@
 
 ### Service Layer Extraction
 
-- Build a dedicated plugin registry service responsible for discovery, validation, registration, and lifecycle control.
-- Move plugin supervision concerns out of `server.daemon.AASd` into a clearer runtime-management layer.
 - Keep plugin instance metadata, manifest data, and runtime object state separate.
+- Decide whether the registry service should become stateful or remain a stateless orchestration layer.
 
 ### Shared Runtime Surface
 
@@ -94,9 +104,9 @@
 
 - Add discovery tests for symlinked plugin instances in the active runtime test suite.
 - Add lifecycle and shutdown tests for plugin supervision.
-- Add tests for partial startup failure and isolated plugin initialization errors.
 - Add more dispatcher integration tests for worker-to-communication routing configured by the user.
 - Add tests for duplicate plugin identity and invalid registration edge cases.
+- Add tests for reserved-key collisions and host-managed config semantics.
 
 ## P3 - Structural Cleanup
 

@@ -14,11 +14,8 @@ import time
 import gc
 import setproctitle
 
-from inspect import currentframe
-from typing import Any, Dict, List, Optional, Tuple
-from queue import Queue
+from typing import Any, Dict, List, Optional
 
-from jsktoolbox.raisetool import Raise
 from jsktoolbox.logstool import (
     LoggerEngine,
     LoggerClient,
@@ -40,15 +37,9 @@ from jsktoolbox.stringtool import SimpleCrypto
 
 from libs import AppConfig, AppName, Keys
 from libs.base import ProjectClassMixin
-from libs.com.message import ThDispatcher
 from libs.plugins import (
-    DispatcherAdapter,
-    PluginConfigParser,
-    PluginContext,
-    PluginDefinition,
-    PluginKind,
-    PluginRuntime,
-    PluginState,
+    PluginRegistryService,
+    PluginServiceReport,
 )
 
 import server
@@ -229,23 +220,23 @@ class AASd(ProjectClassMixin):
         # logger processor
         self.logs_processor.start()
 
-        plugins, dispatch = self.__start_subsystem()
+        report = self.__start_subsystem()
 
         # main loop
         self.logs.message_info = "entering to the main loop"
         while self.loop:
             if self.hup:
                 # reload configuration and restart subsystems
-                self.__stop_subsystem(plugins, dispatch)
+                self.__stop_subsystem(report)
                 self.hup = False
                 if not self.conf.load():
                     # critical message
                     self.logs.message_critical = "cannot reload config file"
                     self.loop = False
-                plugins, dispatch = self.__start_subsystem()
+                report = self.__start_subsystem()
             time.sleep(0.5)
 
-        self.__stop_subsystem(plugins, dispatch)
+        self.__stop_subsystem(report)
 
         # logger processor
         self.logs_processor.stop()
@@ -564,151 +555,27 @@ class AASd(ProjectClassMixin):
             self.logs.message_debug = "HUP signal received."
         self.hup = True
 
-    def __start_subsystem(self) -> Tuple[List[PluginRuntime], Optional[ThDispatcher]]:
-        """Start dispatcher and discovered plugin instances.
+    def __start_subsystem(self) -> PluginServiceReport:
+        """Start dispatcher and plugin instances through the registry service.
 
         ### Returns:
-        Tuple[List[PluginRuntime], Optional[ThDispatcher]] - Started plugin
-        instances and dispatcher instance.
+        PluginServiceReport - Supervision report for the startup cycle.
         """
-        self.logs.message_info = "starting..."
-
-        if self.logs is None or self.conf is None or self.logs.logs_queue is None:
-            return ([], None)
-
-        qcom: Queue = Queue()
-        dispatch = ThDispatcher(
-            qlog=self.logs.logs_queue,
-            qcom=qcom,
-            verbose=self.conf.verbose,
-            debug=self.conf.debug,
-        )
-        dispatch.start()
-        time.sleep(1)
-
-        plugins: List[PluginRuntime] = []
-        dispatcher_adapter = DispatcherAdapter(qcom=qcom, dispatcher=dispatch)
-
-        if self.conf.cf is None:
-            return (plugins, dispatch)
-
-        comm_plugins: List[PluginDefinition] = []
-        worker_plugins: List[PluginDefinition] = []
-        for plugin in self.conf.get_plugins:
-            if plugin.spec.plugin_kind == PluginKind.COMMUNICATION:
-                comm_plugins.append(plugin)
-            else:
-                worker_plugins.append(plugin)
-
-        ordered_plugins: List[PluginDefinition] = comm_plugins + worker_plugins
-        initialized_plugins: List[Tuple[PluginDefinition, PluginRuntime]] = []
-
-        for plugin in ordered_plugins:
-            try:
-                parsed_config = PluginConfigParser.parse(
-                    self.conf.cf, plugin.instance_name, plugin.spec.config_schema
-                )
-                runtime = plugin.spec.runtime_factory(
-                    self.__build_plugin_context(
-                        plugin=plugin,
-                        config=parsed_config,
-                        dispatcher=dispatcher_adapter,
-                    )
-                )
-                runtime.initialize()
-                initialized_plugins.append((plugin, runtime))
-                if self.conf.debug:
-                    self.logs.message_debug = (
-                        f"initialized plugin instance: '{plugin.instance_name}'"
-                    )
-            except Exception as ex:
-                self.logs.message_error = (
-                    f"cannot initialize plugin instance '{plugin.instance_name}': {ex}"
-                )
-        for plugin, runtime in initialized_plugins:
-            try:
-                runtime.start()
-                plugins.append(runtime)
-                if self.conf.debug:
-                    self.logs.message_debug = (
-                        f"started plugin instance: '{plugin.instance_name}'"
-                    )
-            except Exception as ex:
-                self.logs.message_error = (
-                    f"cannot start plugin instance '{plugin.instance_name}': {ex}"
-                )
-                try:
-                    runtime.stop(timeout=2.0)
-                except Exception:
-                    pass
-        return (plugins, dispatch)
-
-    def __stop_subsystem(
-        self,
-        plugins: List[PluginRuntime],
-        dispatch: Optional[ThDispatcher],
-    ) -> None:
-        """Stop all started plugin subsystems in a controlled order.
-
-        ### Arguments:
-        * plugins: List[PluginRuntime] - Started plugin instances.
-        * dispatch: Optional[ThDispatcher] - Active dispatcher instance.
-        """
-        for mod in plugins:
-            try:
-                mod.stop(timeout=2.0)
-            except TypeError:
-                mod.stop()
-            while mod.state().state not in (PluginState.STOPPED, PluginState.FAILED):
-                if hasattr(mod, "join"):
-                    mod.join()  # type: ignore
-                time.sleep(0.1)
-
-        if dispatch is None:
-            return None
-
-        dispatch.stop()
-        while dispatch._is_stopped != True:
-            dispatch.join()
-            time.sleep(0.1)
-        dispatch.join()
-
-    def __build_plugin_context(
-        self,
-        plugin: PluginDefinition,
-        config: Dict[str, Any],
-        dispatcher: DispatcherAdapter,
-    ) -> PluginContext:
-        """Build runtime context for one plugin instance.
-
-        ### Arguments:
-        * plugin: PluginDefinition - Discovered plugin instance definition.
-        * config: Dict[str, Any] - Parsed plugin config values.
-        * dispatcher: DispatcherAdapter - Plugin-facing dispatcher adapter.
-
-        ### Returns:
-        PluginContext - Runtime context passed to the plugin factory.
-        """
-        if self.conf is None or self.conf.cf is None or self.logs.logs_queue is None:
-            raise Raise.error(
-                "Daemon configuration context is incomplete.",
-                RuntimeError,
-                self._c_name,
-                currentframe(),
-            )
-        return PluginContext(
+        if self.conf is None:
+            return PluginServiceReport()
+        return PluginRegistryService.start(
+            conf=self.conf,
             app_meta=self.application,
-            config=config,
-            config_handler=self.conf.cf,
-            debug=self.conf.debug,
-            dispatcher=dispatcher,
-            instance_name=plugin.instance_name,
-            logger=LoggerClient(queue=self.logs.logs_queue, name=plugin.instance_name),
-            plugin_id=plugin.spec.plugin_id,
-            plugin_kind=plugin.spec.plugin_kind,
-            qlog=self.logs.logs_queue,
-            verbose=self.conf.verbose,
+            logs=self.logs,
         )
+
+    def __stop_subsystem(self, report: PluginServiceReport) -> None:
+        """Stop all started plugin subsystems through the registry service.
+
+        ### Arguments:
+        * report: PluginServiceReport - Supervision report with active runtimes.
+        """
+        PluginRegistryService.stop(report=report, logs=self.logs)
 
 
 # #[EOF]#######################################################################

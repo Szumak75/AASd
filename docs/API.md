@@ -470,6 +470,24 @@ Active runtime state reporting uses:
 - plugin-to-plugin communication is configuration-driven and never implied by
   discovery alone.
 
+### Supervision service
+
+The active runtime uses `PluginRegistryService` to coordinate:
+
+- discovery ordering,
+- configuration parsing,
+- plugin initialization,
+- plugin startup,
+- plugin shutdown,
+- supervision result reporting through `PluginServiceReport`.
+
+The supervision report currently distinguishes:
+
+- `initialized`
+- `started`
+- `failed`
+- `skipped`
+
 ## Current API Boundaries
 
 ### Stable Practical Boundary
@@ -487,6 +505,8 @@ The most stable practical API for future refactoring currently appears to be:
 - `PluginContext`
 - `PluginConfigSchema`
 - `PluginConfigParser`
+- `PluginRegistryService`
+- `PluginServiceReport`
 
 ### Internal But Important Boundary
 

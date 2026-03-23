@@ -32,5 +32,6 @@ historical reference, not as active runtime API.
    libs.plugins.loader
    libs.plugins.config
    libs.plugins.keys
+   libs.plugins.service
    libs.templates.schema
 ```

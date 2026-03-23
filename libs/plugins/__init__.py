@@ -11,10 +11,14 @@ __all__: list[str] = [
     "PluginConfigParser",
     "PluginContext",
     "PluginDefinition",
+    "PluginFailure",
     "PluginHostKeys",
     "PluginKind",
     "PluginLoader",
     "PluginRuntime",
+    "PluginRegistryService",
+    "PluginSkip",
+    "PluginServiceReport",
     "PluginState",
     "PluginStateSnapshot",
     "PluginSpec",
@@ -28,10 +32,14 @@ _EXPORTS: Final[dict[str, str]] = {
     "PluginConfigParser": "libs.plugins.config",
     "PluginContext": "libs.plugins.runtime",
     "PluginDefinition": "libs.plugins.loader",
+    "PluginFailure": "libs.plugins.service",
     "PluginHostKeys": "libs.plugins.keys",
     "PluginKind": "libs.plugins.runtime",
     "PluginLoader": "libs.plugins.loader",
     "PluginRuntime": "libs.plugins.runtime",
+    "PluginRegistryService": "libs.plugins.service",
+    "PluginSkip": "libs.plugins.service",
+    "PluginServiceReport": "libs.plugins.service",
     "PluginState": "libs.plugins.runtime",
     "PluginStateSnapshot": "libs.plugins.runtime",
     "PluginSpec": "libs.plugins.runtime",
@@ -41,6 +49,12 @@ if TYPE_CHECKING:
     from libs.plugins.config import PluginConfigParser
     from libs.plugins.keys import PluginCommonKeys, PluginHostKeys
     from libs.plugins.loader import PluginDefinition, PluginLoader
+    from libs.plugins.service import (
+        PluginFailure,
+        PluginRegistryService,
+        PluginSkip,
+        PluginServiceReport,
+    )
     from libs.plugins.runtime import (
         DispatcherAdapter,
         PluginHealth,

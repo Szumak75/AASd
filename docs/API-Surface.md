@@ -21,6 +21,7 @@ The public documentation surface currently includes:
 - `libs.plugins.loader`
 - `libs.plugins.config`
 - `libs.plugins.keys`
+- `libs.plugins.service`
 - `libs.templates.schema`
 
 These modules define the active plugin runtime contracts that shape daemon
