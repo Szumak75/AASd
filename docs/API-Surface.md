@@ -18,6 +18,7 @@ The public documentation surface currently includes:
 - `libs.tools.datetool`
 - `libs.tools.icmp`
 - `libs.plugins.runtime`
+- `libs.plugins.mixins`
 - `libs.plugins.loader`
 - `libs.plugins.config`
 - `libs.plugins.keys`

@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.3.3-DEV
+
+- fix: removed the conflicting `_stop_event` class attribute from `ThPluginMixin` because `ThBaseObject` already exposes `_stop_event` as a property
+- chore: bumped development version to `2.3.3-DEV`
+
+## 2.3.2-DEV
+
+- fix: replaced truthiness checks on plugin `_stop_event` with explicit `is None` guards compatible with `ThBaseObject` typing and runtime behavior
+- feat: added `libs.plugins.mixins.ThPluginMixin` as a typed shared mixin for thread-based plugin runtimes
+- test: added regression coverage for reference-plugin `_stop_event` guard behavior and the public `ThPluginMixin` export
+- docs: documented `libs.plugins.mixins` in the active API surface and generated API reference
+- chore: bumped development version to `2.3.2-DEV`
+
 ## 2.3.1-DEV
 
 - test: added regression coverage for `libs.app.AppName` fallbacks and missing-value errors

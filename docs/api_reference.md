@@ -29,6 +29,7 @@ historical reference, not as active runtime API.
    libs.tools.datetool
    libs.tools.icmp
    libs.plugins.runtime
+   libs.plugins.mixins
    libs.plugins.loader
    libs.plugins.config
    libs.plugins.keys

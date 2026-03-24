@@ -237,6 +237,15 @@ Defines the active plugin runtime contract exposed to plugin authors.
 - `PluginHealthSnapshot`
 - `DispatcherAdapter`
 
+### `libs.plugins.mixins`
+
+**Purpose:**
+Provides typed mixins shared by thread-based plugin runtimes.
+
+**Main types:**
+
+- `ThPluginMixin`
+
 ### `libs.plugins.loader`
 
 **Purpose:**

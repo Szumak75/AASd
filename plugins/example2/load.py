@@ -24,12 +24,21 @@ from libs.plugins import (
     PluginSpec,
     PluginState,
     PluginStateSnapshot,
+    ThPluginMixin,
 )
 from libs.templates import PluginConfigField
 from libs.templates import PluginConfigSchema
 
+from jsktoolbox.attribtool import ReadOnlyClass
 
-class _Runtime(Thread):
+
+class _Keys(object, metaclass=ReadOnlyClass):
+    """Plugin configuration keys."""
+
+    STDOUT_PREFIX: str = "stdout_prefix"
+
+
+class _Runtime(Thread, ThPluginMixin):
     """Read messages from one configured dispatcher channel and print them."""
 
     # #[CONSTRUCTOR]##################################################################
@@ -65,6 +74,20 @@ class _Runtime(Thread):
 
     def run(self) -> None:
         """Consume messages from the configured dispatcher channel."""
+        stop_event: Optional[Event] = self._stop_event
+        if stop_event is None:
+            self._health = PluginHealthSnapshot(
+                health=PluginHealth.UNHEALTHY,
+                last_error_at=int(time.time()),
+                message="Stop event is not initialized.",
+            )
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Stop event is not initialized.",
+                stopped_at=int(time.time()),
+            )
+            return None
         if self._queue is None:
             self._health = PluginHealthSnapshot(
                 health=PluginHealth.UNHEALTHY,
@@ -78,10 +101,10 @@ class _Runtime(Thread):
                 stopped_at=int(time.time()),
             )
             return None
-        while not self._stop_event.is_set():
+        while not stop_event.is_set():
             try:
                 message: Message = self._queue.get(block=True, timeout=0.1)
-                prefix = str(self._context.config["stdout_prefix"])
+                prefix = str(self._context.config[_Keys.STDOUT_PREFIX])
                 print(
                     (
                         f"{prefix} subject={message.subject} "
@@ -127,12 +150,26 @@ class _Runtime(Thread):
 
     def stop(self, timeout: Optional[float] = None) -> None:
         """Request plugin shutdown."""
+        stop_event: Optional[Event] = self._stop_event
+        if stop_event is None:
+            self._health = PluginHealthSnapshot(
+                health=PluginHealth.UNHEALTHY,
+                last_error_at=int(time.time()),
+                message="Stop event is not initialized.",
+            )
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Stop event is not initialized.",
+                stopped_at=int(time.time()),
+            )
+            return None
         if self._state.state not in (PluginState.STOPPED, PluginState.FAILED):
             self._state = PluginStateSnapshot(
                 state=PluginState.STOPPING,
                 started_at=self._state.started_at,
             )
-        self._stop_event.set()
+        stop_event.set()
         if self.is_alive():
             self.join(timeout=timeout)
         self._state = PluginStateSnapshot(
@@ -163,7 +200,7 @@ def get_plugin_spec() -> PluginSpec:
                 description="Dispatcher channel consumed by the plugin.",
             ),
             PluginConfigField(
-                name="stdout_prefix",
+                name=_Keys.STDOUT_PREFIX,
                 field_type=str,
                 default="[example2]",
                 required=True,

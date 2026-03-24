@@ -10,6 +10,7 @@ Purpose: Emit one startup message to a configured dispatcher channel.
 
 from time import time
 from threading import Event, Thread
+from typing import Optional
 
 from libs.com.message import Message
 from libs.plugins import (
@@ -21,11 +22,20 @@ from libs.plugins import (
     PluginSpec,
     PluginState,
     PluginStateSnapshot,
+    ThPluginMixin,
 )
 from libs.templates import PluginConfigField, PluginConfigSchema
 
+from jsktoolbox.attribtool import ReadOnlyClass
 
-class _Runtime(Thread):
+
+class _Keys(object, metaclass=ReadOnlyClass):
+    """Plugin configuration keys."""
+
+    MESSAGE_TEXT: str = "message_text"
+
+
+class _Runtime(Thread, ThPluginMixin):
     """Emit one example startup message and then stop."""
 
     # #[CONSTRUCTOR]##################################################################
@@ -57,7 +67,22 @@ class _Runtime(Thread):
 
     def run(self) -> None:
         """Emit one configured startup message."""
-        if self._stop_event.is_set():
+        stop_event: Optional[Event] = self._stop_event
+        if stop_event is None:
+            self._health = PluginHealthSnapshot(
+                health=PluginHealth.UNHEALTHY,
+                last_error_at=int(time()),
+                message="Stop event is not initialized.",
+            )
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Stop event is not initialized.",
+                stopped_at=int(time()),
+            )
+            return None
+
+        if stop_event.is_set():
             self._state = PluginStateSnapshot(
                 state=PluginState.STOPPED,
                 stopped_at=int(time()),
@@ -69,7 +94,7 @@ class _Runtime(Thread):
             f"[{self._context.app_meta.app_name}:{self._context.instance_name}] "
             "example1 startup notification"
         )
-        message.messages = [str(self._context.config["message_text"])]
+        message.messages = [str(self._context.config[_Keys.MESSAGE_TEXT])]
         self._context.dispatcher.publish(message)
         self._context.logger.message_info = "startup message emitted"
         now = int(time())
@@ -83,7 +108,7 @@ class _Runtime(Thread):
             started_at=now,
             stopped_at=now,
         )
-        self._stop_event.set()
+        stop_event.set()
 
     def start(self) -> None:
         """Start the runtime thread."""
@@ -108,12 +133,27 @@ class _Runtime(Thread):
 
     def stop(self, timeout: float | None = None) -> None:
         """Request plugin shutdown."""
+        stop_event: Optional[Event] = self._stop_event
+        if stop_event is None:
+            self._health = PluginHealthSnapshot(
+                health=PluginHealth.UNHEALTHY,
+                last_error_at=int(time()),
+                message="Stop event is not initialized.",
+            )
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Stop event is not initialized.",
+                stopped_at=int(time()),
+            )
+            return None
+
         if self._state.state not in (PluginState.STOPPED, PluginState.FAILED):
             self._state = PluginStateSnapshot(
                 state=PluginState.STOPPING,
                 started_at=self._state.started_at,
             )
-        self._stop_event.set()
+        stop_event.set()
         if self.is_alive():
             self.join(timeout=timeout)
         self._state = PluginStateSnapshot(
@@ -141,7 +181,7 @@ def get_plugin_spec() -> PluginSpec:
                 description="Dispatcher channel used for the startup message.",
             ),
             PluginConfigField(
-                name="message_text",
+                name=_Keys.MESSAGE_TEXT,
                 field_type=str,
                 default="Hello from example1.",
                 required=True,

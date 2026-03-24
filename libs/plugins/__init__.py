@@ -24,6 +24,7 @@ __all__: list[str] = [
     "PluginState",
     "PluginStateSnapshot",
     "PluginSpec",
+    "ThPluginMixin",
 ]
 
 _EXPORTS: Final[dict[str, str]] = {
@@ -47,12 +48,14 @@ _EXPORTS: Final[dict[str, str]] = {
     "PluginState": "libs.plugins.runtime",
     "PluginStateSnapshot": "libs.plugins.runtime",
     "PluginSpec": "libs.plugins.runtime",
+    "ThPluginMixin": "libs.plugins.mixins",
 }
 
 if TYPE_CHECKING:
     from libs.plugins.config import PluginConfigParser
     from libs.plugins.keys import PluginCommonKeys, PluginHostKeys
     from libs.plugins.loader import PluginDefinition, PluginLoader
+    from libs.plugins.mixins import ThPluginMixin
     from libs.plugins.service import (
         PluginFailure,
         PluginHealthPolicy,
