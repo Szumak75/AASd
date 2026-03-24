@@ -3,8 +3,8 @@
 This document describes the legacy module model that has been archived and is
 no longer part of the active runtime architecture.
 
-The future runtime will use plugins loaded from `plugins_dir`. See
-[PluginAPI](./PluginAPI.md) for the target extension model.
+The active runtime now uses plugins loaded from `plugins_dir`. See
+[PluginAPI](./PluginAPI.md) for the current extension model.
 
 ## Legacy Types
 
@@ -54,3 +54,17 @@ file. Variables common to most legacy modules were:
 
    A legacy module designed to create and rotate snapshots of the ZFS file
    system.
+
+## Current Status
+
+These historical modules are not loaded by the daemon anymore. The active
+runtime model is:
+
+- plugin instance discovery from `plugins_dir`,
+- one config section per discovered plugin instance,
+- worker plugins publishing messages through the dispatcher,
+- communication plugins consuming messages from configured channels,
+- explicit routing rules defined by the user in the configuration file.
+
+The archived module list remains useful only as reference material for old
+deployments and migration history.

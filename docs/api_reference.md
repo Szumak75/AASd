@@ -1,7 +1,7 @@
 # API Reference
 
 This section is generated from the current Python modules selected as the
-public runtime and business-logic surface of the project.
+public runtime and plugin-host surface of the project.
 
 ## Scope Policy
 

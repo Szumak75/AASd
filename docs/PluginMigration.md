@@ -1,40 +1,40 @@
-# Plugin Migration Plan
+# Plugin Migration Status
 
 **Source:** `docs/PluginMigration.md`
 
 **Purpose:**
-Define the repository-level migration path from the legacy module runtime to the
-new plugin-only architecture.
+Summarize the completed migration from the legacy module runtime to the active
+plugin-based architecture and list the remaining cleanup work.
 
-## Target Result
+## Current Result
 
-After migration:
+The migration baseline is already in place:
 
 - the daemon loads runtime extensions only from `plugins_dir`,
 - the daemon no longer starts `modules.com/*` or `modules.run/*`,
 - the legacy runtime tree exists only in `archive/`,
 - historical data-model definitions exist only in `archive/libs/db_models/`,
-- all new business functionality is implemented as plugins using `Plugin API v1`.
+- all new business functionality should be implemented as plugins using `Plugin API v1`.
 
-## Active Code To Replace
+## Replaced Active Code
 
-The following active areas are part of the legacy runtime path and must be
-rewritten, removed, or archived:
+The following areas were part of the legacy runtime path and were replaced,
+removed, or archived during migration:
 
 - `server/daemon.py`
-  Current startup logic directly starts legacy communication and worker modules.
+  Startup now delegates plugin lifecycle orchestration to the registry service.
 - `libs/conf.py`
-  Current config generation scans `modules.com` and `modules.run`.
+  Config generation now scans `plugins_dir` and renders per-instance plugin sections.
 - `libs/base/classes.py`
-  `ImporterMixin` currently encodes the legacy file-path and class-name loading convention.
+  The active base layer now exposes plugin-oriented mixins and config helpers.
 - `libs/interfaces/modules.py`
-  The current interface describes the old module contract and should be replaced by plugin-facing runtime interfaces.
+  The legacy interface is no longer part of the active plugin runtime surface.
 - `modules/com/*`
 - `modules/run/*`
 
 ## Shared Infrastructure Candidates For Reuse
 
-These components appear reusable if decoupled from legacy assumptions:
+These components remain reusable in the active runtime:
 
 - `libs.app`
 - parts of `libs.base`
@@ -43,14 +43,14 @@ These components appear reusable if decoupled from legacy assumptions:
 - dispatcher logic
 - selected utilities from `libs.tools`
 
-Reuse is acceptable only if the retained code does not preserve the old
+Reuse remains acceptable only if the retained code does not preserve the old
 `modules.*` loading semantics in the active path.
 
 `TemplateConfigItem` should not remain the public plugin API contract. If it is
 retained at all, it should exist only as an internal rendering helper behind
 the new schema-based API.
 
-## Proposed Archive Layout
+## Archive Layout
 
 ```text
 archive/
@@ -68,14 +68,14 @@ Rules:
 - do not import from `archive/` in active runtime code,
 - document clearly that `archive/` is non-runtime reference material.
 
-## Replacement Work Packages
+## Implemented Migration Work
 
 ### WP1: Plugin Contracts
 
-- add plugin manifest and context objects,
-- add runtime protocol,
-- add plugin kind enumeration or constants.
-- add `PluginConfigField` and `PluginConfigSchema` as the new public
+- implemented plugin manifest and context objects,
+- implemented the runtime protocol and lifecycle snapshots,
+- implemented plugin kind constants,
+- implemented `PluginConfigField` and `PluginConfigSchema` as the public
   configuration contract.
 
 ### WP2: Plugin Discovery
@@ -112,7 +112,18 @@ Rules:
 - `example2`: stdout consumer,
 - both configured only through user-defined channel mappings.
 
-## Test Plan
+## Remaining Work
+
+The migration itself is complete enough for the active runtime model. The main
+follow-up work is now hardening:
+
+- strengthen plugin API version diagnostics,
+- tighten invalid-registration handling,
+- expand supervision and shutdown coverage,
+- keep public API documents synchronized with implementation details,
+- continue removing historical terminology from active docs.
+
+## Test Coverage
 
 - plugin discovery from normal directories,
 - plugin discovery from symbolic links,

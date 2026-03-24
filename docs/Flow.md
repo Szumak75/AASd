@@ -8,11 +8,13 @@ flowchart LR
     A1 --> A3[logger\nclient]
     A3 --> LQ
     A1 o==o CONF[configuration\nservice]
+    CONF --> PD[plugins_dir\ninstance discovery]
     A1 o==o A5[communication\ndispatcher]
     A5 <--> CQ[communication\nqueues]
     A5 --> A7[logger\nclient]
     A7 --> LQ
     CONF --> A5
+    PD --> A1
     CONF --> A8[logger\nclient]
     A8 --> LQ
     A2 ---> WL([write logs])
@@ -37,6 +39,6 @@ flowchart LR
     R4 --> LQ
     R3 --> CQ
     R3 <-...-> RE3(["complete the tasks"])
-    R3 <--> R5[(Database)]
+    R3 <-...-> R5[(optional\nexternal systems)]
     end
 ```

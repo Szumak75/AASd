@@ -8,7 +8,7 @@
 
 ## Prerequisite
 
-- `master` and future releases are now targeted against Python 3.11 or newer,
+- active development targets Python 3.11 or newer,
 - make sure you have python `pip` installed,
 
   > **FreeBSD:**
@@ -157,15 +157,15 @@ adds it with the default value `./plugins`.
 
 This function requires explanation at the current stage of preparing the system for operation.
 
-Many current and future modules require configuring variables containing passwords for authenticating connections to external services, such as smtp servers, databases, etc.
+Many current and future plugins may require configuring variables containing passwords for authenticating connections to external services, such as smtp servers, databases, or API endpoints.
 
 It was assumed that these passwords would be encrypted with a simple two-sided algorithm.\
 This, of course, does not protect against password interception, but limits its readability.
 
-For example, to add the password for the `memailalert` module to the `smtp_pass` variable, we run the project as follows:
+For example, to update a password-like variable inside a plugin instance section, run the project as follows:
 
 ```
-% ./aasd.py -p --section=memailalert --varname=smtp_pass
+% ./aasd.py -p --section=example2 --varname=smtp_pass
 Receive password encoder options.
 Enter password: Qwerty12
 Config file "/etc/aasd.conf" updated.
@@ -178,6 +178,10 @@ As a result of executing this command, the `smtp_pass` variable will be assigned
 # smtp_pass [str] - smtp auth password for sending emails.
 smtp_pass = "//4AAD0AAABZAAAAJwAAAFQAAABWAAAAIQAAAEcAAABIAAAA"
 ```
+
+The daemon does not impose plugin-specific secret names. The exact variable
+name and section depend on the plugin instance schema and your local
+configuration.
 
 ## Preparation to launch the project with `runit`
 

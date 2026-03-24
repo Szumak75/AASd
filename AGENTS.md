@@ -29,8 +29,8 @@ Powód: użytkownik samodzielnie weryfikuje i publikuje zmiany.
 - `bin/aasd` - wrapper do uruchamiania demona.
 - `server/` - kod wykonawczy.
 - `libs/` - współdzielone biblioteki.
-- `modules/com/` - komunikacja z użytkownikiem.
-- `modules/run/` - zadania cykliczne i reaktywne.
+- `plugins/` - aktywne wtyczki referencyjne ładowane z `plugins_dir`.
+- `archive/` - zarchiwizowany legacy runtime i historyczne materiały referencyjne.
 - `tests/` - testy.
 - `docs/`, `examples/` - dłuższa dokumentacja i przykłady.
 
@@ -107,7 +107,7 @@ poetry run pytest -v
 
 ### General Style
 
-- Projekt celuje w Python 3.10+.
+- Projekt celuje w Python 3.11+.
 - Stosuj formatowanie zgodne z Black i wcięcia 4-spacjowe.
 - Zachowuj czytelny podział importów.
 - Pliki modułów zapisuj w `snake_case`.
@@ -199,7 +199,7 @@ poetry run pytest -v
 - Obecna baza testów opiera się na `unittest`.
 - Klasy testowe dziedziczą po `unittest.TestCase`.
 - Zestaw uruchamiaj przez `poetry run pytest`.
-- Dodawaj testy regresyjne dla zmian w bibliotekach, parserach i logice modułów przed modyfikacją zachowania demona.
+- Dodawaj testy regresyjne dla zmian w bibliotekach, parserach, runtime pluginów i logice demona przed modyfikacją zachowania aktywnej ścieżki wykonania.
 - Zachowuj istniejące osłony dla zachowań zależnych od FreeBSD.
 - Zapewnij pokrycie testami każdej nowej funkcjonalności.
 - Uruchamiaj testy przed commitem: `poetry run pytest`.
@@ -210,6 +210,7 @@ poetry run pytest -v
 - Demon jest przeznaczony do uruchamiania pod nadzorem menedżera usług.
 - Konfiguracja jest czytana z `/etc/aasd.conf`.
 - Dla buildów `DEV` konfiguracja może być czytana z `/var/tmp/aasd.conf`.
+- Aktywny runtime ładuje instancje pluginów z katalogu wskazanego przez `plugins_dir`.
 - Nie zapisuj w repozytorium sekretów, prawdziwych danych uwierzytelniających ani lokalnych ścieżek środowiskowych w przykładach, testach i dokumentacji.
 
 ## Documentation Maintenance

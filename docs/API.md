@@ -1,8 +1,8 @@
 # Business Logic API
 
 **Scope:**
-This document describes the current API surface of the existing business logic
-and runtime contracts. It is intentionally focused on the daemon, shared
+This document describes the current API surface of the daemon runtime and the
+plugin host contracts. It is intentionally focused on the daemon, shared
 runtime services, worker plugins, and communication plugins.
 
 ## API Classification
@@ -12,7 +12,7 @@ runtime services, worker plugins, and communication plugins.
 The following areas should currently be treated as the documented project API:
 
 - daemon bootstrap and runtime orchestration,
-- shared configuration and importer contracts,
+- shared configuration contracts,
 - messaging and dispatching abstractions,
 - utility helpers used directly by plugins,
 - communication plugins,
@@ -45,9 +45,9 @@ Main application orchestrator.
 - initialize logging,
 - load configuration,
 - parse CLI arguments,
-- start and stop subsystems,
+- start and stop plugin supervision,
 - handle process signals,
-- supervise communication and task threads.
+- supervise plugin lifecycles through the registry service.
 
 **Operational API:**
 
@@ -124,7 +124,7 @@ Main configuration service for the daemon.
 - creates the initial config file if missing,
 - exposes the absolute project directory that contains `aasd.py`,
 - scans plugin instances from `plugins_dir`,
-- asks plugins for configuration schemas,
+- reads plugin configuration schemas from plugin manifests,
 - renders and updates per-instance config sections.
 
 ### `libs.base.classes.PluginConfigMixin`
@@ -150,12 +150,10 @@ Lazy package entry point for the shared base layer.
 
 - `AppNameMixin`
 - `ComMixin`
-- `ConfigMixin`
 - `ConfigHandlerMixin`
 - `ConfigSectionMixin`
 - `DebugMixin`
 - `LogsMixin`
-- `PluginRuntimeMixin`
 - `PluginConfigMixin`
 - `ProjectClassMixin`
 - `ThProcessorMixin`
@@ -189,12 +187,6 @@ Public constant class for daemon-reserved plugin configuration keys.
 - `start_delay`
 - `restart_policy`
 
-**Package exports:**
-
-- `PluginConfigField`
-- `PluginConfigSchema`
-- `PluginConfigSchemaRenderer`
-
 ### `libs.templates.schema.PluginConfigField`
 
 **Purpose:**
@@ -219,14 +211,58 @@ Schema-level descriptor of one plugin configuration field.
 ### `libs.templates.schema.PluginConfigSchema`
 
 **Purpose:**
-Schema-level descriptor of a complete plugin instance configuration.
+Schema-level descriptor of a full plugin configuration section.
 
 **Main fields:**
 
 - `title`
-- `fields`
 - `description`
 - `version`
+- `fields`
+
+### `libs.plugins.runtime`
+
+**Purpose:**
+Defines the active plugin runtime contract exposed to plugin authors.
+
+**Main types:**
+
+- `PluginSpec`
+- `PluginContext`
+- `PluginRuntime`
+- `PluginKind`
+- `PluginState`
+- `PluginHealth`
+- `PluginStateSnapshot`
+- `PluginHealthSnapshot`
+- `DispatcherAdapter`
+
+### `libs.plugins.loader`
+
+**Purpose:**
+Discovers plugin instances from `plugins_dir`, imports `load.py`, and validates
+the returned `PluginSpec`.
+
+### `libs.plugins.config`
+
+**Purpose:**
+Parses and validates plugin configuration sections against
+`PluginConfigSchema`.
+
+### `libs.plugins.service`
+
+**Purpose:**
+Provides plugin supervision for discovery results, runtime construction,
+initialization, startup ordering, shutdown, and reporting.
+
+**Main runtime behavior:**
+
+- communication plugins are initialized before worker plugins,
+- communication plugins are started before worker plugins,
+- startup failures are reported per instance,
+- shutdown covers all initialized runtimes,
+- current supervision defaults are `restart_policy=none` and
+  `health_policy=transitions_only`.
 
 ### `libs.templates.schema.PluginConfigSchemaRenderer`
 
@@ -516,7 +552,7 @@ Current validation rules include:
 
 ### Stable Practical Boundary
 
-The most stable practical API for future refactoring currently appears to be:
+The most stable practical API boundary in the current codebase is:
 
 - `AASd`
 - `AppConfig`
@@ -546,5 +582,5 @@ are still essential for understanding the existing business logic:
 ## Notes For The Upcoming Refactor
 
 This API reference reflects the code as it exists today. It should be treated as
-a baseline for documentation and refactoring, not as a claim that the current
-surface is already cleanly separated into domain services.
+a practical documentation baseline, not as a claim that every exposed helper is
+already a fully stabilized long-term contract.

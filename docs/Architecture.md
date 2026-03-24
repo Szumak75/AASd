@@ -2,13 +2,13 @@
 
 **Scope:**
 This document summarizes the current structure of the AASd codebase,
-highlights the legacy runtime architecture still present in the repository, and
-defines the architectural direction toward the plugin-only runtime model.
+highlights the boundary between the active plugin runtime and archived legacy
+material, and describes the current architectural priorities.
 
 ## Overview
 
-AASd now exposes a plugin-based active runtime. The repository also preserves
-an archived copy of the former module-based runtime for historical reference.
+AASd exposes a plugin-based active runtime. The repository also preserves an
+archived copy of the former module-based runtime for historical reference.
 
 The active repository layout is organized into a small runtime core and a set
 of plugin-oriented helpers:
@@ -16,17 +16,18 @@ of plugin-oriented helpers:
 - `aasd.py` is the process entry point.
 - `server/daemon.py` contains the daemon orchestration logic.
 - `libs/` contains shared runtime infrastructure, configuration helpers,
-  communication objects, utility classes, and database connectors/models.
+  communication objects, utility classes, and plugin host services.
 - `plugins/` contains active reference plugins for the new runtime model.
 - `archive/modules/` contains archived outbound communication and worker plugins
   from the former runtime model.
-- `tests/` contains a mixed set of regression and exploratory tests.
+- `archive/libs/db_models/` contains archived historical ORM definitions.
+- `tests/` contains regression coverage for the active runtime and shared helpers.
 
 The active architecture is no longer based on `modules/com` and `modules/run`.
 Those trees are now historical and already removed from the active runtime
 path.
 
-## Legacy Runtime Composition
+## Active Runtime Composition
 
 ### Process Entry
 
@@ -43,12 +44,12 @@ application. `AASd` is responsible for:
 - configuring the logging engine and logging processor,
 - loading and updating the configuration file,
 - parsing command line arguments,
-- creating the communication dispatcher,
-- starting and stopping active plugin instances discovered from `plugins_dir`,
+- checking `plugins_dir`,
+- delegating plugin startup and shutdown to `PluginRegistryService`,
 - reacting to `SIGTERM`, `SIGINT`, and `SIGHUP`.
 
 The runtime model is thread-based. Each plugin instance runs independently in
-its own runtime object and is supervised by the daemon.
+its own runtime object and is supervised through the registry service.
 
 ## Core Infrastructure
 
@@ -69,9 +70,9 @@ logs.
 The most important classes are:
 
 - `ProjectClassMixin` for daemon-level objects,
-- `PluginRuntimeMixin` for plugin implementations,
 - `PluginConfigMixin` for typed access to shared config patterns,
-- `LogsMixin`, `ComMixin`, `ConfigMixin`, `DebugMixin`, `VerboseMixin` for cross-cutting state.
+- `LogsMixin`, `ComMixin`, `ConfigHandlerMixin`, `ConfigSectionMixin`,
+  `DebugMixin`, and `VerboseMixin` for cross-cutting state.
 
 This layer is the primary glue between `jsktoolbox` primitives and the project
 runtime.
@@ -94,11 +95,32 @@ configuration service for the whole daemon. Its responsibilities include:
 - loading and saving the config file,
 - generating a default config when none exists,
 - scanning available plugin instances in `plugins_dir`,
-- collecting configuration schemas from plugin manifests,
+- reading plugin manifests and configuration schemas,
 - generating per-instance config sections for discovered plugins.
 
 `AppConfig` is one of the most important runtime objects in the project because
 it bridges file configuration, plugin discovery, and daemon startup.
+
+### Plugin Host Layer
+
+[`libs/plugins.runtime`](../libs/plugins/runtime.py),
+[`libs/plugins.loader`](../libs/plugins/loader.py),
+[`libs/plugins.config`](../libs/plugins/config.py),
+[`libs/plugins.keys`](../libs/plugins/keys.py), and
+[`libs/plugins.service`](../libs/plugins/service.py) define the active plugin
+host model:
+
+- `PluginSpec` describes one plugin implementation,
+- `PluginContext` provides daemon-owned services to plugin factories,
+- `PluginLoader` discovers plugin instances from `plugins_dir`,
+- `PluginConfigParser` validates and parses plugin config sections,
+- `PluginRegistryService` initializes, starts, and stops runtimes,
+- `PluginServiceReport` records initialized, started, failed, and skipped instances.
+
+The current supervision defaults are intentionally conservative:
+
+- restart policy is `none`,
+- health policy is `transitions_only`.
 
 ### Messaging Subsystem
 
@@ -114,8 +136,8 @@ convention with explicit section markers inside each class.
 - `ThDispatcher` routes messages from the shared queue to communication-plugin queues.
 
 This subsystem is the key boundary between business events and outbound
-delivery, and it is also the strongest candidate to remain in the future
-plugin-based runtime.
+delivery, and it is the established exchange layer of the current plugin-based
+runtime.
 
 ### Utility Layer
 
@@ -123,8 +145,8 @@ The current business logic depends mainly on:
 
 - [`libs/tools/datetool.py`](../libs/tools/datetool.py) for date formatting and interval parsing,
 - [`libs/tools/icmp.py`](../libs/tools/icmp.py) for ICMP and traceroute shell wrappers,
-- [`libs/templates/modules.py`](../libs/templates/modules.py) for internal config rendering helpers,
-- [`libs/db_models/connectors.py`](../libs/db_models/connectors.py) for database connection pools.
+- [`libs/templates/schema.py`](../libs/templates/schema.py) for schema-based plugin configuration descriptors,
+- [`libs/templates/modules.py`](../libs/templates/modules.py) for internal config rendering helpers.
 
 ## Archived Legacy Runtime
 
@@ -134,11 +156,10 @@ The former module-based runtime, its interfaces, and its business
 implementations now live in the `archive/` tree and are no longer started by
 the daemon. They remain available only as historical reference material.
 
-## Target Plugin Architecture
+## Active Plugin Architecture
 
-The target architecture replaces module loading from repository paths with
-plugin instance loading from the directory configured as `plugins_dir` in the
-main daemon section.
+The active architecture loads plugin instances from the directory configured as
+`plugins_dir` in the main daemon section.
 
 Core rules:
 
@@ -150,16 +171,16 @@ Core rules:
 - communication plugins consume routed messages from dispatcher channels,
 - message delivery depends only on explicit user configuration.
 
-The target runtime should introduce:
+This runtime already includes:
 
 - a plugin loader,
-- a plugin registry,
+- a registry service,
 - a plugin context object,
 - a versioned plugin manifest,
 - plugin lifecycle supervision,
 - automatic per-instance config generation.
 
-The target plugin entry-point convention is documented in
+The plugin entry-point convention is documented in
 [`PluginAPI.md`](./PluginAPI.md).
 
 ## Data Access Layer
@@ -195,43 +216,26 @@ models remain reference material only.
 ## Current Strengths
 
 - Clear runtime split between daemon core, worker plugins, and communication plugins.
-- Dynamic loading keeps deployment flexible and can be repurposed for the new
-  plugin runtime.
+- Dynamic loading keeps deployment flexible and supports instance-based plugin deployment.
 - Shared message abstraction reduces direct coupling between producers and consumers.
-- Configuration templates make default config generation practical.
+- Schema-based configuration keeps generated config sections aligned with plugin manifests.
+- The active plugin runtime has regression coverage for discovery, config parsing, lifecycle handling, and startup order.
 
 ## Current Structural Risks
 
 - Business logic is concentrated inside thread classes, which mixes orchestration
   and domain behavior.
-- The current runtime infers extension behavior from repository layout and file
-  naming conventions.
-- Module configuration classes are typed, but docstring quality and API
-  descriptions are inconsistent.
-- The database-backed worker implementations have direct knowledge of SQLAlchemy models and
-  query details, which makes later refactoring harder.
-- Existing Markdown documentation covers selected components but not the shared API surface.
+- Supervision policy is still intentionally minimal and not yet configurable.
+- The plugin-host public API is broader in documentation than it is stabilized in code.
+- Some documentation still needs periodic cleanup to avoid mixing historical and active concepts.
 
-## Migration Direction
+## Current Direction
 
-The approved migration direction is:
+The current architectural direction is no longer migration to plugins; that
+migration is already in place. The next steps are:
 
-1. Define and implement `Plugin API v1`.
-2. Replace active module discovery with plugin discovery from `plugins_dir`.
-3. Archive the legacy `modules.*` runtime tree and related loader logic.
-4. Create new plugins from scratch against the new API.
-5. Finalize the new runtime with two example plugins proving channel-based
-   dispatch behavior.
-
-## Recommended Documentation Strategy
-
-Before and during the runtime rewrite, the safest documentation-first path is:
-
-1. Document the target plugin contract before implementing the new loader.
-2. Keep the legacy runtime documented only as historical architecture.
-3. Document archive boundaries when the old runtime is removed from the active path.
-4. Keep ORM models documented but outside the public plugin API reference.
-5. Separate operational docs from API docs and from migration planning notes.
-
-This document is intended to serve as the project-wide architectural baseline
-for that work.
+1. harden plugin supervision and diagnostics,
+2. stabilize the daemon-to-plugin host API,
+3. tighten configuration and registration validation,
+4. continue reducing exposure of historical helper layers,
+5. keep `archive/` strictly outside the active runtime path.

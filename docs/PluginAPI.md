@@ -3,20 +3,15 @@
 **Source:** `docs/PluginAPI.md`
 
 **Purpose:**
-Define the target plugin runtime contract for AASd and replace the legacy
-`modules.com/*` and `modules.run/*` loading model with a plugin-instance model
-based on `plugins_dir`.
+Define the current plugin runtime contract for AASd.
 
 ## Scope
 
-This document describes the target API and runtime behavior for plugins loaded
+This document describes the current API and runtime behavior for plugins loaded
 by the daemon.
 
-It is a design document for the next implementation phase. It is not a
-description of the current runtime behavior.
-
 The legacy `modules.*` model is considered historical only and is excluded from
-the future runtime path.
+the active runtime path.
 
 ## Goals
 
@@ -36,7 +31,7 @@ the future runtime path.
 
 ## Runtime Model
 
-The daemon should discover plugin instances from the directory configured as
+The daemon discovers plugin instances from the directory configured as
 `plugins_dir` in the main config section.
 
 Each direct child entry in `plugins_dir` represents exactly one plugin
@@ -93,14 +88,14 @@ Rules:
 
 Each plugin instance must expose `load.py` as its daemon entry-point.
 
-`load.py` must expose exactly one public factory function:
+`load.py` must expose one public factory function used by the daemon:
 
 ```python
 def get_plugin_spec() -> "PluginSpec":
     ...
 ```
 
-The daemon should import `load.py`, call `get_plugin_spec()`, validate the
+The daemon imports `load.py`, calls `get_plugin_spec()`, validates the
 result, and register the plugin before starting the runtime instance.
 
 Why `get_plugin_spec()`:
@@ -214,7 +209,7 @@ Rules:
 
 ## PluginContext
 
-The daemon should pass a `PluginContext` object to `runtime_factory`.
+The daemon passes a `PluginContext` object to `runtime_factory`.
 
 Minimum required fields:
 
@@ -230,7 +225,7 @@ Minimum required fields:
 - `debug`
 - `verbose`
 
-Purpose:
+Current purpose:
 
 - isolate plugins from direct knowledge of daemon internals,
 - make shared services explicit,
@@ -361,20 +356,20 @@ The schema should be the single source of truth for:
 - config generation,
 - config parsing,
 - config validation,
-- future config documentation.
+- generated config documentation.
 
 ## Config Rendering Contract
 
-The daemon should convert `PluginConfigSchema` into the actual config section
+The daemon converts `PluginConfigSchema` into the actual config section
 written to disk.
 
-This means the daemon must own a dedicated rendering layer:
+This means the daemon owns a dedicated rendering layer:
 
 - `PluginConfigSchema` is the API contract,
 - INI generation is an output format,
 - comments and default values are produced by the renderer.
 
-The daemon should use the schema to:
+The daemon uses the schema to:
 
 - create a new section for a newly discovered plugin instance,
 - append missing variables to an existing instance section,
@@ -406,7 +401,7 @@ The new plugin runtime needs a schema-oriented contract because:
 
 - plugin configuration should be typed before it is rendered,
 - validation should operate on fields, not on rendered lines,
-- future tooling should be able to derive docs and validation rules from the
+- tooling should be able to derive docs and validation rules from the
   same schema,
 - plugin authors should describe configuration meaning, not output formatting.
 
@@ -414,10 +409,9 @@ The new plugin runtime needs a schema-oriented contract because:
 that reduces implementation cost, but it should not be the public plugin API
 contract.
 
-## Example Plugins Planned For API Finalization
+## Reference Plugins
 
-Two minimal reference plugins should be created when the API implementation is
-ready.
+The repository already contains two minimal reference plugins.
 
 ### `example1`
 
@@ -444,29 +438,28 @@ delivery must fail safely when channels are not configured to match.
 
 ## Loader And Registry Responsibilities
 
-The future daemon core should introduce dedicated services:
+The daemon core currently uses dedicated services:
 
 - `PluginLoader`
   - scans `plugins_dir`,
   - imports `load.py`,
   - calls `get_plugin_spec()`,
-  - validates API version and manifest shape.
-- `PluginRegistry`
-  - stores plugin instance metadata,
-  - guards instance-name uniqueness,
-  - separates discovery metadata from runtime objects.
-- `PluginConfigService`
+  - validates manifest shape and schema rules.
+- `PluginRegistryService`
+  - constructs runtime contexts,
+  - initializes plugin runtimes,
+  - starts communication plugins before worker plugins,
+  - stops initialized runtimes in reverse order,
+  - reports started, failed, and skipped instances.
+- `AppConfig`
   - generates and updates config sections for discovered plugin instances.
-- `PluginSupervisor`
-  - starts and stops plugin runtime instances,
-  - tracks health and shutdown state.
 
-## Archive Plan For Legacy Runtime
+## Archive Status
 
-The legacy runtime model should be moved out of the active execution path into
-an archive tree with preserved structure.
+The legacy runtime model has already been moved out of the active execution
+path into the archive tree.
 
-Target archive shape:
+Archive shape:
 
 ```text
 archive/
@@ -477,19 +470,19 @@ archive/
     ...
 ```
 
-Candidate archive sources:
+Archived sources include:
 
 - `modules/com/*`
 - `modules/run/*`
 - legacy loader logic in the daemon and config service
 - legacy interfaces that exist only to support `modules.*`
 
-Reusable shared infrastructure should stay active only if it can support the new
+Reusable shared infrastructure should stay active only if it can support the
 plugin API without carrying path-based or legacy module assumptions.
 
-## Migration Sequence
+## Implemented Migration Sequence
 
-Recommended implementation order:
+The implemented migration sequence was:
 
 1. Define `PluginSpec`, `PluginContext`, and the runtime protocol in code.
 2. Build `PluginLoader`, `PluginRegistry`, and plugin config generation.
@@ -499,9 +492,9 @@ Recommended implementation order:
 6. Add regression tests for discovery, config generation, dispatcher routing,
    symlinked instances, and shutdown behavior.
 
-## Suggested Minimal API Sketch
+## Minimal API Sketch
 
-The initial code-level shape may look like this:
+The current code-level shape is conceptually:
 
 ```python
 class PluginConfigField:

@@ -2,6 +2,9 @@
 
 ## 2.3.0-DEV
 
+- docs: updated `AGENTS.md` to reflect the active `plugins/` and `archive/` layout, Python 3.11 baseline, and plugin-runtime terminology
+- docs: rewrote the main architecture, API, migration, and legacy-module guides to describe the active plugin runtime as the current implementation
+- docs: aligned the flow diagram, documentation index, and README wording with the active `plugins_dir`-based runtime and archived legacy boundaries
 - feat: added plugin-schema validation that rejects daemon-reserved host keys in field names and aliases
 - feat: added duplicate field-name and alias detection for plugin config schemas during plugin loading
 - test: added regression coverage for reserved host-key collisions and duplicate alias definitions in plugin schemas

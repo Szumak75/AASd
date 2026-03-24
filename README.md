@@ -8,11 +8,14 @@ The main goal of the project is to create a modular platform supporting UNIX
 system administration tasks in the field of monitoring environmental parameters
 and process status as well as responding to incidents.
 
-The repository currently still contains a legacy module runtime based on
-`modules.com` and `modules.run`, but this model is no longer the target
-architecture.
+The active runtime is plugin-based and the daemon acts as a runtime host and
+execution supervisor.
 
-The target architecture is plugin-based:
+The repository still contains archived historical material from the former
+module-oriented runtime, but that code is no longer part of the active
+execution path.
+
+The current architecture is plugin-based:
 
 - plugins are discovered from the directory configured as `plugins_dir`,
 - each plugin directory or symlink is one plugin instance,
@@ -25,8 +28,8 @@ The daemon must not assume direct plugin-to-plugin communication. Message
 routing is valid only when the user defines matching channel rules in the
 configuration file.
 
-The current legacy modules are treated as historical reference material and are
-planned for removal from the active runtime path.
+The legacy modules are preserved only as historical reference material under
+`archive/`.
 
 The project is entirely written in python3 and runs in a dedicated virtual environment.
 
@@ -52,11 +55,11 @@ current Poetry runtime lock set.
 ## Table of contents
 
 1. [Installation](https://github.com/Szumak75/AASd/blob/master/docs/Installation.md)
-1. [Modules](https://github.com/Szumak75/AASd/blob/master/docs/Modules.md)
+1. [Archived Modules](https://github.com/Szumak75/AASd/blob/master/docs/Modules.md)
 1. [Flow Diagram](https://github.com/Szumak75/AASd/blob/master/docs/Flow.md)
 1. [Architecture Analysis](https://github.com/Szumak75/AASd/blob/master/docs/Architecture.md)
 1. [Plugin API v1](https://github.com/Szumak75/AASd/blob/master/docs/PluginAPI.md)
-1. [Plugin Migration Plan](https://github.com/Szumak75/AASd/blob/master/docs/PluginMigration.md)
+1. [Plugin Migration Status](https://github.com/Szumak75/AASd/blob/master/docs/PluginMigration.md)
 1. [Business Logic API](https://github.com/Szumak75/AASd/blob/master/docs/API.md)
 
 ## Documentation Build
