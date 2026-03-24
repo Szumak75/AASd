@@ -212,13 +212,6 @@ def get_plugin_spec() -> PluginSpec:
         description="Emits one startup message to the configured dispatcher channel.",
         fields=[
             PluginConfigField(
-                name=PluginCommonKeys.CHANNEL,
-                field_type=int,
-                default=1,
-                required=True,
-                description="Dispatcher channel used for the startup message.",
-            ),
-            PluginConfigField(
                 name=_Keys.MESSAGE_TEXT,
                 field_type=str,
                 default="Hello from example1.",
