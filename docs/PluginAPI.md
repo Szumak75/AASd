@@ -213,15 +213,15 @@ The daemon passes a `PluginContext` object to `runtime_factory`.
 
 Minimum required fields:
 
-- `app_name`
-- `app_version`
-- `app_host_name`
+- `app_meta`
 - `instance_name`
 - `plugin_id`
 - `plugin_kind`
 - `config`
+- `config_handler`
 - `logger`
 - `dispatcher`
+- `qlog`
 - `debug`
 - `verbose`
 
@@ -230,6 +230,13 @@ Current purpose:
 - isolate plugins from direct knowledge of daemon internals,
 - make shared services explicit,
 - stabilize the host-plugin boundary.
+
+The current `PluginContext` model groups application identity under
+`app_meta: AppName`, so plugin code should access:
+
+- `context.app_meta.app_name`
+- `context.app_meta.app_version`
+- `context.app_meta.app_host_name`
 
 ## Runtime Contract
 
@@ -435,6 +442,44 @@ Behavior:
 
 The user must configure matching channels manually in the config file. Message
 delivery must fail safely when channels are not configured to match.
+
+## Reference Pattern
+
+The current reference plugins use a consistent pattern that new plugins should
+follow:
+
+- local plugin-specific keys defined with `ReadOnlyClass`,
+- `PluginCommonKeys` reused for shared public config names,
+- `ThPluginMixin` for typed runtime-owned storage,
+- explicit narrowing of `Optional[...]` mixin properties before using them in
+  methods that must return concrete snapshot types,
+- `PluginStateSnapshot` and `PluginHealthSnapshot` updated for both happy-path
+  and guard-failure paths.
+
+Minimal style sketch:
+
+```python
+class _Runtime(Thread, ThPluginMixin):
+    def __init__(self, context: PluginContext) -> None:
+        Thread.__init__(self, name=context.instance_name)
+        self.daemon = True
+        self._context = context
+        self._health = PluginHealthSnapshot(health=PluginHealth.UNKNOWN)
+        self._state = PluginStateSnapshot(state=PluginState.CREATED)
+        self._stop_event = Event()
+
+    def health(self) -> PluginHealthSnapshot:
+        health = self._health
+        if health is None:
+            return PluginHealthSnapshot(
+                health=PluginHealth.UNKNOWN,
+                message="Health snapshot is not initialized.",
+            )
+        return health
+```
+
+For a practical implementation checklist, see
+[`PluginChecklist.md`](./PluginChecklist.md).
 
 ## Loader And Registry Responsibilities
 

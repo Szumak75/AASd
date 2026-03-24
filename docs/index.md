@@ -10,6 +10,7 @@ Modules
 Flow
 Architecture
 PluginAPI
+PluginChecklist
 PluginMigration
 API
 API-Surface

@@ -331,7 +331,7 @@ Runtime context object passed to plugin factories.
 
 **Main fields:**
 
-- `app_meta`
+- `app_meta: AppName`
 - `config`
 - `config_handler`
 - `debug`
@@ -342,6 +342,12 @@ Runtime context object passed to plugin factories.
 - `plugin_kind`
 - `qlog`
 - `verbose`
+
+**Identity access pattern:**
+
+- `context.app_meta.app_name`
+- `context.app_meta.app_version`
+- `context.app_meta.app_host_name`
 
 ### `libs.plugins.runtime.PluginSpec`
 
