@@ -220,7 +220,7 @@ class AASd(ProjectClassMixin):
         # logger processor
         self.logs_processor.start()
 
-        report = self.__start_subsystem()
+        report: PluginServiceReport = self.__start_subsystem()
 
         # main loop
         self.logs.message_info = "entering to the main loop"
