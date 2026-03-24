@@ -140,6 +140,10 @@ class _Runtime(Thread, ThPluginMixin):
             try:
                 message: Message = queue.get(block=True, timeout=0.1)
                 prefix = str(context.config[_Keys.STDOUT_PREFIX])
+                context.logger.message_info = (
+                    f"Message consumed from channel "
+                    f"{context.config[PluginCommonKeys.CHANNEL]}"
+                )
                 print(
                     (
                         f"{prefix} subject={message.subject} "
