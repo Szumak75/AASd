@@ -1,5 +1,19 @@
 #!/bin/sh
 
-cd /opt/AASd
-. ./.venv/bin/activate
-exec ./aasd.py $@
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+APP_DIR=$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)
+PYTHON_BIN="$APP_DIR/.venv/bin/python"
+APP_ENTRY="$APP_DIR/aasd.py"
+
+if [ ! -f "$APP_ENTRY" ]; then
+    printf '%s\n' "Cannot find aasd.py in $APP_DIR." >&2
+    exit 1
+fi
+
+if [ ! -x "$PYTHON_BIN" ]; then
+    printf '%s\n' "Cannot find executable virtualenv interpreter in $APP_DIR/.venv/bin/python." >&2
+    exit 1
+fi
+
+cd "$APP_DIR" || exit 1
+exec "$PYTHON_BIN" "$APP_ENTRY" "$@"

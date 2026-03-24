@@ -11,6 +11,9 @@ Provide a practical checklist for implementing new plugins against the current
 - Export `get_plugin_spec() -> PluginSpec`.
 - Keep plugin-local helper modules under a plugin-owned subdirectory when the
   implementation grows beyond `load.py`.
+- Keep plugin quick-start and configuration guidance in the plugin `README.md`.
+- Add a plugin-local `docs/` directory when architecture or operational
+  documentation grows beyond the `README.md`.
 
 ## Manifest Checklist
 
@@ -18,6 +21,8 @@ Provide a practical checklist for implementing new plugins against the current
   instance name.
 - Set `plugin_kind` to either `PluginKind.WORKER` or
   `PluginKind.COMMUNICATION`.
+- Set `PluginSpec.plugin_version` from a single plugin-local source of truth
+  rather than hard-coding a version string directly in `load.py`.
 - Provide a `PluginConfigSchema` with all instance-local configuration fields.
 - Avoid daemon-reserved keys from `PluginHostKeys` in field names and aliases.
 - Keep field names and aliases unique inside one schema.
@@ -68,6 +73,12 @@ Provide a practical checklist for implementing new plugins against the current
 ## Review Checklist
 
 - `poetry run pytest`
+- keep plugin-specific runtime tests in the plugin repository; reserve
+  `AASd/tests/` for host contracts and bundled reference plugins
+- keep plugin-specific architecture and operational documentation in the plugin
+  repository; reserve `AASd/docs/` for host contracts, integration rules, and
+  bundled reference plugins
+- update the plugin-local `CHANGELOG.md`
 - `make docs` when public API docs changed
 - update `CHANGELOG.md`
 - update version metadata when code changed

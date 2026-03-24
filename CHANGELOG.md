@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.4.2-DEV
+
+- feat: implemented the initial `pinger` worker runtime skeleton with per-host reachability state tracking, local logging, repeated `alive` and `still_down` notifications, and optional dispatcher delivery through `NotificationScheduler`
+- test: added regression coverage for `pinger` state transitions, repeated alive notifications, repeated still-down notifications, and log-only behavior without dispatcher channels
+- test: moved external `pinger` runtime coverage out of `AASd/tests/` into the standalone plugin repository while keeping bundled `example1` and `example2` coverage in the host repository
+- docs: clarified that worker-local logs may be emitted independently from dispatcher scheduling
+- docs: clarified that plugin-specific architecture and operational documentation belongs in the plugin repository, with `README.md` for quick-start notes and plugin-local `docs/` for extended material
+- chore: bumped development version to `2.4.2-DEV`
+
+## 2.4.1-DEV
+
+- fix: updated `bin/aasd` to resolve the application root from the wrapper location, require a local `.venv`, and start `aasd.py` through the project virtualenv interpreter
+- chore: bumped development version to `2.4.1-DEV`
+
 ## 2.4.0-DEV
 
 - feat: added `NotificationScheduler` as a plugin-facing helper that combines interval-based `message_channel` rules with cron-like `at_channel` rules while keeping scheduling decisions out of the daemon

@@ -68,6 +68,7 @@ aasd-plugin-mail/
   load.py
   README.md
   requirements.txt
+  docs/
   plugin/
     __init__.py
     runtime.py
@@ -87,7 +88,24 @@ Rules:
   `from .plugin.runtime import Runtime`,
 - plugin-specific logic may be moved to subpackages owned by the plugin,
 - plugin tests should live in the plugin repository,
+- plugin quick-start and configuration notes should live in the plugin
+  `README.md`,
+- plugin-specific architecture, operational notes, and extended design
+  documents should live in the plugin-local `docs/` directory when the
+  `README.md` is no longer enough,
+- AASd host-side tests should remain limited to host contracts and bundled
+  reference plugins such as `example1` and `example2`,
 - plugin dependencies should be declared by the plugin repository.
+
+Keep AASd documentation limited to:
+
+- host runtime contracts,
+- public plugin API and integration rules,
+- bundled reference plugins shipped with AASd,
+- generic repository and deployment guidance.
+
+Do not place plugin-specific architecture or operational documentation for
+external plugins in `AASd/docs/`.
 
 ## Runtime Integration
 
@@ -176,6 +194,18 @@ Recommended mapping:
 
 This allows a plugin to evolve independently while still declaring explicit
 compatibility with the host runtime.
+
+Recommended plugin versioning rules:
+
+- use Semantic Versioning independently for each plugin repository,
+- start new plugin repositories from `0.0.0` until they reach a production
+  release cadence,
+- treat `PluginSpec.plugin_version` as the runtime-visible plugin version,
+- keep one source of truth for the plugin version inside the plugin package,
+  for example `plugin/__init__.py`,
+- feed `PluginSpec.plugin_version` from that package-level version constant
+  instead of hard-coding the version string in `load.py`,
+- keep a plugin-local `CHANGELOG.md` in the plugin repository.
 
 ## Development Workflow
 

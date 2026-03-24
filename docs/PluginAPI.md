@@ -262,6 +262,10 @@ Recommended worker-side flow:
 2. ask it for `due_channels()` whenever the worker wants to emit,
 3. publish one `Message` per returned channel.
 
+Worker-local logs do not have to follow the dispatcher schedule. A worker may
+log every detected state transition or repeated state locally while using
+`NotificationScheduler` only for outbound dispatcher delivery.
+
 Supported config inputs:
 
 - `message_channel`: interval-based targets such as `[1, "2:6h"]`,
