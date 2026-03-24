@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.3.5-DEV
+
+- fix: added explicit `Optional[...]` narrowing and typed fallbacks in the reference plugins so methods returning concrete snapshot types no longer rely on optional plugin attributes
+- chore: bumped development version to `2.3.5-DEV`
+
+## 2.3.4-DEV
+
+- refactor: replaced simple `ThPluginMixin` class variables with typed getter/setter properties backed by `BData`, following the `ThBaseObject` pattern
+- test: added regression coverage for typed storage in `ThPluginMixin`
+- chore: bumped development version to `2.3.4-DEV`
+
 ## 2.3.3-DEV
 
 - fix: removed the conflicting `_stop_event` class attribute from `ThPluginMixin` because `ThBaseObject` already exposes `_stop_event` as a property

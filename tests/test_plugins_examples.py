@@ -9,7 +9,6 @@ Purpose: Provide regression coverage for the reference plugin runtimes.
 import unittest
 
 from queue import Queue
-from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 from jsktoolbox.configtool import Config as ConfigTool
@@ -19,6 +18,7 @@ from libs import AppName
 from libs.plugins import (
     DispatcherAdapter,
     PluginHealth,
+    PluginContext,
     PluginState,
     ThPluginMixin,
 )
@@ -31,14 +31,14 @@ class TestPluginExamples(unittest.TestCase):
     """Cover failure guards and exports of the reference plugin runtimes."""
 
     # #[PRIVATE METHODS]###############################################################
-    def __build_context(self, instance_name: str) -> SimpleNamespace:
+    def __build_context(self, instance_name: str) -> PluginContext:
         """Build a minimal plugin context for reference runtime tests.
 
         ### Arguments:
         * instance_name: str - Runtime instance name.
 
         ### Returns:
-        SimpleNamespace - Minimal context object accepted by the runtime factory.
+        PluginContext - Minimal context object accepted by the runtime factory.
         """
         qlog = LoggerQueue()
         qcom: Queue = Queue()
@@ -49,7 +49,7 @@ class TestPluginExamples(unittest.TestCase):
             verbose=False,
         )
         adapter = DispatcherAdapter(qcom=qcom, dispatcher=dispatcher)
-        return SimpleNamespace(
+        return PluginContext(
             app_meta=AppName(app_name="AASd", app_version="2.3.2-DEV"),
             config={},
             config_handler=ConfigTool("/tmp/unused.conf", "AASd", auto_create=True),

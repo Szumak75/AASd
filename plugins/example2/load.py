@@ -58,8 +58,22 @@ class _Runtime(Thread, ThPluginMixin):
 
     def initialize(self) -> None:
         """Prepare the runtime before startup."""
-        self._queue = self._context.dispatcher.register_consumer(
-            int(self._context.config[PluginCommonKeys.CHANNEL])
+        context: Optional[PluginContext] = self._context
+        if context is None:
+            self._health = PluginHealthSnapshot(
+                health=PluginHealth.UNHEALTHY,
+                last_error_at=int(time.time()),
+                message="Plugin context is not initialized.",
+            )
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Plugin context is not initialized.",
+                stopped_at=int(time.time()),
+            )
+            return None
+        self._queue = context.dispatcher.register_consumer(
+            int(context.config[PluginCommonKeys.CHANNEL])
         )
         self._state = PluginStateSnapshot(state=PluginState.INITIALIZED)
 
@@ -70,7 +84,13 @@ class _Runtime(Thread, ThPluginMixin):
         ### Returns:
         PluginHealthSnapshot - Current plugin health snapshot.
         """
-        return self._health
+        health: Optional[PluginHealthSnapshot] = self._health
+        if health is None:
+            return PluginHealthSnapshot(
+                health=PluginHealth.UNKNOWN,
+                message="Health snapshot is not initialized.",
+            )
+        return health
 
     def run(self) -> None:
         """Consume messages from the configured dispatcher channel."""
@@ -101,10 +121,25 @@ class _Runtime(Thread, ThPluginMixin):
                 stopped_at=int(time.time()),
             )
             return None
+        context: Optional[PluginContext] = self._context
+        if context is None:
+            self._health = PluginHealthSnapshot(
+                health=PluginHealth.UNHEALTHY,
+                last_error_at=int(time.time()),
+                message="Plugin context is not initialized.",
+            )
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Plugin context is not initialized.",
+                stopped_at=int(time.time()),
+            )
+            return None
+        queue: Queue = self._queue
         while not stop_event.is_set():
             try:
-                message: Message = self._queue.get(block=True, timeout=0.1)
-                prefix = str(self._context.config[_Keys.STDOUT_PREFIX])
+                message: Message = queue.get(block=True, timeout=0.1)
+                prefix = str(context.config[_Keys.STDOUT_PREFIX])
                 print(
                     (
                         f"{prefix} subject={message.subject} "
@@ -118,12 +153,13 @@ class _Runtime(Thread, ThPluginMixin):
                     last_ok_at=now,
                     message="Message consumed successfully.",
                 )
-                self._queue.task_done()
+                queue.task_done()
             except Empty:
                 time.sleep(0.05)
+        state: Optional[PluginStateSnapshot] = self._state
         self._state = PluginStateSnapshot(
             state=PluginState.STOPPED,
-            started_at=self._state.started_at,
+            started_at=state.started_at if state is not None else None,
             stopped_at=int(time.time()),
         )
 
@@ -141,12 +177,20 @@ class _Runtime(Thread, ThPluginMixin):
         ### Returns:
         PluginStateSnapshot - Current plugin lifecycle snapshot.
         """
-        if self.is_alive() and self._state.state == PluginState.STARTING:
-            self._state = PluginStateSnapshot(
-                state=PluginState.RUNNING,
-                started_at=self._state.started_at,
+        state: Optional[PluginStateSnapshot] = self._state
+        if state is None:
+            return PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Lifecycle snapshot is not initialized.",
             )
-        return self._state
+        if self.is_alive() and state.state == PluginState.STARTING:
+            state = PluginStateSnapshot(
+                state=PluginState.RUNNING,
+                started_at=state.started_at,
+            )
+            self._state = state
+        return state
 
     def stop(self, timeout: Optional[float] = None) -> None:
         """Request plugin shutdown."""
@@ -164,17 +208,27 @@ class _Runtime(Thread, ThPluginMixin):
                 stopped_at=int(time.time()),
             )
             return None
-        if self._state.state not in (PluginState.STOPPED, PluginState.FAILED):
+        state: Optional[PluginStateSnapshot] = self._state
+        if state is None:
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Lifecycle snapshot is not initialized.",
+                stopped_at=int(time.time()),
+            )
+            return None
+        if state.state not in (PluginState.STOPPED, PluginState.FAILED):
             self._state = PluginStateSnapshot(
                 state=PluginState.STOPPING,
-                started_at=self._state.started_at,
+                started_at=state.started_at,
             )
         stop_event.set()
         if self.is_alive():
             self.join(timeout=timeout)
+        state = self._state
         self._state = PluginStateSnapshot(
             state=PluginState.STOPPED,
-            started_at=self._state.started_at,
+            started_at=state.started_at if state is not None else None,
             stopped_at=int(time.time()),
         )
 

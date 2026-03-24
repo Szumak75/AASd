@@ -1,6 +1,6 @@
 """AASd - AAS Daemon"""
 
 __author__ = "Jacek 'Szumak' Kotlarski"
-__version_info__: tuple[int, int, int] = (2, 3, 3)
+__version_info__: tuple[int, int, int] = (2, 3, 5)
 __suffix__: str = "-DEV"
 __version__: str = ".".join(map(str, __version_info__)) + __suffix__

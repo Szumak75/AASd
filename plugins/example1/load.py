@@ -63,7 +63,13 @@ class _Runtime(Thread, ThPluginMixin):
         ### Returns:
         PluginHealthSnapshot - Current plugin health snapshot.
         """
-        return self._health
+        health: Optional[PluginHealthSnapshot] = self._health
+        if health is None:
+            return PluginHealthSnapshot(
+                health=PluginHealth.UNKNOWN,
+                message="Health snapshot is not initialized.",
+            )
+        return health
 
     def run(self) -> None:
         """Emit one configured startup message."""
@@ -88,15 +94,29 @@ class _Runtime(Thread, ThPluginMixin):
                 stopped_at=int(time()),
             )
             return None
+        context: Optional[PluginContext] = self._context
+        if context is None:
+            self._health = PluginHealthSnapshot(
+                health=PluginHealth.UNHEALTHY,
+                last_error_at=int(time()),
+                message="Plugin context is not initialized.",
+            )
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Plugin context is not initialized.",
+                stopped_at=int(time()),
+            )
+            return None
         message = Message()
-        message.channel = int(self._context.config[PluginCommonKeys.CHANNEL])
+        message.channel = int(context.config[PluginCommonKeys.CHANNEL])
         message.subject = (
-            f"[{self._context.app_meta.app_name}:{self._context.instance_name}] "
+            f"[{context.app_meta.app_name}:{context.instance_name}] "
             "example1 startup notification"
         )
-        message.messages = [str(self._context.config[_Keys.MESSAGE_TEXT])]
-        self._context.dispatcher.publish(message)
-        self._context.logger.message_info = "startup message emitted"
+        message.messages = [str(context.config[_Keys.MESSAGE_TEXT])]
+        context.dispatcher.publish(message)
+        context.logger.message_info = "startup message emitted"
         now = int(time())
         self._health = PluginHealthSnapshot(
             health=PluginHealth.HEALTHY,
@@ -124,12 +144,20 @@ class _Runtime(Thread, ThPluginMixin):
         ### Returns:
         PluginStateSnapshot - Current plugin lifecycle snapshot.
         """
-        if self.is_alive() and self._state.state == PluginState.STARTING:
-            self._state = PluginStateSnapshot(
-                state=PluginState.RUNNING,
-                started_at=self._state.started_at,
+        state: Optional[PluginStateSnapshot] = self._state
+        if state is None:
+            return PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Lifecycle snapshot is not initialized.",
             )
-        return self._state
+        if self.is_alive() and state.state == PluginState.STARTING:
+            state = PluginStateSnapshot(
+                state=PluginState.RUNNING,
+                started_at=state.started_at,
+            )
+            self._state = state
+        return state
 
     def stop(self, timeout: float | None = None) -> None:
         """Request plugin shutdown."""
@@ -148,17 +176,27 @@ class _Runtime(Thread, ThPluginMixin):
             )
             return None
 
-        if self._state.state not in (PluginState.STOPPED, PluginState.FAILED):
+        state: Optional[PluginStateSnapshot] = self._state
+        if state is None:
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Lifecycle snapshot is not initialized.",
+                stopped_at=int(time()),
+            )
+            return None
+        if state.state not in (PluginState.STOPPED, PluginState.FAILED):
             self._state = PluginStateSnapshot(
                 state=PluginState.STOPPING,
-                started_at=self._state.started_at,
+                started_at=state.started_at,
             )
         stop_event.set()
         if self.is_alive():
             self.join(timeout=timeout)
+        state = self._state
         self._state = PluginStateSnapshot(
             state=PluginState.STOPPED,
-            started_at=self._state.started_at,
+            started_at=state.started_at if state is not None else None,
             stopped_at=int(time()),
         )
 
