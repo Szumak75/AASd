@@ -10,7 +10,7 @@ Purpose: Provide message containers, channel schedulers, and dispatcher logic.
 
 from datetime import datetime
 from inspect import currentframe
-from typing import Optional, Union, Dict, List, Any
+from typing import Any, Dict, List, Mapping, Optional, Union
 from threading import Thread, Event
 from queue import Queue, Empty, Full
 
@@ -34,9 +34,11 @@ class _Keys(object, metaclass=ReadOnlyClass):
     AT_HOUR: str = "hour"
     AT_MINUTE: str = "minute"
     AT_MONTH: str = "month"
+    AT_SCHEDULER: str = "__at_scheduler__"
     CHANNELS: str = "__channels__"
     CHECK_INTERVAL: str = "__interval__"
     CHECK_NEXT: str = "__next__"
+    INTERVAL_SCHEDULER: str = "__interval_scheduler__"
     MSG_CHANNEL: str = "__channel__"
     MSG_COM_QUEUES: str = "__com_q__"
     MSG_COUNTER: str = "__counter__"
@@ -364,7 +366,7 @@ class Channel(BData):
             )
         self.get_channels[channel] = {
             _Keys.CHECK_INTERVAL: interval,
-            _Keys.CHECK_NEXT: Timestamp.now(),
+            _Keys.CHECK_NEXT: Timestamp.now() - 1,
         }
 
     def __config_channels(self, config_channel: List[str]) -> None:
@@ -382,11 +384,177 @@ class Channel(BData):
             )
         for item in config_channel:
             if str(item).find(":") > -1:
-                channel, interval = item.split(":")
+                channel, interval = str(item).split(":")
                 conv = MIntervals(self._c_name)
                 self.__add_channel(channel, conv.convert(interval))
             else:
-                self.__add_channel(item, 0)
+                self.__add_channel(str(item), 0)
+
+
+class NotificationScheduler(BData):
+    """Decide which outbound notification channels are currently due."""
+
+    # #[CONSTRUCTOR]##################################################################
+    def __init__(
+        self,
+        message_channel: Optional[List[Union[int, str]]] = None,
+        at_channel: Optional[List[str]] = None,
+    ) -> None:
+        """Initialize the combined notification scheduler helper.
+
+        ### Arguments:
+        * message_channel: Optional[List[Union[int, str]]] - Interval-based
+          notification channel definitions.
+        * at_channel: Optional[List[str]] - Cron-like notification channel
+          definitions.
+        """
+        self._set_data(
+            key=_Keys.AT_SCHEDULER,
+            value=None,
+            set_default_type=Optional[AtChannel],
+        )
+        self._set_data(
+            key=_Keys.INTERVAL_SCHEDULER,
+            value=None,
+            set_default_type=Optional[Channel],
+        )
+        if message_channel:
+            self._interval_scheduler = Channel([str(item) for item in message_channel])
+        if at_channel:
+            self._at_scheduler = AtChannel(at_channel)
+
+    # #[PRIVATE PROPERTIES]###########################################################
+    @property
+    def _at_scheduler(self) -> Optional[AtChannel]:
+        """Return the optional cron-like scheduler.
+
+        ### Returns:
+        Optional[AtChannel] - Cron-like scheduler or `None`.
+        """
+        return self._get_data(key=_Keys.AT_SCHEDULER, default_value=None)
+
+    @_at_scheduler.setter
+    def _at_scheduler(self, value: Optional[AtChannel]) -> None:
+        """Store the optional cron-like scheduler.
+
+        ### Arguments:
+        * value: Optional[AtChannel] - Cron-like scheduler or `None`.
+        """
+        self._set_data(key=_Keys.AT_SCHEDULER, value=value)
+
+    @property
+    def _interval_scheduler(self) -> Optional[Channel]:
+        """Return the optional interval-based scheduler.
+
+        ### Returns:
+        Optional[Channel] - Interval-based scheduler or `None`.
+        """
+        return self._get_data(key=_Keys.INTERVAL_SCHEDULER, default_value=None)
+
+    @_interval_scheduler.setter
+    def _interval_scheduler(self, value: Optional[Channel]) -> None:
+        """Store the optional interval-based scheduler.
+
+        ### Arguments:
+        * value: Optional[Channel] - Interval-based scheduler or `None`.
+        """
+        self._set_data(key=_Keys.INTERVAL_SCHEDULER, value=value)
+
+    # #[PUBLIC PROPERTIES]############################################################
+    @property
+    def has_schedule(self) -> bool:
+        """Return whether any notification schedule is configured.
+
+        ### Returns:
+        bool - `True` when at least one schedule source is configured.
+        """
+        return self._at_scheduler is not None or self._interval_scheduler is not None
+
+    # #[PUBLIC METHODS]################################################################
+    def due_channels(self) -> List[int]:
+        """Return notification channels that are currently due.
+
+        ### Returns:
+        List[int] - Channel identifiers ready for emission.
+        """
+        out: List[int] = []
+        if self._interval_scheduler is not None:
+            out.extend(self.__normalize_channels(self._interval_scheduler.get))
+        if self._at_scheduler is not None:
+            out.extend(self.__normalize_channels(self._at_scheduler.get))
+
+        deduplicated: List[int] = []
+        for channel in out:
+            if channel not in deduplicated:
+                deduplicated.append(channel)
+        return deduplicated
+
+    @classmethod
+    def from_config(
+        cls,
+        config: Mapping[str, Any],
+        message_channel_key: str = "message_channel",
+        at_channel_key: str = "at_channel",
+    ) -> "NotificationScheduler":
+        """Build a scheduler helper from parsed plugin config values.
+
+        ### Arguments:
+        * config: Mapping[str, Any] - Parsed plugin config values.
+        * message_channel_key: str - Key used for interval-based targets.
+        * at_channel_key: str - Key used for cron-like targets.
+
+        ### Returns:
+        NotificationScheduler - Combined scheduler helper.
+        """
+        message_channel: Optional[List[Union[int, str]]] = None
+        at_channel: Optional[List[str]] = None
+
+        raw_message_channel = config.get(message_channel_key)
+        if raw_message_channel is not None:
+            if not isinstance(raw_message_channel, list):
+                raise Raise.error(
+                    f"Expected list type for '{message_channel_key}'.",
+                    TypeError,
+                    cls.__name__,
+                    currentframe(),
+                )
+            message_channel = list(raw_message_channel)
+
+        raw_at_channel = config.get(at_channel_key)
+        if raw_at_channel is not None:
+            if not isinstance(raw_at_channel, list):
+                raise Raise.error(
+                    f"Expected list type for '{at_channel_key}'.",
+                    TypeError,
+                    cls.__name__,
+                    currentframe(),
+                )
+            at_channel = [str(item) for item in raw_at_channel]
+
+        return cls(message_channel=message_channel, at_channel=at_channel)
+
+    # #[PRIVATE METHODS]###############################################################
+    def __normalize_channels(self, channels: List[str]) -> List[int]:
+        """Convert raw channel identifiers to integers.
+
+        ### Arguments:
+        * channels: List[str] - Raw channel identifiers.
+
+        ### Returns:
+        List[int] - Normalized integer channel identifiers.
+        """
+        out: List[int] = []
+        for channel in channels:
+            try:
+                out.append(int(channel))
+            except Exception as ex:
+                raise Raise.error(
+                    f"Notification channel '{channel}' is not a valid integer. Exception: {ex}",
+                    ValueError,
+                    self._c_name,
+                    currentframe(),
+                )
+        return out
 
 
 class Multipart(object, metaclass=ReadOnlyClass):

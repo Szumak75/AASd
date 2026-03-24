@@ -31,6 +31,9 @@ plugin repository.
 The template follows the current recommended pattern:
 
 - `PluginSpec` and `PluginContext` from the public runtime API
+- package-relative imports inside `load.py` and `plugin/*`
+- `PluginCommonKeys.MESSAGE_CHANNEL` for worker notification targets
+- `NotificationScheduler` for reusable interval and cron-like notification decisions
 - `ThPluginMixin` for typed runtime-owned storage
 - local private key constants based on `ReadOnlyClass`
 - explicit narrowing of `Optional[...]` runtime properties

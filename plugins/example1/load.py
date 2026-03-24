@@ -5,7 +5,7 @@ Example worker plugin.
 Author:  Jacek 'Szumak' Kotlarski --<szumak@virthost.pl>
 Created: 2026-03-23
 
-Purpose: Emit one startup message to a configured dispatcher channel.
+Purpose: Emit one startup message to configured dispatcher channels.
 """
 
 from time import time
@@ -14,6 +14,7 @@ from typing import Optional
 
 from libs.com.message import Message
 from libs.plugins import (
+    NotificationScheduler,
     PluginCommonKeys,
     PluginContext,
     PluginHealth,
@@ -38,6 +39,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
 class _Runtime(Thread, ThPluginMixin):
     """Emit one example startup message and then stop."""
 
+    _notifications: Optional[NotificationScheduler] = None
+
     # #[CONSTRUCTOR]##################################################################
     def __init__(self, context: PluginContext) -> None:
         """Initialize the example worker runtime.
@@ -49,6 +52,7 @@ class _Runtime(Thread, ThPluginMixin):
         self.daemon = True
         self._context: PluginContext = context
         self._health = PluginHealthSnapshot(health=PluginHealth.UNKNOWN)
+        self._notifications = NotificationScheduler.from_config(context.config)
         self._stop_event = Event()
         self._state = PluginStateSnapshot(state=PluginState.CREATED)
 
@@ -108,14 +112,29 @@ class _Runtime(Thread, ThPluginMixin):
                 stopped_at=int(time()),
             )
             return None
-        message = Message()
-        message.channel = int(context.config[PluginCommonKeys.CHANNEL])
-        message.subject = (
-            f"[{context.app_meta.app_name}:{context.instance_name}] "
-            "example1 startup notification"
-        )
-        message.messages = [str(context.config[_Keys.MESSAGE_TEXT])]
-        context.dispatcher.publish(message)
+        notifications: Optional[NotificationScheduler] = self._notifications
+        if notifications is None:
+            self._health = PluginHealthSnapshot(
+                health=PluginHealth.UNHEALTHY,
+                last_error_at=int(time()),
+                message="Notification scheduler is not initialized.",
+            )
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Notification scheduler is not initialized.",
+                stopped_at=int(time()),
+            )
+            return None
+        for channel in notifications.due_channels():
+            message = Message()
+            message.channel = int(channel)
+            message.subject = (
+                f"[{context.app_meta.app_name}:{context.instance_name}] "
+                "example1 startup notification"
+            )
+            message.messages = [str(context.config[_Keys.MESSAGE_TEXT])]
+            context.dispatcher.publish(message)
         context.logger.message_info = "startup message emitted"
         now = int(time())
         self._health = PluginHealthSnapshot(
@@ -209,8 +228,27 @@ def get_plugin_spec() -> PluginSpec:
     """
     schema = PluginConfigSchema(
         title="Example worker plugin.",
-        description="Emits one startup message to the configured dispatcher channel.",
+        description="Emits one startup message to configured dispatcher channels.",
         fields=[
+            PluginConfigField(
+                name=PluginCommonKeys.MESSAGE_CHANNEL,
+                field_type=list,
+                default=[1],
+                required=True,
+                description=(
+                    "Interval-based notification targets, for example " "`[1, '2:6h']`."
+                ),
+            ),
+            PluginConfigField(
+                name=PluginCommonKeys.AT_CHANNEL,
+                field_type=list,
+                default=[],
+                required=False,
+                description=(
+                    "Cron-like notification targets, for example "
+                    "`['3:0;8|20;*;*;*']`."
+                ),
+            ),
             PluginConfigField(
                 name=_Keys.MESSAGE_TEXT,
                 field_type=str,

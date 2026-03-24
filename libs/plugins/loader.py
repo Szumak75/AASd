@@ -9,10 +9,12 @@ Purpose: Discover plugin instances from `plugins_dir` and load `PluginSpec`.
 """
 
 import importlib.util
+import sys
 
 from dataclasses import dataclass
 from inspect import currentframe
 from pathlib import Path
+from types import ModuleType
 from typing import Callable, List, Set, TypeGuard, cast
 
 from jsktoolbox.basetool import BClasses
@@ -68,6 +70,41 @@ class PluginLoader(BClasses):
 
     # #[PRIVATE METHODS]##############################################################
     @classmethod
+    def __build_module_name(cls, instance_name: str) -> str:
+        """Build a stable synthetic package name for one plugin instance.
+
+        ### Arguments:
+        * instance_name: str - Plugin instance name derived from directory entry.
+
+        ### Returns:
+        str - Synthetic package name used during plugin loading.
+        """
+        normalized_name = "".join(
+            char if char.isalnum() else "_" for char in instance_name
+        )
+        return f"aasd_plugin_{normalized_name}"
+
+    @classmethod
+    def __ensure_package_module(cls, package_name: str, plugin_path: Path) -> None:
+        """Ensure that the synthetic plugin package exists in `sys.modules`.
+
+        ### Arguments:
+        * package_name: str - Synthetic package name for the plugin instance.
+        * plugin_path: Path - Root path of the plugin instance.
+        """
+        package_path = str(plugin_path.resolve())
+        cached_module = sys.modules.get(package_name)
+        if cached_module is not None:
+            cached_module.__path__ = [package_path]  # type: ignore[attr-defined]
+            return
+
+        package_module = ModuleType(package_name)
+        package_module.__file__ = str((plugin_path / "__init__.py").resolve())
+        package_module.__package__ = package_name
+        package_module.__path__ = [package_path]  # type: ignore[attr-defined]
+        sys.modules[package_name] = package_module
+
+    @classmethod
     def __load_spec(cls, instance_name: str, load_file: Path) -> PluginSpec:
         """Load one `PluginSpec` from plugin `load.py`.
 
@@ -78,7 +115,9 @@ class PluginLoader(BClasses):
         ### Returns:
         PluginSpec - Loaded and validated plugin spec.
         """
-        module_name = f"aasd_plugin_{instance_name}_load"
+        package_name = cls.__build_module_name(instance_name)
+        module_name = f"{package_name}.load"
+        cls.__ensure_package_module(package_name, load_file.parent)
         module_spec = importlib.util.spec_from_file_location(module_name, load_file)
         if module_spec is None or module_spec.loader is None:
             raise Raise.error(
@@ -87,8 +126,14 @@ class PluginLoader(BClasses):
                 cls.__name__,
                 currentframe(),
             )
+        sys.modules.pop(module_name, None)
         module = importlib.util.module_from_spec(module_spec)
-        module_spec.loader.exec_module(module)
+        sys.modules[module_name] = module
+        try:
+            module_spec.loader.exec_module(module)
+        except Exception:
+            sys.modules.pop(module_name, None)
+            raise
 
         factory_obj: object = getattr(module, "get_plugin_spec", None)
         if factory_obj is None or not callable(factory_obj):

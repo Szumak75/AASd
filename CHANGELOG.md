@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.4.0-DEV
+
+- feat: added `NotificationScheduler` as a plugin-facing helper that combines interval-based `message_channel` rules with cron-like `at_channel` rules while keeping scheduling decisions out of the daemon
+- feat: added shared `PluginCommonKeys.AT_CHANNEL` and typed base-config support for cron-like worker notification targets
+- refactor: updated the reference worker plugin and worker template to use the shared notification scheduler helper instead of hand-coded channel iteration
+- test: added regression coverage for the combined notification scheduler helper, the public plugin export, and shared `at_channel` key
+- docs: documented the plugin-side notification scheduling model and the new worker helper API
+- chore: bumped development version to `2.4.0-DEV`
+
+## 2.3.9-DEV
+
+- refactor: aligned worker example plugins with the plugin contract by switching emitted notification targets from `channel` to `message_channel` lists
+- test: updated the example-plugin integration coverage to configure worker message targets through `message_channel`
+- docs: updated worker plugin templates to describe emitted notifications as `message_channel` lists
+- chore: bumped development version to `2.3.9-DEV`
+
+## 2.3.8-DEV
+
+- fix: load plugin `load.py` under an isolated package context so plugin-local relative imports work for directories and symlinked repositories
+- fix: restored the missing `channel` schema field in `plugins/example1`, matching the active runtime contract used by the example worker plugin
+- test: added regression coverage for packaged plugins using relative imports and isolated the example-plugin integration test from extra local plugin mounts
+- docs: updated plugin templates and guides to prefer package-relative imports inside plugin repositories
+- chore: ignore all runtime-managed plugin contents under `plugins/` except tracked example directories
+- chore: bumped development version to `2.3.8-DEV`
+
 ## 2.3.7-DEV
 
 - feat: split the standalone plugin starter into dedicated `examples/plugin-worker-template/` and `examples/plugin-comms-template/` skeletons

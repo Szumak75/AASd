@@ -15,6 +15,7 @@ class PluginCommonKeys(object, metaclass=ReadOnlyClass):
     """Expose shared plugin configuration keys used across plugin types."""
 
     # #[CONSTANTS]####################################################################
+    AT_CHANNEL: str = "at_channel"
     CHANNEL: str = "channel"
     MESSAGE_CHANNEL: str = "message_channel"
     SLEEP_PERIOD: str = "sleep_period"

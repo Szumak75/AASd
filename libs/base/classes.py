@@ -120,6 +120,7 @@ class PluginConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
     class Keys(object, metaclass=ReadOnlyClass):
         """Define shared configuration key names for plugin settings."""
 
+        AT_CHANNEL: str = "at_channel"
         CHANNEL: str = "channel"
         MESSAGE_CHANNEL: str = "message_channel"
         MODULE_CONF: str = "__MODULE_CONF__"
@@ -137,6 +138,26 @@ class PluginConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
         self._section = section
 
     # #[PUBLIC PROPERTIES]#############################################################
+    @property
+    def at_channel(self) -> Optional[List[str]]:
+        """Return cron-like notification channel definitions.
+
+        ### Returns:
+        Optional[List[str]] - Cron-like channel schedule definitions or `None`.
+
+        ### Raises:
+        * TypeError: If the configured value is not a list.
+        """
+        var = self._get(varname=PluginConfigMixin.Keys.AT_CHANNEL)
+        if var is not None and not isinstance(var, List):
+            raise Raise.error(
+                "Expected list type.",
+                TypeError,
+                self._c_name,
+                currentframe(),
+            )
+        return var
+
     @property
     def channel(self) -> Optional[int]:
         """Return the communication channel configured for a plugin.

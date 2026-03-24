@@ -31,11 +31,13 @@ flowchart LR
     subgraph run [worker plugins]
     R1[plugin 1] --> R2[logger\nclient]
     CONF --> R1
+    R1 <--> RS1[notification\nscheduler]
     R2 --> LQ
     R1 --> CQ
     R1 <-...-> RE1(["complete the tasks"])
     R3[plugin 2] --> R4[logger\nclient]
     CONF --> R3
+    R3 <--> RS3[notification\nscheduler]
     R4 --> LQ
     R3 --> CQ
     R3 <-...-> RE3(["complete the tasks"])

@@ -17,6 +17,7 @@ from jsktoolbox.logstool import LoggerClient, LoggerQueue
 from libs import AppName
 from libs.plugins import (
     DispatcherAdapter,
+    NotificationScheduler,
     PluginHealth,
     PluginContext,
     PluginState,
@@ -68,10 +69,16 @@ class TestPluginExamples(unittest.TestCase):
         """Expose `ThPluginMixin` through the public plugin package."""
         self.assertTrue(issubclass(ThPluginMixin, object))
 
+    def test_01a_public_plugins_package_should_export_notification_scheduler(
+        self,
+    ) -> None:
+        """Expose `NotificationScheduler` through the public plugin package."""
+        self.assertTrue(issubclass(NotificationScheduler, object))
+
     def test_02_example1_runtime_should_fail_cleanly_without_stop_event(self) -> None:
         """Return a failed state instead of crashing when `_stop_event` is missing."""
         context = self.__build_context("example1_guard")
-        context.config = {"channel": 1, "message_text": "hello"}
+        context.config = {"message_channel": [1], "message_text": "hello"}
         runtime = get_example1_plugin_spec().runtime_factory(context)
         runtime._delete_data("_stop_event")
         context.dispatcher.publish = MagicMock()

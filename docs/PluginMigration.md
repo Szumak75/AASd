@@ -100,6 +100,13 @@ Rules:
 - support worker publishing,
 - support communication consumer registration.
 
+### WP4a: Plugin-Side Notification Scheduling
+
+- retain interval-based and cron-like scheduling helpers in the shared message
+  layer,
+- expose a plugin-facing `NotificationScheduler` helper,
+- keep scheduling decisions outside the daemon supervision path.
+
 ### WP5: Legacy Removal
 
 - remove legacy startup path from daemon,
@@ -110,7 +117,9 @@ Rules:
 
 - `example1`: startup message emitter,
 - `example2`: stdout consumer,
-- both configured only through user-defined channel mappings.
+- both configured only through user-defined channel mappings,
+- worker-side timing decisions delegated to plugin helpers instead of daemon
+  policy.
 
 ## Remaining Work
 

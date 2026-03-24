@@ -21,10 +21,12 @@ sdist/
 var/
 wheels/
 /plugins/*
-!/plugins/example1/
-!/plugins/example1/load.py
-!/plugins/example2/
-!/plugins/example2/load.py
+!/plugins/example*/
+!/plugins/example*/**
+/plugins/example*/__pycache__/
+/plugins/example*/**/__pycache__/
+/plugins/example*/*.py[cod]
+/plugins/example*/**/*.py[cod]
 !/libs/plugins/
 share/python-wheels/
 *.egg-info/

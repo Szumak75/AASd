@@ -133,6 +133,7 @@ convention with explicit section markers inside each class.
 - `Message` is the payload container passed from worker plugins to communication plugins,
 - `Channel` handles interval-based notification schedules,
 - `AtChannel` handles cron-like schedules,
+- `NotificationScheduler` combines worker-facing interval and cron-like rules,
 - `ThDispatcher` routes messages from the shared queue to communication-plugin queues.
 
 This subsystem is the key boundary between business events and outbound

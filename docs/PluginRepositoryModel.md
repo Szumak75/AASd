@@ -83,6 +83,8 @@ A starter skeleton following this layout is available in:
 Rules:
 
 - `load.py` is the daemon entry point,
+- `load.py` and plugin-owned modules should use package-relative imports such as
+  `from .plugin.runtime import Runtime`,
 - plugin-specific logic may be moved to subpackages owned by the plugin,
 - plugin tests should live in the plugin repository,
 - plugin dependencies should be declared by the plugin repository.
@@ -97,6 +99,7 @@ Safe dependency examples:
 - `libs.plugins.runtime`
 - `libs.plugins.keys`
 - `libs.plugins.mixins`
+- `libs.plugins.NotificationScheduler`
 - `libs.com.message`
 - selected public runtime helpers documented in the AASd API guides
 
@@ -182,8 +185,10 @@ Recommended workflow for plugin authors:
 2. mount it into AASd with a symlink under `plugins/` or another configured
    `plugins_dir`,
 3. install plugin dependencies into the same environment as AASd,
-4. test the plugin in its own repository,
-5. validate integration by running AASd against the mounted instance.
+4. keep scheduling and notification-selection logic inside the plugin, ideally
+   through shared helpers such as `NotificationScheduler`,
+5. test the plugin in its own repository,
+6. validate integration by running AASd against the mounted instance.
 
 This keeps repository ownership clear and avoids mixing plugin code directly
 into the AASd repository.

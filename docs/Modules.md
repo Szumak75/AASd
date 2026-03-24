@@ -32,6 +32,7 @@ file. Variables common to most legacy modules were:
 
 - `sleep_period` [float]: which defines the length of the break between subsequent executions of module tasks,
 - `message_channel` [list]: which defines a list of communication channels (if used by the module) with optional additional information about the frequency of sent notifications.
+- `at_channel` [list]: which defined cron-like communication channel schedules for selected legacy modules.
 
 1. `micmp`
 

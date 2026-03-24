@@ -14,6 +14,8 @@ from typing import Optional
 
 from libs.com.message import Message
 from libs.plugins import (
+    NotificationScheduler,
+    PluginCommonKeys,
     PluginContext,
     PluginHealth,
     PluginHealthSnapshot,
@@ -22,11 +24,13 @@ from libs.plugins import (
     ThPluginMixin,
 )
 
-from plugin.config import Keys
+from .config import Keys
 
 
 class WorkerTemplateRuntime(Thread, ThPluginMixin):
     """Minimal worker runtime used as a template for new plugins."""
+
+    _notifications: Optional[NotificationScheduler] = None
 
     # #[CONSTRUCTOR]##################################################################
     def __init__(self, context: PluginContext) -> None:
@@ -39,6 +43,7 @@ class WorkerTemplateRuntime(Thread, ThPluginMixin):
         self.daemon = True
         self._context = context
         self._health = PluginHealthSnapshot(health=PluginHealth.UNKNOWN)
+        self._notifications = NotificationScheduler.from_config(context.config)
         self._state = PluginStateSnapshot(state=PluginState.CREATED)
         self._stop_event = Event()
 
@@ -92,13 +97,29 @@ class WorkerTemplateRuntime(Thread, ThPluginMixin):
             )
             return None
 
-        message = Message()
-        message.channel = 1
-        message.subject = (
-            f"[{context.instance_name}] worker template startup notification"
-        )
-        message.messages = [str(context.config[Keys.MESSAGE_TEXT])]
-        context.dispatcher.publish(message)
+        notifications: Optional[NotificationScheduler] = self._notifications
+        if notifications is None:
+            self._health = PluginHealthSnapshot(
+                health=PluginHealth.UNHEALTHY,
+                last_error_at=int(time()),
+                message="Notification scheduler is not initialized.",
+            )
+            self._state = PluginStateSnapshot(
+                state=PluginState.FAILED,
+                failure_count=1,
+                message="Notification scheduler is not initialized.",
+                stopped_at=int(time()),
+            )
+            return None
+
+        for channel in notifications.due_channels():
+            message = Message()
+            message.channel = int(channel)
+            message.subject = (
+                f"[{context.instance_name}] worker template startup notification"
+            )
+            message.messages = [str(context.config[Keys.MESSAGE_TEXT])]
+            context.dispatcher.publish(message)
         context.logger.message_info = "worker template startup message emitted"
 
         now = int(time())

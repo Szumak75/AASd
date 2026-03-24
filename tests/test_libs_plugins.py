@@ -95,6 +95,86 @@ class TestLibsPlugins(unittest.TestCase):
             encoding="utf-8",
         )
 
+    def __write_test_package_plugin(self, target: Path, plugin_id: str) -> None:
+        """Write a packaged plugin implementation using relative imports.
+
+        ### Arguments:
+        * target: Path - Plugin instance directory.
+        * plugin_id: str - Plugin implementation identifier.
+        """
+        package_dir = target / "plugin"
+        package_dir.mkdir(parents=True)
+        (package_dir / "__init__.py").write_text("", encoding="utf-8")
+        (package_dir / "config.py").write_text(
+            "\n".join(
+                [
+                    "class Keys(object):",
+                    "    VALUE = 'channel'",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        (package_dir / "runtime.py").write_text(
+            "\n".join(
+                [
+                    "from .config import Keys",
+                    "",
+                    "class Runtime(object):",
+                    "    def initialize(self):",
+                    "        return None",
+                    "    def start(self):",
+                    "        return None",
+                    "    def stop(self, timeout=None):",
+                    "        return None",
+                    "    def state(self):",
+                    "        from libs.plugins import PluginState, PluginStateSnapshot",
+                    "        return PluginStateSnapshot(state=PluginState.STOPPED)",
+                    "    def health(self):",
+                    "        from libs.plugins import PluginHealth, PluginHealthSnapshot",
+                    "        return PluginHealthSnapshot(health=PluginHealth.HEALTHY)",
+                    "    @property",
+                    "    def key(self):",
+                    "        return Keys.VALUE",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        (target / "load.py").write_text(
+            "\n".join(
+                [
+                    "from libs.plugins import PluginKind, PluginSpec",
+                    "from libs.templates import PluginConfigField, PluginConfigSchema",
+                    "",
+                    "from .plugin.runtime import Runtime",
+                    "",
+                    "def _runtime(_context):",
+                    "    return Runtime()",
+                    "",
+                    "def get_plugin_spec():",
+                    "    return PluginSpec(",
+                    "        api_version=1,",
+                    "        config_schema=PluginConfigSchema(",
+                    "            title='Loader package test plugin.',",
+                    "            fields=[",
+                    "                PluginConfigField(",
+                    "                    name='channel',",
+                    "                    field_type=int,",
+                    "                    default=7,",
+                    "                    required=True,",
+                    "                    description='Test channel.',",
+                    "                )",
+                    "            ],",
+                    "        ),",
+                    f"        plugin_id='{plugin_id}',",
+                    "        plugin_kind=PluginKind.WORKER,",
+                    "        plugin_name='loader_package_test',",
+                    "        runtime_factory=_runtime,",
+                    "    )",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
     # #[PUBLIC METHODS]################################################################
     def test_01_loader_discovers_directories_and_symlink_instances(self) -> None:
         """Discover plugin instances from directories and symlinks."""
@@ -108,12 +188,39 @@ class TestLibsPlugins(unittest.TestCase):
 
             discovered = PluginLoader.discover(plugins_dir)
 
-            self.assertEqual([item.instance_name for item in discovered], ["plugin_a", "plugin_b"])
+            self.assertEqual(
+                [item.instance_name for item in discovered], ["plugin_a", "plugin_b"]
+            )
             self.assertEqual(discovered[0].spec.plugin_id, "plugin.test")
             self.assertEqual(discovered[1].spec.plugin_id, "plugin.test")
 
+    def test_01aa_loader_supports_relative_imports_in_packaged_plugin(self) -> None:
+        """Load plugin entry points that use package-relative imports."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            plugins_dir = Path(tmp_dir) / "plugins"
+            plugins_dir.mkdir()
+            self.__write_test_package_plugin(
+                plugins_dir / "plugin_pkg",
+                "plugin.package",
+            )
+
+            symlink_path = plugins_dir / "plugin_pkg_link"
+            os.symlink(plugins_dir / "plugin_pkg", symlink_path)
+
+            discovered = PluginLoader.discover(plugins_dir)
+            plugin_map = {item.instance_name: item for item in discovered}
+
+            self.assertEqual(plugin_map["plugin_pkg"].spec.plugin_id, "plugin.package")
+            self.assertEqual(
+                plugin_map["plugin_pkg_link"].spec.plugin_id,
+                "plugin.package",
+            )
+            runtime = plugin_map["plugin_pkg"].spec.runtime_factory(None)
+            self.assertEqual(runtime.key, "channel")
+
     def test_01a_public_plugin_key_classes_expose_shared_constants(self) -> None:
         """Expose shared plugin keys through the public package API."""
+        self.assertEqual(PluginCommonKeys.AT_CHANNEL, "at_channel")
         self.assertEqual(PluginCommonKeys.CHANNEL, "channel")
         self.assertEqual(PluginCommonKeys.MESSAGE_CHANNEL, "message_channel")
         self.assertEqual(PluginCommonKeys.SLEEP_PERIOD, "sleep_period")
@@ -494,17 +601,22 @@ class TestLibsPlugins(unittest.TestCase):
     def test_08_example_plugins_should_exchange_message_via_dispatcher(self) -> None:
         """Start `example1` and `example2` and verify channel-based dispatching."""
         project_dir = Path(__file__).resolve().parent.parent
-        plugins_dir = project_dir / "plugins"
-        discovered = PluginLoader.discover(plugins_dir)
-        plugin_map = {item.instance_name: item for item in discovered}
-
-        self.assertIn("example1", plugin_map)
-        self.assertIn("example2", plugin_map)
+        source_plugins_dir = project_dir / "plugins"
 
         with tempfile.TemporaryDirectory() as tmp_dir:
+            plugins_dir = Path(tmp_dir) / "plugins"
+            plugins_dir.mkdir()
+            os.symlink(source_plugins_dir / "example1", plugins_dir / "example1")
+            os.symlink(source_plugins_dir / "example2", plugins_dir / "example2")
+            discovered = PluginLoader.discover(plugins_dir)
+            plugin_map = {item.instance_name: item for item in discovered}
+
+            self.assertIn("example1", plugin_map)
+            self.assertIn("example2", plugin_map)
+
             config_file = Path(tmp_dir) / "plugin.conf"
             cfg = ConfigTool(str(config_file), "AASd", auto_create=True)
-            cfg.set("example1", varname="channel", value=11)
+            cfg.set("example1", varname="message_channel", value=[11])
             cfg.set("example1", varname="message_text", value="Hello plugin.")
             cfg.set("example2", varname="channel", value=11)
             cfg.set("example2", varname="stdout_prefix", value="[consumer]")

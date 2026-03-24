@@ -25,7 +25,7 @@ from libs.plugins import (
     ThPluginMixin,
 )
 
-from plugin.config import Keys
+from .config import Keys
 
 
 class CommsTemplateRuntime(Thread, ThPluginMixin):

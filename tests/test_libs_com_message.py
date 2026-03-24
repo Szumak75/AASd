@@ -21,6 +21,7 @@ from libs.com.message import (
     Channel,
     Message,
     Multipart,
+    NotificationScheduler,
     ThDispatcher,
 )
 
@@ -241,6 +242,50 @@ class TestChannel(unittest.TestCase):
         with patch("libs.com.message.Timestamp.now", return_value=100):
             self.assertFalse(obj.check)
             self.assertEqual(obj.get, [])
+
+
+class TestNotificationScheduler(unittest.TestCase):
+    """Cover the combined notification scheduler helper."""
+
+    def test_01_should_merge_due_interval_and_cron_channels(self) -> None:
+        """Return unique due channels from both schedule sources."""
+        with patch("libs.com.message.Timestamp.now", return_value=100):
+            obj = NotificationScheduler(
+                message_channel=[1, "2:5m"],
+                at_channel=["2:15;12;23;3;1", "3:15;12;23;3;1"],
+            )
+
+        obj._interval_scheduler.get_channels["2"][_Keys.CHECK_NEXT] = 200  # type: ignore[union-attr]
+        now = datetime(2026, 3, 23, 12, 15, 0)
+        with patch("libs.com.message.Timestamp.now", return_value=100):
+            with patch("libs.com.message.MDateTime.now", return_value=now):
+                self.assertEqual(obj.due_channels(), [1, 2, 3])
+
+    def test_02_should_build_from_config_and_validate_types(self) -> None:
+        """Read worker notification settings from parsed plugin config."""
+        obj = NotificationScheduler.from_config(
+            {
+                "message_channel": [1, "2:6h"],
+                "at_channel": ["3:0;8;*;*;*"],
+            }
+        )
+
+        self.assertTrue(obj.has_schedule)
+
+        with self.assertRaises(TypeError):
+            NotificationScheduler.from_config({"message_channel": "1"})  # type: ignore[arg-type]
+
+        with self.assertRaises(TypeError):
+            NotificationScheduler.from_config({"at_channel": "1:0;0;*;*;*"})  # type: ignore[arg-type]
+
+    def test_03_should_raise_when_due_channel_cannot_be_converted_to_int(self) -> None:
+        """Reject non-integer channel identifiers at dispatch-decision time."""
+        now = datetime(2026, 3, 23, 12, 15, 0)
+        obj = NotificationScheduler(at_channel=["mail:15;12;23;3;1"])
+
+        with patch("libs.com.message.MDateTime.now", return_value=now):
+            with self.assertRaises(ValueError):
+                obj.due_channels()
 
 
 class TestMessage(unittest.TestCase):

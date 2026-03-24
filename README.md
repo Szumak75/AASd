@@ -22,6 +22,7 @@ The current architecture is plugin-based:
 - each instance gets its own config section derived from the entry name,
 - plugin type is declared by the plugin API, not by directory category,
 - worker plugins emit messages through the dispatcher,
+- worker-side notification timing is handled by shared plugin helpers, not by the daemon,
 - communication plugins consume routed messages from configured channels.
 
 The daemon must not assume direct plugin-to-plugin communication. Message

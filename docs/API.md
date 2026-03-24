@@ -134,6 +134,7 @@ Typed adapter over a plugin configuration section.
 
 **Shared configuration keys exposed by the base class:**
 
+- `at_channel`
 - `channel`
 - `message_channel`
 - `sleep_period`
@@ -172,9 +173,23 @@ Public constant class for shared plugin configuration keys.
 
 **Main keys:**
 
+- `at_channel`
 - `channel`
 - `message_channel`
 - `sleep_period`
+
+Typical usage:
+
+- communication plugins consume one `channel`,
+- worker plugins emit to one or more `message_channel` targets,
+- worker plugins may add cron-like schedules through `at_channel`.
+
+### `libs.plugins.NotificationScheduler`
+
+**Purpose:**
+Plugin-facing helper that combines interval-based `message_channel` rules with
+cron-like `at_channel` rules and returns the channels currently due for
+emission.
 
 ### `libs.plugins.keys.PluginHostKeys`
 
@@ -249,8 +264,8 @@ Provides typed mixins shared by thread-based plugin runtimes.
 ### `libs.plugins.loader`
 
 **Purpose:**
-Discovers plugin instances from `plugins_dir`, imports `load.py`, and validates
-the returned `PluginSpec`.
+Discovers plugin instances from `plugins_dir`, imports `load.py` under an
+isolated package context, and validates the returned `PluginSpec`.
 
 ### `libs.plugins.config`
 
@@ -367,7 +382,7 @@ Manifest returned by plugin `load.py` entry-points.
 
 **Purpose:**
 Discover plugin instances from `plugins_dir` and load `PluginSpec` from
-`load.py`.
+`load.py` with support for plugin-local relative imports.
 
 ### `libs.plugins.config.PluginConfigParser`
 
@@ -395,6 +410,12 @@ Interval-driven notification scheduler.
 
 **Purpose:**
 Cron-like scheduler for message emission.
+
+### `libs.com.message.NotificationScheduler`
+
+**Purpose:**
+Stateful helper used by worker plugins to decide which notification channels
+should emit at a given moment.
 
 **Input format example:**
 
@@ -488,8 +509,9 @@ directory-based categorization:
 
 ### Plugin contract
 
-Each plugin instance is loaded from `plugins_dir/<instance_name>/load.py` and is
-expected to expose `get_plugin_spec()`. The returned `PluginSpec` declares:
+Each plugin instance is loaded from `plugins_dir/<instance_name>/load.py` under
+an isolated package context and is expected to expose `get_plugin_spec()`. The
+returned `PluginSpec` declares:
 
 - `api_version`
 - `plugin_id`

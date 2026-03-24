@@ -32,6 +32,7 @@ The template follows the current recommended pattern:
 
 - `PluginSpec` and `PluginContext` from the public runtime API
 - `PluginKind.COMMUNICATION` with dispatcher consumer registration
+- package-relative imports inside `load.py` and `plugin/*`
 - `ThPluginMixin` for typed runtime-owned storage
 - local private key constants based on `ReadOnlyClass`
 - explicit narrowing of `Optional[...]` runtime properties

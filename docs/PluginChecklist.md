@@ -28,6 +28,8 @@ Provide a practical checklist for implementing new plugins against the current
 - Treat `PluginContext` as the only supported daemon-facing service contract.
 - Access application identity through `context.app_meta`.
 - Publish worker messages only through `context.dispatcher.publish(...)`.
+- Use `NotificationScheduler` when worker notification timing should follow
+  shared `message_channel` and `at_channel` semantics.
 - Register communication consumers only through
   `context.dispatcher.register_consumer(...)`.
 - Do not assume any direct plugin-to-plugin communication path.
@@ -55,7 +57,10 @@ Provide a practical checklist for implementing new plugins against the current
 ## Configuration Checklist
 
 - Use `PluginCommonKeys` for shared names such as `channel`,
-  `message_channel`, and `sleep_period`.
+  `message_channel`, `at_channel`, and `sleep_period`.
+- Use `channel` for communication-plugin consumers and `message_channel` for
+  worker-plugin notification targets.
+- Use `at_channel` when a worker needs cron-like emission windows.
 - Keep plugin-specific secrets and variables inside the plugin schema.
 - Treat each config section as one plugin instance.
 - Do not infer routing or peers from `plugin_id`, paths, or class names.

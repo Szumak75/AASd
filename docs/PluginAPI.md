@@ -80,8 +80,11 @@ plugins/
 Rules:
 
 - `load.py` is mandatory.
-- The daemon should treat the plugin root directory as the plugin import root.
+- The daemon loads `load.py` under an isolated package context derived from the
+  plugin instance name.
 - Plugin-local helper packages may live under a plugin-owned subdirectory.
+- Plugin-local imports should use package-relative imports such as
+  `from .plugin.runtime import Runtime`.
 - A plugin may keep its own dependencies and packaging metadata.
 
 ## Entry-Point Contract
@@ -97,6 +100,10 @@ def get_plugin_spec() -> "PluginSpec":
 
 The daemon imports `load.py`, calls `get_plugin_spec()`, validates the
 result, and register the plugin before starting the runtime instance.
+
+The import context is isolated per plugin instance, which keeps plugin-local
+packages working even when the implementation is mounted through a symbolic
+link or reused by multiple instances.
 
 Why `get_plugin_spec()`:
 
@@ -194,7 +201,7 @@ purpose:
 
 - `PluginCommonKeys`
   Shared keys used by multiple plugin types, for example `channel`,
-  `message_channel`, and `sleep_period`.
+  `message_channel`, `at_channel`, and `sleep_period`.
 - `PluginHostKeys`
   Daemon-reserved keys used for host-side lifecycle and management semantics,
   for example `autostart`, `start_delay`, and `restart_policy`.
@@ -237,6 +244,31 @@ The current `PluginContext` model groups application identity under
 - `context.app_meta.app_name`
 - `context.app_meta.app_version`
 - `context.app_meta.app_host_name`
+
+## Worker Notification Scheduling
+
+The daemon does not interpret worker notification schedules. That decision
+stays inside the worker plugin or a helper imported by the worker.
+
+The recommended helper is `NotificationScheduler`, available through:
+
+```python
+from libs.plugins import NotificationScheduler
+```
+
+Recommended worker-side flow:
+
+1. build one scheduler from `context.config`,
+2. ask it for `due_channels()` whenever the worker wants to emit,
+3. publish one `Message` per returned channel.
+
+Supported config inputs:
+
+- `message_channel`: interval-based targets such as `[1, "2:6h"]`,
+- `at_channel`: cron-like targets such as `["3:0;8|20;*;*;*"]`.
+
+This keeps the daemon host simple while still giving plugins one shared
+decision mechanism.
 
 ## Runtime Contract
 
@@ -297,11 +329,11 @@ For `worker` plugins:
 
 - publish `Message` objects to the dispatcher input,
 - never assume the existence of any communication plugin,
-- rely entirely on configured channel ids.
+- rely entirely on configured `message_channel` target lists.
 
 This means:
 
-- a worker may emit to channel `10`,
+- a worker may emit to channels `[10, 20]`,
 - a communication plugin may listen on channel `10`,
 - message delivery happens only if the user configures both sides consistently.
 

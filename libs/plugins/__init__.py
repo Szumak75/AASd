@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 __all__: list[str] = [
     "DispatcherAdapter",
+    "NotificationScheduler",
     "PluginHealth",
     "PluginHealthPolicy",
     "PluginHealthSnapshot",
@@ -29,6 +30,7 @@ __all__: list[str] = [
 
 _EXPORTS: Final[dict[str, str]] = {
     "DispatcherAdapter": "libs.plugins.runtime",
+    "NotificationScheduler": "libs.com.message",
     "PluginHealth": "libs.plugins.runtime",
     "PluginHealthPolicy": "libs.plugins.service",
     "PluginHealthSnapshot": "libs.plugins.runtime",
@@ -52,6 +54,7 @@ _EXPORTS: Final[dict[str, str]] = {
 }
 
 if TYPE_CHECKING:
+    from libs.com.message import NotificationScheduler
     from libs.plugins.config import PluginConfigParser
     from libs.plugins.keys import PluginCommonKeys, PluginHostKeys
     from libs.plugins.loader import PluginDefinition, PluginLoader
