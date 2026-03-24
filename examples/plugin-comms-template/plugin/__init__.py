@@ -1,0 +1,1 @@
+"""Communication template plugin package."""

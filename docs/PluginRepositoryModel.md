@@ -75,6 +75,11 @@ aasd-plugin-mail/
   tests/
 ```
 
+A starter skeleton following this layout is available in:
+
+- `examples/plugin-worker-template/`
+- `examples/plugin-comms-template/`
+
 Rules:
 
 - `load.py` is the daemon entry point,

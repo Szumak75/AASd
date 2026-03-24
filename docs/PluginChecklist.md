@@ -82,3 +82,14 @@ They demonstrate:
 - `ThPluginMixin` for typed runtime storage,
 - explicit `Optional[...]` narrowing for runtime internals,
 - consistent lifecycle and health snapshot handling.
+
+## Starter Templates
+
+Ready-to-copy starter templates are available under:
+
+- `examples/plugin-worker-template/`
+- `examples/plugin-comms-template/`
+
+Use the worker template for producer or task-oriented plugins and the
+communication template for plugins that consume dispatcher traffic. In both
+cases, replace the placeholder identifiers, config schema, and runtime logic.

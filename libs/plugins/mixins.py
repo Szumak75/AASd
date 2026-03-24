@@ -46,11 +46,11 @@ class ThPluginMixin(ThBaseObject):
         return self._get_data(key=_Keys.CONTEXT, default_value=None)
 
     @_context.setter
-    def _context(self, value: "PluginContext") -> None:
+    def _context(self, value: Optional["PluginContext"]) -> None:
         """Store the plugin runtime context.
 
         ### Arguments:
-        * value: PluginContext - Runtime context object.
+        * value: Optional[PluginContext] - Runtime context object or `None`.
         """
         from libs.plugins.runtime import PluginContext
 
@@ -70,11 +70,11 @@ class ThPluginMixin(ThBaseObject):
         return self._get_data(key=_Keys.HEALTH, default_value=None)
 
     @_health.setter
-    def _health(self, value: "PluginHealthSnapshot") -> None:
+    def _health(self, value: Optional["PluginHealthSnapshot"]) -> None:
         """Store the current health snapshot.
 
         ### Arguments:
-        * value: PluginHealthSnapshot - Health snapshot object.
+        * value: Optional[PluginHealthSnapshot] - Health snapshot object or `None`.
         """
         from libs.plugins.runtime import PluginHealthSnapshot
 
@@ -94,11 +94,11 @@ class ThPluginMixin(ThBaseObject):
         return self._get_data(key=_Keys.QUEUE, default_value=None)
 
     @_queue.setter
-    def _queue(self, value: Queue) -> None:
+    def _queue(self, value: Optional[Queue]) -> None:
         """Store the plugin-owned communication queue.
 
         ### Arguments:
-        * value: Queue - Communication queue object.
+        * value: Optional[Queue] - Communication queue object or `None`.
         """
         self._set_data(key=_Keys.QUEUE, value=value, set_default_type=Optional[Queue])
 
@@ -112,11 +112,11 @@ class ThPluginMixin(ThBaseObject):
         return self._get_data(key=_Keys.STATE, default_value=None)
 
     @_state.setter
-    def _state(self, value: "PluginStateSnapshot") -> None:
+    def _state(self, value: Optional["PluginStateSnapshot"]) -> None:
         """Store the current lifecycle snapshot.
 
         ### Arguments:
-        * value: PluginStateSnapshot - Lifecycle snapshot object.
+        * value: Optional[PluginStateSnapshot] - Lifecycle snapshot object or `None`.
         """
         from libs.plugins.runtime import PluginStateSnapshot
 

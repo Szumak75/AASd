@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.3.7-DEV
+
+- feat: split the standalone plugin starter into dedicated `examples/plugin-worker-template/` and `examples/plugin-comms-template/` skeletons
+- docs: updated plugin author guides to reference separate worker and communication templates
+- chore: bumped development version to `2.3.7-DEV`
+
+## 2.3.6-DEV
+
+- feat: added `examples/plugin-template/` as a starter skeleton for standalone plugin repositories built against the active AASd plugin API
+- fix: added explicit `Optional[...]` narrowing and typed fallbacks in the reference plugins so methods returning concrete snapshot types no longer rely on optional plugin attributes
+- docs: aligned `PluginContext` documentation with the current `app_meta`-based contract, added a dedicated plugin author checklist, and linked the new plugin repository template
+- docs: added a dedicated guide describing the recommended repository model for independently versioned plugins mounted through `plugins_dir`
+- chore: bumped development version to `2.3.6-DEV`
+
 ## 2.3.5-DEV
 
 - fix: added explicit `Optional[...]` narrowing and typed fallbacks in the reference plugins so methods returning concrete snapshot types no longer rely on optional plugin attributes
