@@ -314,7 +314,7 @@ Projekt wykorzystuje bibliotekę `jsktoolbox` jako fundament, jeśli dany moduł
 
 ### Base Classes From `basetool`
 
-- Klasy z modułu `jsktoolbox.basetool` są klasami bazowymi do dziedziczenia.
+- Klasy z modułu `jsktoolbox.basetool` są mixinami.
 - Nie posiadają własnego konstruktora i nie wymagają `super().__init__()`.
 - Dodają właściwości i metody do klas pochodnych.
 - `ThBaseObject` zawiera deklaracje wymagane dla `threading.Thread`.
@@ -408,13 +408,13 @@ Klasa `BData` zapewnia bezpieczny kontener słownikowy z kontrolą typów.
 
 ```python
 # Setter rejestruje typ
-self._set_data("key", 42, set_default_type=int)
+self._set_data(key="key", value=42, set_default_type=int)
 
 # Getter bez rejestracji typu
-value = self._get_data("key", default_value=0)
+value = self._get_data(key="key", default_value=0)
 
 # Aktualizacja z zachowaniem typu
-self._set_data("key", 100)
+self._set_data(key="key", value=100)
 ```
 
 #### Complex Types
@@ -422,9 +422,9 @@ self._set_data("key", 100)
 ```python
 from typing import Dict, List, Optional
 
-self._set_data("key", "text", set_default_type=Optional[str])
-self._set_data("config", {"a": 1}, set_default_type=Dict[str, int])
-self._set_data("items", ["a", "b"], set_default_type=List[str])
+self._set_data(key="key", value="text", set_default_type=Optional[str])
+self._set_data(key="config", value={"a": 1}, set_default_type=Dict[str, int])
+self._set_data(key="items", value=["a", "b"], set_default_type=List[str])
 ```
 
 #### Additional Methods
