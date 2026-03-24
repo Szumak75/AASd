@@ -16,6 +16,7 @@ installation source, while Poetry remains a development-only tool.
 - [API Surface](./API-Surface.md) - boundary between public runtime API and internal ORM layer.
 - [Plugin API](./PluginAPI.md) - public contract for plugin implementations.
 - [Plugin Author Checklist](./PluginChecklist.md) - practical checklist for implementing new plugins.
+- [Plugin Repository Model](./PluginRepositoryModel.md) - recommended organization of plugins as separate repositories mounted into `plugins_dir`.
 - [Plugin Migration](./PluginMigration.md) - migration status and remaining cleanup work.
 
 ## Operational Assets

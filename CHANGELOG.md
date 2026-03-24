@@ -4,6 +4,7 @@
 
 - fix: added explicit `Optional[...]` narrowing and typed fallbacks in the reference plugins so methods returning concrete snapshot types no longer rely on optional plugin attributes
 - docs: aligned `PluginContext` documentation with the current `app_meta`-based contract and added a dedicated plugin author checklist
+- docs: added a dedicated guide describing the recommended repository model for independently versioned plugins mounted through `plugins_dir`
 - chore: bumped development version to `2.3.5-DEV`
 
 ## 2.3.4-DEV

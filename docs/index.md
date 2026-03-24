@@ -11,6 +11,7 @@ Flow
 Architecture
 PluginAPI
 PluginChecklist
+PluginRepositoryModel
 PluginMigration
 API
 API-Surface
