@@ -479,6 +479,14 @@ Wrapper over system ICMP tools (`fping` or `ping`) used by `micmp`.
 
 - `is_alive(ip: str) -> bool`
 
+**Behavior notes:**
+
+- one `is_alive(...)` call performs one system-level ICMP attempt,
+- retry policy should be implemented by the caller when multiple attempts are
+  required,
+- this keeps timeout and shutdown behavior easier to control in worker
+  runtimes.
+
 ### `libs.tools`
 
 **Purpose:**

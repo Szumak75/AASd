@@ -27,6 +27,7 @@ class TestPinger(unittest.TestCase):
 
         self.assertTrue(pinger.is_alive("127.0.0.1"))
         self.assertEqual(mock_system.call_count, 2)
+        self.assertIn("-c1", mock_system.call_args_list[0].args[0])
 
     @patch("libs.tools.icmp.find_executable", return_value="/usr/bin/ping")
     @patch("libs.tools.icmp.os.system", side_effect=[0, 1])
@@ -38,6 +39,7 @@ class TestPinger(unittest.TestCase):
 
         self.assertFalse(pinger.is_alive("127.0.0.1"))
         self.assertEqual(mock_system.call_count, 2)
+        self.assertIn("-c1", mock_system.call_args_list[0].args[0])
 
     @patch("libs.tools.icmp.find_executable", return_value=None)
     def test_03_raises_when_no_command_is_available(

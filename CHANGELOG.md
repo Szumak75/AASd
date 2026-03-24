@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.4.3-DEV
+
+- fix: reduced `pinger` shutdown latency by checking the stop flag between monitored hosts and between configured ICMP retries
+- fix: aligned `libs.tools.icmp.Pinger.is_alive()` with single-attempt semantics so plugin-level `ping_count` no longer multiplies hidden command retries
+- test: added regression coverage for single-attempt ICMP command construction and early `pinger` loop interruption
+- docs: documented the single-attempt ICMP helper contract and explicit retry ownership in the `pinger` plugin
+- chore: bumped development version to `2.4.3-DEV`
+
 ## 2.4.2-DEV
 
 - feat: implemented the initial `pinger` worker runtime skeleton with per-host reachability state tracking, local logging, repeated `alive` and `still_down` notifications, and optional dispatcher delivery through `NotificationScheduler`

@@ -53,7 +53,7 @@ class Pinger(BData):
             {
                 _Keys.CMD: "fping",
                 _Keys.MULTIPLIER: 1000,
-                _Keys.OPTS: "-AaqR -B1 -r2 -t{} {} >/dev/null 2>&1",
+                _Keys.OPTS: "-AaqR -B1 -c1 -r0 -t{} {} >/dev/null 2>&1",
             }
         )
         # FreeBSD ping
@@ -61,7 +61,7 @@ class Pinger(BData):
             {
                 _Keys.CMD: "ping",
                 _Keys.MULTIPLIER: 1000,
-                _Keys.OPTS: "-Qqo -c3 -W{} {} >/dev/null 2>&1",
+                _Keys.OPTS: "-Qqo -c1 -W{} {} >/dev/null 2>&1",
             }
         )
         # Linux ping
@@ -69,7 +69,7 @@ class Pinger(BData):
             {
                 _Keys.CMD: "ping",
                 _Keys.MULTIPLIER: 1,
-                _Keys.OPTS: "-q -c3 -W{} {} >/dev/null 2>&1",
+                _Keys.OPTS: "-q -c1 -W{} {} >/dev/null 2>&1",
             }
         )
         self._set_data(key=_Keys.COMMANDS, value=commands, set_default_type=List[Dict])
@@ -83,13 +83,14 @@ class Pinger(BData):
 
     # #[PUBLIC METHODS]###############################################################
     def is_alive(self, ip: str) -> bool:
-        """Check whether the target IPv4 address responds to ICMP echo.
+        """Check whether the target IPv4 address responds to one ICMP attempt.
 
         ### Arguments:
         * ip: str - IPv4 address to test.
 
         ### Returns:
-        bool - `True` when the target host responds.
+        bool - `True` when the target host responds to the current command
+        attempt.
 
         ### Raises:
         * ChildProcessError: If no supported ICMP command is available.
