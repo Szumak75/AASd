@@ -10,6 +10,7 @@ import tempfile
 import unittest
 
 from pathlib import Path
+from unittest.mock import patch
 
 from jsktoolbox.configtool import Config as ConfigTool
 from jsktoolbox.logstool import LoggerQueue
@@ -165,6 +166,36 @@ class TestAppConfig(unittest.TestCase):
             self.assertTrue(check_cfg.load())
             self.assertTrue(check_cfg.has_section("sample_plugin"))
             self.assertEqual(check_cfg.get("sample_plugin", "channel"), 3)
+
+    def test_05_should_return_empty_plugin_list_when_plugins_dir_is_not_set(self) -> None:
+        """Return an empty list when no plugins directory is configured."""
+        obj = self.__build_config(Path("/tmp/unused.conf"))
+
+        self.assertEqual(obj.get_plugins, [])
+
+    def test_06_should_return_empty_plugin_list_when_discovery_raises(self) -> None:
+        """Return an empty list when plugin discovery fails."""
+        obj = self.__build_config(Path("/tmp/unused.conf"))
+        obj.plugins_dir = "/tmp/nonexistent"
+
+        with patch("libs.conf.PluginLoader.discover", side_effect=RuntimeError("boom")):
+            self.assertEqual(obj.get_plugins, [])
+
+    def test_07_should_read_debug_and_verbose_from_loaded_main_section(self) -> None:
+        """Read effective debug and verbose flags from the main config section."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "aasd.conf"
+            cfg = ConfigTool(str(config_file), "AASd", auto_create=True)
+            cfg.set("aasd", varname="debug", value=True)
+            cfg.set("aasd", varname="verbose", value=True)
+            self.assertTrue(cfg.save())
+            self.assertTrue(cfg.load())
+
+            obj = self.__build_config(config_file)
+            obj._cfh = cfg
+
+            self.assertTrue(obj.debug)
+            self.assertTrue(obj.verbose)
 
 
 # #[EOF]#######################################################################

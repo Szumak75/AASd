@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.3.1-DEV
+
+- test: added regression coverage for `libs.app.AppName` fallbacks and missing-value errors
+- test: expanded `PluginConfigParser` coverage for aliases, required fields, nullable values, choices, and generic field types
+- test: expanded `AppConfig` coverage for missing `plugins_dir`, discovery failures, and main-section debug/verbose flags
+- chore: bumped development version to `2.3.1-DEV`
+
 ## 2.3.0-DEV
 
 - docs: updated `AGENTS.md` to reflect the active `plugins/` and `archive/` layout, Python 3.11 baseline, and plugin-runtime terminology

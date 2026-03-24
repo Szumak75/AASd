@@ -6,13 +6,14 @@ Created: 2026-03-23
 Purpose: Provide regression coverage for plugin discovery and config parsing.
 """
 
+import io
 import os
 import tempfile
 import unittest
-import io
 
 from pathlib import Path
 from queue import Queue
+from typing import Union
 from unittest.mock import patch
 
 from jsktoolbox.configtool import Config as ConfigTool
@@ -174,6 +175,146 @@ class TestLibsPlugins(unittest.TestCase):
 
             self.assertEqual(parsed["channel"], 9)
             self.assertEqual(parsed["stdout_prefix"], "[test]")
+
+    def test_02a_parser_should_read_value_from_alias_when_primary_name_is_missing(
+        self,
+    ) -> None:
+        """Use the first matching alias when the canonical field name is absent."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "plugin.conf"
+            cfg = ConfigTool(str(config_file), "plugin", auto_create=True)
+            cfg.set("plugin", varname="legacy_channel", value=11)
+            self.assertTrue(cfg.save())
+            self.assertTrue(cfg.load())
+
+            schema = PluginConfigSchema(
+                title="Alias parser test.",
+                fields=[
+                    PluginConfigField(
+                        name="channel",
+                        field_type=int,
+                        default=1,
+                        required=True,
+                        description="Channel number.",
+                        aliases=["legacy_channel"],
+                    )
+                ],
+            )
+
+            parsed = PluginConfigParser.parse(cfg, "plugin", schema)
+
+            self.assertEqual(parsed["channel"], 11)
+
+    def test_02b_parser_should_reject_missing_required_field(self) -> None:
+        """Raise `ValueError` when a required config field is missing."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "plugin.conf"
+            cfg = ConfigTool(str(config_file), "plugin", auto_create=True)
+            self.assertTrue(cfg.save())
+            self.assertTrue(cfg.load())
+
+            schema = PluginConfigSchema(
+                title="Missing field parser test.",
+                fields=[
+                    PluginConfigField(
+                        name="channel",
+                        field_type=int,
+                        default=None,
+                        required=True,
+                        description="Channel number.",
+                    )
+                ],
+            )
+
+            with self.assertRaises(ValueError):
+                PluginConfigParser.parse(cfg, "plugin", schema)
+
+    def test_02c_parser_should_reject_value_outside_declared_choices(self) -> None:
+        """Raise `ValueError` when the config value is outside allowed choices."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "plugin.conf"
+            cfg = ConfigTool(str(config_file), "plugin", auto_create=True)
+            cfg.set("plugin", varname="mode", value="invalid")
+            self.assertTrue(cfg.save())
+            self.assertTrue(cfg.load())
+
+            schema = PluginConfigSchema(
+                title="Choices parser test.",
+                fields=[
+                    PluginConfigField(
+                        name="mode",
+                        field_type=str,
+                        default="safe",
+                        required=True,
+                        description="Operating mode.",
+                        choices=["safe", "fast"],
+                    )
+                ],
+            )
+
+            with self.assertRaises(ValueError):
+                PluginConfigParser.parse(cfg, "plugin", schema)
+
+    def test_02d_parser_should_accept_nullable_field_with_none_default(self) -> None:
+        """Return `None` for a missing nullable field."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "plugin.conf"
+            cfg = ConfigTool(str(config_file), "plugin", auto_create=True)
+            self.assertTrue(cfg.save())
+            self.assertTrue(cfg.load())
+
+            schema = PluginConfigSchema(
+                title="Nullable parser test.",
+                fields=[
+                    PluginConfigField(
+                        name="description",
+                        field_type=str,
+                        default=None,
+                        required=False,
+                        description="Optional description.",
+                        nullable=True,
+                    )
+                ],
+            )
+
+            parsed = PluginConfigParser.parse(cfg, "plugin", schema)
+
+            self.assertIsNone(parsed["description"])
+
+    def test_02e_parser_should_validate_list_and_union_field_types(self) -> None:
+        """Accept declared `List` and `Union` field types."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "plugin.conf"
+            cfg = ConfigTool(str(config_file), "plugin", auto_create=True)
+            cfg.set("plugin", varname="channels", value=["a", "b"])
+            cfg.set("plugin", varname="retry_limit", value="5")
+            self.assertTrue(cfg.save())
+            self.assertTrue(cfg.load())
+
+            schema = PluginConfigSchema(
+                title="Type parser test.",
+                fields=[
+                    PluginConfigField(
+                        name="channels",
+                        field_type=list[str],
+                        default=[],
+                        required=True,
+                        description="Channel names.",
+                    ),
+                    PluginConfigField(
+                        name="retry_limit",
+                        field_type=Union[int, str],
+                        default=1,
+                        required=True,
+                        description="Retry limit value.",
+                    ),
+                ],
+            )
+
+            parsed = PluginConfigParser.parse(cfg, "plugin", schema)
+
+            self.assertEqual(parsed["channels"], ["a", "b"])
+            self.assertEqual(parsed["retry_limit"], "5")
 
     def test_03_loader_should_reject_plugin_without_entry_point(self) -> None:
         """Reject plugin directories that do not expose `get_plugin_spec()`."""
