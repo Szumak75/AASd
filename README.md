@@ -1,6 +1,6 @@
-# AASd
+# AASd v2
 
-Autonomous Administrative System daemon.
+Autonomous Administrative System daemon version 2.
 
 ## Purpose
 
