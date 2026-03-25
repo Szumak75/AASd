@@ -2,6 +2,7 @@
 
 ## 2.4.5-DEV
 
+- chore: regenerated `requirements.txt` from the current Poetry lock and refreshed the transitive `requests` pin to `2.33.0`
 - style: updated project guidelines to prefer `List[...]`, `Tuple[...]`, and `Dict[...]` over builtin generic aliases in type annotations
 - refactor: aligned remaining builtin generic collection annotations in project packages, examples, tests, and version metadata with the preferred typing style
 - docs: recorded the collection-typing style rule in `AGENTS.md`
