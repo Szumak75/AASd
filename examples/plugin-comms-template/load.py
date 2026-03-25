@@ -11,6 +11,7 @@ Purpose: Provide a starter `load.py` for standalone AASd communication plugins.
 from libs.plugins import PluginCommonKeys, PluginKind, PluginSpec
 from libs.templates import PluginConfigField, PluginConfigSchema
 
+from .plugin import __version__
 from .plugin.config import Keys
 from .plugin.runtime import CommsTemplateRuntime
 
@@ -53,6 +54,7 @@ def get_plugin_spec() -> PluginSpec:
         plugin_name="plugin_comms_template",
         runtime_factory=CommsTemplateRuntime,
         description="Starter AASd communication plugin template.",
+        plugin_version=__version__,
     )
 
 

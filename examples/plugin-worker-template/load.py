@@ -11,6 +11,7 @@ Purpose: Provide a starter `load.py` for standalone AASd worker plugins.
 from libs.plugins import PluginCommonKeys, PluginKind, PluginSpec
 from libs.templates import PluginConfigField, PluginConfigSchema
 
+from .plugin import __version__
 from .plugin.config import Keys
 from .plugin.runtime import WorkerTemplateRuntime
 
@@ -64,6 +65,7 @@ def get_plugin_spec() -> PluginSpec:
         plugin_name="plugin_worker_template",
         runtime_factory=WorkerTemplateRuntime,
         description="Starter AASd worker plugin template.",
+        plugin_version=__version__,
     )
 
 
