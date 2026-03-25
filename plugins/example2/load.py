@@ -253,7 +253,7 @@ def get_plugin_spec() -> PluginSpec:
             PluginConfigField(
                 name=PluginCommonKeys.CHANNEL,
                 field_type=int,
-                default=1,
+                default=100,
                 required=True,
                 description="Dispatcher channel consumed by the plugin.",
             ),

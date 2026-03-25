@@ -233,7 +233,7 @@ def get_plugin_spec() -> PluginSpec:
             PluginConfigField(
                 name=PluginCommonKeys.MESSAGE_CHANNEL,
                 field_type=list,
-                default=[1],
+                default=[100],
                 required=True,
                 description=(
                     "Interval-based notification targets, for example " "`[1, '2:6h']`."
