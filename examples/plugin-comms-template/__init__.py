@@ -1,0 +1,1 @@
+"""AASd communication plugin package."""
