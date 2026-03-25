@@ -45,6 +45,7 @@ Main application orchestrator.
 - initialize logging,
 - load configuration,
 - parse CLI arguments,
+- stop startup after automatic config creation or extension until an operator reviews the file,
 - start and stop plugin supervision,
 - handle process signals,
 - supervise plugin lifecycles through the registry service.
@@ -122,6 +123,7 @@ Main configuration service for the daemon.
 **Key behavior:**
 
 - creates the initial config file if missing,
+- tracks whether the daemon must stop for operator review after automatic config creation or extension,
 - exposes the absolute project directory that contains `aasd.py`,
 - scans plugin instances from `plugins_dir`,
 - reads plugin configuration schemas from plugin manifests,

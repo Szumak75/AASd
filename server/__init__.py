@@ -4,6 +4,6 @@ from typing import Tuple
 
 
 __author__ = "Jacek 'Szumak' Kotlarski"
-__version_info__: Tuple[int, int, int] = (2, 4, 5)
+__version_info__: Tuple[int, int, int] = (2, 4, 6)
 __suffix__: str = "-DEV"
 __version__: str = ".".join(map(str, __version_info__)) + __suffix__

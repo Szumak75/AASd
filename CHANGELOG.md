@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.4.6-DEV
+
+- fix: stop daemon startup after automatically creating or extending the configuration file so operators can review new defaults before runtime activation
+- fix: route password-update completion notices through the daemon logger and terminate after config mutation instead of continuing startup
+- test: added regression coverage for config-review flags, plugin section and option additions, and daemon startup suppression after review-required changes
+- docs: documented the mandatory review stop after automatic config creation and config extension
+- chore: bumped development version to `2.4.6-DEV`
+
 ## 2.4.5-DEV
 
 - chore: regenerated `requirements.txt` from the current Poetry lock and refreshed the transitive `requests` pin to `2.33.0`

@@ -13,7 +13,7 @@ from typing import List, Optional
 from unittest.mock import PropertyMock, patch
 
 from jsktoolbox.configtool import Config as ConfigTool
-from jsktoolbox.logstool import LoggerClient, LoggerQueue
+from jsktoolbox.logstool import LoggerClient, LoggerQueue, ThLoggerProcessor
 
 from libs import AppConfig, AppName, Keys
 from libs.plugins import (
@@ -203,12 +203,46 @@ class _CollectingLogger(object):
         self.infos.append(value)
 
 
+class _FakeLoggerProcessor(ThLoggerProcessor):
+    """Provide a minimal logger processor stub for daemon run tests."""
+
+    start_calls: int = 0
+    stop_calls: int = 0
+
+    # #[CONSTRUCTOR]##################################################################
+    def __init__(self) -> None:
+        """Initialize the fake logger processor."""
+        super().__init__()
+        self._is_stopped = True
+        self.start_calls = 0
+        self.stop_calls = 0
+
+    # #[PUBLIC METHODS]################################################################
+    def join(self) -> None:
+        """Satisfy the daemon shutdown loop."""
+        return None
+
+    def start(self) -> None:
+        """Mark the processor as running."""
+        self.start_calls += 1
+        self._is_stopped = False
+
+    def stop(self) -> None:
+        """Mark the processor as stopped."""
+        self.stop_calls += 1
+        self._is_stopped = True
+
+
 class TestServerDaemonPlugins(unittest.TestCase):
     """Cover daemon startup ordering for communication and worker plugins."""
 
-    def test_01_registry_should_start_communication_plugins_before_workers(self) -> None:
+    def test_01_registry_should_start_communication_plugins_before_workers(
+        self,
+    ) -> None:
         """Start communication plugins before worker plugins."""
-        cfg = ConfigTool(str(Path("/tmp/aasd-daemon-test.conf")), "AASd", auto_create=True)
+        cfg = ConfigTool(
+            str(Path("/tmp/aasd-daemon-test.conf")), "AASd", auto_create=True
+        )
         cfg.set("aasd", varname="debug", value=True)
         cfg.set("aasd", varname="verbose", value=False)
         order: List[str] = []
@@ -320,7 +354,9 @@ class TestServerDaemonPlugins(unittest.TestCase):
         self,
     ) -> None:
         """Keep starting unrelated plugins when one plugin fails initialize."""
-        cfg = ConfigTool(str(Path("/tmp/aasd-daemon-test.conf")), "AASd", auto_create=True)
+        cfg = ConfigTool(
+            str(Path("/tmp/aasd-daemon-test.conf")), "AASd", auto_create=True
+        )
         cfg.set("aasd", varname="debug", value=True)
         cfg.set("aasd", varname="verbose", value=False)
         order: List[str] = []
@@ -477,7 +513,9 @@ class TestServerDaemonPlugins(unittest.TestCase):
 
     def test_07_registry_should_keep_managed_runtime_after_start_failure(self) -> None:
         """Retain initialized runtimes for shutdown after a start failure."""
-        cfg = ConfigTool(str(Path("/tmp/aasd-daemon-test.conf")), "AASd", auto_create=True)
+        cfg = ConfigTool(
+            str(Path("/tmp/aasd-daemon-test.conf")), "AASd", auto_create=True
+        )
         cfg.set("aasd", varname="debug", value=False)
         cfg.set("aasd", varname="verbose", value=False)
         schema = PluginConfigSchema(
@@ -536,6 +574,39 @@ class TestServerDaemonPlugins(unittest.TestCase):
 
         PluginRegistryService.stop(report=report, logs=logs)  # type: ignore[arg-type]
         self.assertGreaterEqual(runtime.stop_calls, 2)
+
+    def test_08_run_should_skip_subsystems_when_start_is_stopped_for_review(
+        self,
+    ) -> None:
+        """Do not start plugin subsystems when config review stops the daemon."""
+        obj = AASd.__new__(AASd)
+        obj.logs = LoggerClient(queue=LoggerQueue(), name="AASd")
+        obj.logs_processor = _FakeLoggerProcessor()  # type: ignore[assignment]
+        obj.hup = False
+        obj.loop = False
+        obj._set_data(
+            key=Keys.CONF, value=AppConfig(qlog=LoggerQueue(), app_name="AASd")
+        )
+
+        with patch.object(
+            AASd,
+            "_AASd__start_subsystem",
+            side_effect=AssertionError("subsystem start must not be called"),
+        ) as start_mock, patch.object(
+            AASd,
+            "_AASd__stop_subsystem",
+            return_value=None,
+        ) as stop_mock, patch(
+            "server.daemon.time.sleep", return_value=None
+        ):
+            with self.assertRaises(SystemExit) as exit_ctx:
+                obj.run()
+
+        self.assertEqual(exit_ctx.exception.code, 0)
+        self.assertEqual(obj.logs_processor.start_calls, 1)
+        self.assertEqual(obj.logs_processor.stop_calls, 1)
+        start_mock.assert_not_called()
+        stop_mock.assert_not_called()
 
 
 # #[EOF]#######################################################################

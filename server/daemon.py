@@ -107,13 +107,16 @@ class AASd(ProjectClassMixin):
         if not self.conf.load():
             self.logs.message_critical = "cannot load config file"
             self.loop = False
+        elif self.conf.config_review_required:
+            self.__notify_config_review_required()
+            self.loop = False
 
         # check single run options
         # password
-        if self.conf.password:
-            print("Receive password encoder options.")
+        if self.loop and self.conf.password:
+            self.logs.message_notice = "running password update mode"
             self.__password_encoding()
-            sys.exit(0)
+            self.loop = False
 
         # update debug
         thl._debug = self.conf.debug
@@ -215,28 +218,38 @@ class AASd(ProjectClassMixin):
     # #[PUBLIC METHODS]################################################################
     def run(self) -> None:
         """Run the daemon main loop until shutdown is requested."""
+        report: PluginServiceReport = PluginServiceReport()
         if self.conf is None:
-            return None
+            sys.exit(0)
         # logger processor
         self.logs_processor.start()
 
-        report: PluginServiceReport = self.__start_subsystem()
+        if self.loop:
+            report = self.__start_subsystem()
 
         # main loop
-        self.logs.message_info = "entering to the main loop"
-        while self.loop:
-            if self.hup:
-                # reload configuration and restart subsystems
-                self.__stop_subsystem(report)
-                self.hup = False
-                if not self.conf.load():
-                    # critical message
-                    self.logs.message_critical = "cannot reload config file"
-                    self.loop = False
-                report = self.__start_subsystem()
-            time.sleep(0.5)
+        if self.loop:
+            self.logs.message_info = "entering to the main loop"
+            while self.loop:
+                if self.hup:
+                    # reload configuration and restart subsystems
+                    self.__stop_subsystem(report)
+                    self.hup = False
+                    if not self.conf.load():
+                        # critical message
+                        self.logs.message_critical = "cannot reload config file"
+                        self.loop = False
+                    elif self.conf.config_review_required:
+                        self.__notify_config_review_required()
+                        self.loop = False
+                    if self.loop:
+                        report = self.__start_subsystem()
+                    else:
+                        report = PluginServiceReport()
+                time.sleep(0.5)
 
-        self.__stop_subsystem(report)
+        if report.managed_runtimes or report.started or report.failed or report.skipped:
+            self.__stop_subsystem(report)
 
         # logger processor
         self.logs_processor.stop()
@@ -529,9 +542,28 @@ class AASd(ProjectClassMixin):
                 self.conf._password_section, self.conf._password_varname, encrypt
             )
             if self.conf.save():
-                print(f'Config file "{self.conf.config_file}" updated.')
+                self.logs.message_notice = (
+                    f"configuration file '{self.conf.config_file}' updated with "
+                    f"an encrypted value for "
+                    f"[{self.conf._password_section}].{self.conf._password_varname}; "
+                    "review and verify the configuration before starting the "
+                    "daemon again."
+                )
             else:
-                print(f"Error updating config file.")
+                self.logs.message_critical = "cannot update config file."
+
+    def __notify_config_review_required(self) -> None:
+        """Log the pending operator review request for the config file."""
+        if self.conf is None:
+            return None
+        message: Optional[str] = self.conf.config_review_message
+        if message is None:
+            message = (
+                f"configuration file '{self.conf.config_file}' was updated "
+                "automatically; review and adjust it for the target "
+                "environment before starting the daemon again."
+            )
+        self.logs.message_notice = message
 
     def __sig_exit(self, signum: int, frame: Any) -> None:
         """Handle `SIGTERM` and `SIGINT` by requesting daemon shutdown.

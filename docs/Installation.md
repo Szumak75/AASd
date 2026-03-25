@@ -107,7 +107,13 @@ refreshed before preparing a production deployment.
 
 ## Generating a configuration file
 
-A non-existent configuration file will be generated automatically the first time you run the program.
+A non-existent configuration file will be generated automatically the first time
+you run the program.
+
+When the daemon creates a new config file or extends an existing one with new
+default sections or options, it logs a review notice and exits cleanly instead
+of starting the runtime. This keeps the first start and plugin-schema refresh
+under operator control even when some defaults are already valid.
 
 The location of the configuration file for a STABLE or RELEASE project is '/etc/aasd.conf'\
 For DEVEL version: '/var/tmp/aasd.conf'
@@ -123,13 +129,7 @@ For DEVEL version: '/var/tmp/aasd.conf'
 [AASd->DEBUG]: [Config] try to load config file: '/etc/aasd.conf'...
 [AASd->DEBUG]: [Config] config file loaded successful
 [AASd]: [Config] list of plugin instances to load: ['example1', 'example2']
-[AASd->DEBUG]: [ThLoggerProcessor] Start.
-[AASd]: starting...
-[AASd->DEBUG]: [ThDispatcher] entering to the main loop
-[AASd]: entering to the main loop
-^C[AASd->DEBUG]: TERM or INT signal received.
-[AASd->DEBUG]: [ThDispatcher] stop signal received
-[AASd->DEBUG]: [ThDispatcher] exit from loop
+[AASd->NOTICE]: new configuration file '/etc/aasd.conf' created; review and adjust it for the target environment before starting the daemon again.
 [AASd->DEBUG]: [ThLoggerProcessor] stopping...
 [AASd->DEBUG]: [ThLoggerProcessor] Stop.
 ```
@@ -151,7 +151,10 @@ command line with `-P`.
 ```
 
 If `plugins_dir` is missing in an older configuration file, the same update mode
-adds it with the default value `./plugins`.
+adds it with the default value `./plugins`. When `-U` adds a previously missing
+option or plugin entry, the daemon logs a review notice and exits so the
+updated configuration can be verified before the next start. Updating an
+existing `plugins_dir` value does not trigger that review stop by itself.
 
 ## Password encryption
 
@@ -166,9 +169,9 @@ For example, to update a password-like variable inside a plugin instance section
 
 ```
 % ./aasd.py -p --section=example2 --varname=smtp_pass
-Receive password encoder options.
 Enter password: Qwerty12
-Config file "/etc/aasd.conf" updated.
+[AASd->NOTICE]: running password update mode
+[AASd->NOTICE]: configuration file '/etc/aasd.conf' updated with an encrypted value for [example2].smtp_pass; review and verify the configuration before starting the daemon again.
 ```
 
 As a result of executing this command, the `smtp_pass` variable will be assigned an encoded string of characters:

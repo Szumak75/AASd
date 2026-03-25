@@ -53,6 +53,54 @@ class TestAppConfig(unittest.TestCase):
             cfg.set("aasd", varname="plugins_dir", value="./plugins")
         self.assertTrue(cfg.save())
 
+    def __write_test_plugin(self, plugin_dir: Path) -> None:
+        """Write a simple plugin manifest for config-render tests.
+
+        ### Arguments:
+        * plugin_dir: Path - Target plugin directory path.
+        """
+        plugin_dir.mkdir()
+        (plugin_dir / "load.py").write_text(
+            "\n".join(
+                [
+                    "from libs.plugins import PluginKind, PluginSpec",
+                    "from libs.templates import PluginConfigField, PluginConfigSchema",
+                    "",
+                    "def _runtime(_context):",
+                    "    class Runtime(object):",
+                    "        def start(self):",
+                    "            return None",
+                    "        def stop(self):",
+                    "            return None",
+                    "        def is_stopped(self):",
+                    "            return True",
+                    "    return Runtime()",
+                    "",
+                    "def get_plugin_spec():",
+                    "    return PluginSpec(",
+                    "        api_version=1,",
+                    "        config_schema=PluginConfigSchema(",
+                    "            title='Sample plugin.',",
+                    "            fields=[",
+                    "                PluginConfigField(",
+                    "                    name='channel',",
+                    "                    field_type=int,",
+                    "                    default=3,",
+                    "                    required=True,",
+                    "                    description='Sample channel.',",
+                    "                )",
+                    "            ],",
+                    "        ),",
+                    "        plugin_id='sample.plugin',",
+                    "        plugin_kind=PluginKind.WORKER,",
+                    "        plugin_name='sample_plugin',",
+                    "        runtime_factory=_runtime,",
+                    "    )",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
     # #[PUBLIC METHODS]################################################################
     def test_01_should_update_existing_plugins_dir_only_in_update_mode(self) -> None:
         """Persist `plugins_dir` for an existing file only when update mode is enabled."""
@@ -63,6 +111,8 @@ class TestAppConfig(unittest.TestCase):
             obj = self.__build_config(config_file)
             obj.plugins_dir = "/tmp/plugins-new"
             self.assertTrue(obj.load())
+            self.assertFalse(obj.config_review_required)
+            self.assertIsNone(obj.config_review_message)
 
             check_cfg = ConfigTool(str(config_file), "AASd")
             self.assertTrue(check_cfg.load())
@@ -74,6 +124,8 @@ class TestAppConfig(unittest.TestCase):
             obj.plugins_dir = "/tmp/plugins-new"
             obj.update = True
             self.assertTrue(obj.load())
+            self.assertFalse(obj.config_review_required)
+            self.assertIsNone(obj.config_review_message)
 
             check_cfg = ConfigTool(str(config_file), "AASd")
             self.assertTrue(check_cfg.load())
@@ -90,6 +142,9 @@ class TestAppConfig(unittest.TestCase):
             obj = self.__build_config(config_file)
             obj.update = True
             self.assertTrue(obj.load())
+            self.assertTrue(obj.config_review_required)
+            self.assertIsNotNone(obj.config_review_message)
+            self.assertIn("[aasd].plugins_dir", obj.config_review_message or "")
 
             check_cfg = ConfigTool(str(config_file), "AASd")
             self.assertTrue(check_cfg.load())
@@ -114,66 +169,77 @@ class TestAppConfig(unittest.TestCase):
             config_file = Path(tmp_dir) / "aasd.conf"
             plugins_dir = Path(tmp_dir) / "plugins"
             plugins_dir.mkdir()
-            plugin_dir = plugins_dir / "sample_plugin"
-            plugin_dir.mkdir()
-            (plugin_dir / "load.py").write_text(
-                "\n".join(
-                    [
-                        "from libs.plugins import PluginKind, PluginSpec",
-                        "from libs.templates import PluginConfigField, PluginConfigSchema",
-                        "",
-                        "def _runtime(_context):",
-                        "    class Runtime(object):",
-                        "        def start(self):",
-                        "            return None",
-                        "        def stop(self):",
-                        "            return None",
-                        "        def is_stopped(self):",
-                        "            return True",
-                        "    return Runtime()",
-                        "",
-                        "def get_plugin_spec():",
-                        "    return PluginSpec(",
-                        "        api_version=1,",
-                        "        config_schema=PluginConfigSchema(",
-                        "            title='Sample plugin.',",
-                        "            fields=[",
-                        "                PluginConfigField(",
-                        "                    name='channel',",
-                        "                    field_type=int,",
-                        "                    default=3,",
-                        "                    required=True,",
-                        "                    description='Sample channel.',",
-                        "                )",
-                        "            ],",
-                        "        ),",
-                        "        plugin_id='sample.plugin',",
-                        "        plugin_kind=PluginKind.WORKER,",
-                        "        plugin_name='sample_plugin',",
-                        "        runtime_factory=_runtime,",
-                        "    )",
-                    ]
-                ),
-                encoding="utf-8",
-            )
+            self.__write_test_plugin(plugins_dir / "sample_plugin")
 
             obj = self.__build_config(config_file)
             obj.plugins_dir = str(plugins_dir)
 
             self.assertTrue(obj.load())
+            self.assertTrue(obj.config_review_required)
+            self.assertIsNotNone(obj.config_review_message)
+            self.assertIn("new configuration file", obj.config_review_message or "")
 
             check_cfg = ConfigTool(str(config_file), "AASd")
             self.assertTrue(check_cfg.load())
             self.assertTrue(check_cfg.has_section("sample_plugin"))
             self.assertEqual(check_cfg.get("sample_plugin", "channel"), 3)
 
-    def test_05_should_return_empty_plugin_list_when_plugins_dir_is_not_set(self) -> None:
+    def test_05_should_flag_review_when_missing_plugin_section_is_added(self) -> None:
+        """Request operator review after adding a new plugin section."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "aasd.conf"
+            plugins_dir = Path(tmp_dir) / "plugins"
+            plugins_dir.mkdir()
+            self.__prepare_existing_file(config_file, with_plugins_dir=True)
+            self.__write_test_plugin(plugins_dir / "sample_plugin")
+
+            obj = self.__build_config(config_file)
+            obj.plugins_dir = str(plugins_dir)
+
+            self.assertTrue(obj.load())
+            self.assertTrue(obj.config_review_required)
+            self.assertIsNotNone(obj.config_review_message)
+            self.assertIn("[sample_plugin]", obj.config_review_message or "")
+
+            check_cfg = ConfigTool(str(config_file), "AASd")
+            self.assertTrue(check_cfg.load())
+            self.assertTrue(check_cfg.has_section("sample_plugin"))
+            self.assertEqual(check_cfg.get("sample_plugin", "channel"), 3)
+
+    def test_06_should_flag_review_when_missing_plugin_option_is_added(self) -> None:
+        """Request operator review after adding a new plugin option."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "aasd.conf"
+            plugins_dir = Path(tmp_dir) / "plugins"
+            plugins_dir.mkdir()
+            self.__prepare_existing_file(config_file, with_plugins_dir=True)
+            self.__write_test_plugin(plugins_dir / "sample_plugin")
+
+            cfg = ConfigTool(str(config_file), "AASd", auto_create=True)
+            cfg.set("sample_plugin", desc="Sample plugin.")
+            self.assertTrue(cfg.save())
+
+            obj = self.__build_config(config_file)
+            obj.plugins_dir = str(plugins_dir)
+
+            self.assertTrue(obj.load())
+            self.assertTrue(obj.config_review_required)
+            self.assertIsNotNone(obj.config_review_message)
+            self.assertIn("[sample_plugin].channel", obj.config_review_message or "")
+
+            check_cfg = ConfigTool(str(config_file), "AASd")
+            self.assertTrue(check_cfg.load())
+            self.assertEqual(check_cfg.get("sample_plugin", "channel"), 3)
+
+    def test_07_should_return_empty_plugin_list_when_plugins_dir_is_not_set(
+        self,
+    ) -> None:
         """Return an empty list when no plugins directory is configured."""
         obj = self.__build_config(Path("/tmp/unused.conf"))
 
         self.assertEqual(obj.get_plugins, [])
 
-    def test_06_should_return_empty_plugin_list_when_discovery_raises(self) -> None:
+    def test_08_should_return_empty_plugin_list_when_discovery_raises(self) -> None:
         """Return an empty list when plugin discovery fails."""
         obj = self.__build_config(Path("/tmp/unused.conf"))
         obj.plugins_dir = "/tmp/nonexistent"
@@ -181,7 +247,7 @@ class TestAppConfig(unittest.TestCase):
         with patch("libs.conf.PluginLoader.discover", side_effect=RuntimeError("boom")):
             self.assertEqual(obj.get_plugins, [])
 
-    def test_07_should_read_debug_and_verbose_from_loaded_main_section(self) -> None:
+    def test_09_should_read_debug_and_verbose_from_loaded_main_section(self) -> None:
         """Read effective debug and verbose flags from the main config section."""
         with tempfile.TemporaryDirectory() as tmp_dir:
             config_file = Path(tmp_dir) / "aasd.conf"

@@ -12,7 +12,7 @@ import socket
 
 from inspect import currentframe
 from pathlib import Path
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Tuple
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.raisetool import Raise
@@ -41,6 +41,8 @@ class _Keys(object, metaclass=ReadOnlyClass):
     APP_NAME: str = "__app_name__"
     CF: str = "__cf__"
     CONF_FILE: str = "__CONF_FILE__"
+    CONF_REVIEW_MESSAGE: str = "__config_review_message__"
+    CONF_REVIEW_REQUIRED: str = "__config_review_required__"
     CONF_UPDATE: str = "__config_update__"
     DEBUG: str = "__DEBUG__"
     MAIN: str = "__MAIN__"
@@ -179,6 +181,34 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
         * value: str - Configuration file path.
         """
         self.__main._set_data(key=_Keys.CONF_FILE, value=value, set_default_type=str)
+
+    @property
+    def config_review_message(self) -> Optional[str]:
+        """Return the operator-facing config review message.
+
+        ### Returns:
+        Optional[str] - Pending config review message or `None`.
+        """
+        return self.__main._get_data(key=_Keys.CONF_REVIEW_MESSAGE, default_value=None)
+
+    @property
+    def config_review_required(self) -> bool:
+        """Return whether the daemon should stop for config review.
+
+        ### Returns:
+        bool - `True` when configuration changes require operator review.
+        """
+        obj: Optional[bool] = self.__main._get_data(
+            key=_Keys.CONF_REVIEW_REQUIRED, default_value=None
+        )
+        if obj is None:
+            self.__main._set_data(
+                key=_Keys.CONF_REVIEW_REQUIRED,
+                value=False,
+                set_default_type=bool,
+            )
+            return False
+        return obj
 
     @property
     def debug(self) -> bool:
@@ -447,10 +477,13 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
                 f"config file: {self.config_file}, section:{self._section}"
             )
             return False
+        self.__clear_config_review_state()
         if self._cfh is None:
             config = ConfigTool(self.config_file, self._section)
             self._cfh = config
-            self._set_data(key=_Keys.MAIN_CONF, value=_MainConfig(config, self._section))
+            self._set_data(
+                key=_Keys.MAIN_CONF, value=_MainConfig(config, self._section)
+            )
             if not config.file_exists:
                 self.logs.message_warning = (
                     f"config file '{self.config_file}' does not exist"
@@ -458,6 +491,13 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
                 self.logs.message_warning = "try to create default one"
                 if not self.__create_config_file():
                     return False
+                self.__mark_config_review_required(
+                    message=(
+                        f"new configuration file '{self.config_file}' created; "
+                        "review and adjust it for the target environment before "
+                        "starting the daemon again."
+                    )
+                )
         try:
             if self.debug:
                 self.logs.message_debug = (
@@ -469,14 +509,23 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
                     self.logs.message_debug = "config file loaded successful"
                 discovered_plugins: List[PluginDefinition] = self.get_plugins
                 if discovered_plugins:
-                    self.logs.message_info = (
-                        f"list of plugin instances to load: {[item.instance_name for item in discovered_plugins]}"
-                    )
-            if self.__check_plugin_config_updates():
+                    self.logs.message_info = f"list of plugin instances to load: {[item.instance_name for item in discovered_plugins]}"
+            config_changed, review_items = self.__check_plugin_config_updates()
+            if config_changed:
                 if self.debug:
                     self.logs.message_debug = "found new plugin configuration"
                 if not self._cfh.save():
                     self.logs.message_critical = "cannot update config file."
+                    return False
+                if review_items:
+                    self.__mark_config_review_required(
+                        message=(
+                            f"configuration file '{self.config_file}' updated with "
+                            f"new default entries: {', '.join(review_items)}; "
+                            "review and adjust the configuration for the target "
+                            "environment before starting the daemon again."
+                        )
+                    )
             return out
         except Exception as ex:
             self.logs.message_critical = (
@@ -510,21 +559,73 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
         return False
 
     # #[PRIVATE METHODS]##############################################################
-    def __check_plugin_config_updates(self) -> bool:
+    def __check_main_config_updates(self) -> Tuple[bool, List[str]]:
+        """Update selected main-section values during config refresh.
+
+        Only `plugins_dir` is allowed to be updated on an existing main section.
+        The rest of the daemon-level settings keep the existing manual-edit policy.
+
+        ### Returns:
+        Tuple[bool, List[str]] - Save requirement flag and operator-review items.
+        """
+        if self._cfh is None or self.app_name is None or not self.update:
+            return (False, [])
+
+        target_section: str = self.app_name.lower()
+        plugins_dir: Optional[str] = self.plugins_dir
+        if not self._cfh.has_varname(target_section, _Keys.MC_PLUGINS_DIR):
+            self._cfh.set(
+                target_section,
+                varname=_Keys.MC_PLUGINS_DIR,
+                value=plugins_dir or f"{self.get_app_dir}/plugins",
+                desc="path to the plugins directory",
+            )
+            if self.debug:
+                self.logs.message_debug = (
+                    f"add main section variable '{_Keys.MC_PLUGINS_DIR}'"
+                )
+            return (True, [f"[{target_section}].{_Keys.MC_PLUGINS_DIR}"])
+
+        if plugins_dir is None:
+            return (False, [])
+
+        current_plugins_dir: Optional[str] = self._cfh.get(
+            target_section, _Keys.MC_PLUGINS_DIR
+        )
+        if current_plugins_dir == plugins_dir:
+            return (False, [])
+
+        self._cfh.set(
+            target_section,
+            varname=_Keys.MC_PLUGINS_DIR,
+            value=plugins_dir,
+            desc="path to the plugins directory",
+        )
+        if self.debug:
+            self.logs.message_debug = (
+                f"update main section variable '{_Keys.MC_PLUGINS_DIR}'"
+            )
+        return (True, [])
+
+    def __check_plugin_config_updates(self) -> Tuple[bool, List[str]]:
         """Ensure that discovered plugin instances have all required config entries.
 
         ### Returns:
-        bool - `True` when the configuration file requires an update.
+        Tuple[bool, List[str]] - Save requirement flag and operator-review items.
         """
-        test = False
+        save_required: bool = False
+        review_items: List[str] = []
         if self._cfh is None:
-            return False
-        if self.__check_main_config_updates():
-            test = True
+            return (False, [])
+        main_save_required, main_review_items = self.__check_main_config_updates()
+        if main_save_required:
+            save_required = True
+        review_items.extend(main_review_items)
         plugin_config = self.__get_plugins_config()
         for name in plugin_config:
             if not self._cfh.has_section(name):
-                test = True
+                save_required = True
+                review_items.append(f"[{name}]")
                 for item in plugin_config[name]:
                     tci: TemplateConfigItem = item
                     self._cfh.set(
@@ -541,7 +642,8 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
             for item in plugin_config[name]:
                 tci: TemplateConfigItem = item
                 if tci.varname and not self._cfh.has_varname(name, tci.varname):
-                    test = True
+                    save_required = True
+                    review_items.append(f"[{name}].{tci.varname}")
                     self._cfh.set(
                         name,
                         varname=tci.varname,
@@ -553,38 +655,18 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
                             f"add default new variable '{tci.varname}' "
                             f"to plugin section: [{name}]"
                         )
-        return test
+        return (save_required, review_items)
 
-    def __check_main_config_updates(self) -> bool:
-        """Update selected main-section values during config refresh.
-
-        Only `plugins_dir` is allowed to be updated on an existing main section.
-        The rest of the daemon-level settings keep the existing manual-edit policy.
-
-        ### Returns:
-        bool - `True` when the main section was modified.
-        """
-        if self._cfh is None or self.app_name is None or not self.update:
-            return False
-
-        target_section: str = self.app_name.lower()
-        plugins_dir: Optional[str] = self.plugins_dir
-        if plugins_dir is None and self._cfh.has_varname(
-            target_section, _Keys.MC_PLUGINS_DIR
-        ):
-            return False
-
-        self._cfh.set(
-            target_section,
-            varname=_Keys.MC_PLUGINS_DIR,
-            value=plugins_dir or f"{self.get_app_dir}/plugins",
-            desc="path to the plugins directory",
+    def __clear_config_review_state(self) -> None:
+        """Reset the operator-review state before loading config."""
+        self.__main._set_data(
+            key=_Keys.CONF_REVIEW_REQUIRED, value=False, set_default_type=bool
         )
-        if self.debug:
-            self.logs.message_debug = (
-                f"update main section variable '{_Keys.MC_PLUGINS_DIR}'"
-            )
-        return True
+        self.__main._set_data(
+            key=_Keys.CONF_REVIEW_MESSAGE,
+            value=None,
+            set_default_type=Optional[str],
+        )
 
     def __create_config_file(self) -> bool:
         """Create a default configuration file using discovered plugin templates.
@@ -638,6 +720,21 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
             if self.debug:
                 self.logs.message_debug = f"{ex}"
             return False
+
+    def __mark_config_review_required(self, message: str) -> None:
+        """Store an operator-facing config review request.
+
+        ### Arguments:
+        * message: str - Review message to expose to the daemon.
+        """
+        self.__main._set_data(
+            key=_Keys.CONF_REVIEW_REQUIRED, value=True, set_default_type=bool
+        )
+        self.__main._set_data(
+            key=_Keys.CONF_REVIEW_MESSAGE,
+            value=message,
+            set_default_type=Optional[str],
+        )
 
     def __get_plugins_config(self) -> Dict[str, List[TemplateConfigItem]]:
         """Collect rendered config rows for discovered plugin instances.

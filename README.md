@@ -57,6 +57,11 @@ pip install -r requirements.txt
 `requirements.txt` is treated as the deployment artifact generated from the
 current Poetry runtime lock set.
 
+At first startup, or after the daemon discovers new configuration sections or
+options, AASd writes the missing defaults to the config file, logs an operator
+review notice, and exits cleanly. Runtime startup resumes only after the
+operator reviews the updated configuration and launches the daemon again.
+
 ## Table of contents
 
 1. [Installation](https://github.com/Szumak75/AASd/blob/master/docs/Installation.md)
