@@ -8,10 +8,13 @@ Provide a practical checklist for implementing new plugins against the current
 
 - Create one plugin instance directory under `plugins_dir`.
 - Expose `load.py` at the plugin root.
+- Add a repository-level `__init__.py` when plugin-local tooling benefits from
+  regular package semantics.
 - Export `get_plugin_spec() -> PluginSpec`.
 - Keep plugin-local helper modules under a plugin-owned subdirectory when the
   implementation grows beyond `load.py`.
 - Keep plugin quick-start and configuration guidance in the plugin `README.md`.
+- Keep plugin-local release history in `CHANGELOG.md`.
 - Add a plugin-local `docs/` directory when architecture or operational
   documentation grows beyond the `README.md`.
 
@@ -67,6 +70,8 @@ Provide a practical checklist for implementing new plugins against the current
   worker-plugin notification targets.
 - Use `at_channel` when a worker needs cron-like emission windows.
 - Keep plugin-specific secrets and variables inside the plugin schema.
+- If a plugin stores reversible secrets such as SMTP credentials, document the
+  encoding and decoding rules in the plugin-local README and operational notes.
 - Treat each config section as one plugin instance.
 - Do not infer routing or peers from `plugin_id`, paths, or class names.
 
@@ -75,6 +80,7 @@ Provide a practical checklist for implementing new plugins against the current
 - `poetry run pytest`
 - keep plugin-specific runtime tests in the plugin repository; reserve
   `AASd/tests/` for host contracts and bundled reference plugins
+- keep plugin-local test entry points documented in the plugin `README.md`
 - keep plugin-specific architecture and operational documentation in the plugin
   repository; reserve `AASd/docs/` for host contracts, integration rules, and
   bundled reference plugins

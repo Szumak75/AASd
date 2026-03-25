@@ -164,7 +164,7 @@ class PluginRegistryService(BClasses):
             else:
                 worker_plugins.append(plugin)
 
-        initialized_plugins: List[tuple[PluginDefinition, PluginRuntime]] = []
+        initialized_plugins: List[Tuple[PluginDefinition, PluginRuntime]] = []
         ordered_plugins: List[PluginDefinition] = comm_plugins + worker_plugins
         for plugin in ordered_plugins:
             try:

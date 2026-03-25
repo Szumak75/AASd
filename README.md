@@ -25,6 +25,10 @@ The current architecture is plugin-based:
 - worker-side notification timing is handled by shared plugin helpers, not by the daemon,
 - communication plugins consume routed messages from configured channels.
 
+Standalone plugins may keep their own tests, changelog, and operational
+documentation inside the mounted plugin repository. The local `plugins/email/`
+repository is an example of that model.
+
 The daemon must not assume direct plugin-to-plugin communication. Message
 routing is valid only when the user defines matching channel rules in the
 configuration file.

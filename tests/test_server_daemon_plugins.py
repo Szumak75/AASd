@@ -9,6 +9,7 @@ Purpose: Provide regression coverage for plugin startup ordering in the daemon.
 import unittest
 
 from pathlib import Path
+from typing import List, Optional
 from unittest.mock import PropertyMock, patch
 
 from jsktoolbox.configtool import Config as ConfigTool
@@ -37,11 +38,11 @@ class _FakeRuntime(object):
     """Track plugin startup order without starting real threads."""
 
     # #[CONSTRUCTOR]##################################################################
-    def __init__(self, bucket: list[str], name: str) -> None:
+    def __init__(self, bucket: List[str], name: str) -> None:
         """Initialize the fake runtime tracker.
 
         ### Arguments:
-        * bucket: list[str] - Shared startup order collector.
+        * bucket: List[str] - Shared startup order collector.
         * name: str - Plugin instance name.
         """
         self._bucket = bucket
@@ -82,8 +83,9 @@ class _FakeRuntime(object):
         """
         return PluginStateSnapshot(state=self._state)
 
-    def stop(self, timeout: float | None = None) -> None:
+    def stop(self, timeout: Optional[float] = None) -> None:
         """Mark the runtime as stopped."""
+        del timeout
         self.stop_calls += 1
         self._state = PluginState.STOPPED
         self._stopped = True
@@ -119,8 +121,8 @@ class _CollectingLogger(object):
     # #[CONSTRUCTOR]################################################################
     def __init__(self) -> None:
         """Initialize the collecting logger."""
-        self.infos: list[str] = []
-        self.warnings: list[str] = []
+        self.infos: List[str] = []
+        self.warnings: List[str] = []
         self.logs_queue = LoggerQueue()
 
     # #[PUBLIC PROPERTIES]##########################################################
@@ -209,7 +211,7 @@ class TestServerDaemonPlugins(unittest.TestCase):
         cfg = ConfigTool(str(Path("/tmp/aasd-daemon-test.conf")), "AASd", auto_create=True)
         cfg.set("aasd", varname="debug", value=True)
         cfg.set("aasd", varname="verbose", value=False)
-        order: list[str] = []
+        order: List[str] = []
         schema = PluginConfigSchema(
             title="Test plugin.",
             fields=[
@@ -321,7 +323,7 @@ class TestServerDaemonPlugins(unittest.TestCase):
         cfg = ConfigTool(str(Path("/tmp/aasd-daemon-test.conf")), "AASd", auto_create=True)
         cfg.set("aasd", varname="debug", value=True)
         cfg.set("aasd", varname="verbose", value=False)
-        order: list[str] = []
+        order: List[str] = []
         schema = PluginConfigSchema(
             title="Test plugin.",
             fields=[

@@ -1,9 +1,9 @@
 """Plugin runtime package with lazy exports."""
 
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Dict, Final, List
 
-__all__: list[str] = [
+__all__: List[str] = [
     "DispatcherAdapter",
     "NotificationScheduler",
     "PluginHealth",
@@ -28,7 +28,7 @@ __all__: list[str] = [
     "ThPluginMixin",
 ]
 
-_EXPORTS: Final[dict[str, str]] = {
+_EXPORTS: Final[Dict[str, str]] = {
     "DispatcherAdapter": "libs.plugins.runtime",
     "NotificationScheduler": "libs.com.message",
     "PluginHealth": "libs.plugins.runtime",
@@ -80,11 +80,11 @@ if TYPE_CHECKING:
     )
 
 
-def __dir__() -> list[str]:
+def __dir__() -> List[str]:
     """Return package attributes including lazy exports.
 
     ### Returns:
-    list[str] - Sorted package attribute names.
+    List[str] - Sorted package attribute names.
     """
     return sorted(set(globals()) | set(__all__))
 

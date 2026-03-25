@@ -1,15 +1,15 @@
 """Shared project libraries package with lazy exports."""
 
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Dict, Final, List
 
-__all__: list[str] = [
+__all__: List[str] = [
     "AppConfig",
     "AppName",
     "Keys",
 ]
 
-_EXPORTS: Final[dict[str, str]] = {
+_EXPORTS: Final[Dict[str, str]] = {
     "AppConfig": "libs.conf",
     "AppName": "libs.app",
     "Keys": "libs.keys",
@@ -21,11 +21,11 @@ if TYPE_CHECKING:
     from libs.keys import Keys
 
 
-def __dir__() -> list[str]:
+def __dir__() -> List[str]:
     """Return package attributes including lazy exports.
 
     ### Returns:
-    list[str] - Sorted package attribute names.
+    List[str] - Sorted package attribute names.
     """
     return sorted(set(globals()) | set(__all__))
 

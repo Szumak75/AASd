@@ -65,8 +65,10 @@ Recommended minimal plugin repository:
 
 ```text
 aasd-plugin-mail/
+  __init__.py
   load.py
   README.md
+  CHANGELOG.md
   requirements.txt
   docs/
   plugin/
@@ -84,12 +86,17 @@ A starter skeleton following this layout is available in:
 Rules:
 
 - `load.py` is the daemon entry point,
+- a repository-level `__init__.py` is recommended when static-analysis tools
+  should treat the mounted plugin as a regular package,
 - `load.py` and plugin-owned modules should use package-relative imports such as
   `from .plugin.runtime import Runtime`,
 - plugin-specific logic may be moved to subpackages owned by the plugin,
 - plugin tests should live in the plugin repository,
+- plugin-local tests should usually be placed under `tests/` inside the plugin
+  repository and executed independently from the AASd host test suite,
 - plugin quick-start and configuration notes should live in the plugin
   `README.md`,
+- plugin-local release history should live in the plugin `CHANGELOG.md`,
 - plugin-specific architecture, operational notes, and extended design
   documents should live in the plugin-local `docs/` directory when the
   `README.md` is no longer enough,
@@ -206,6 +213,14 @@ Recommended plugin versioning rules:
 - feed `PluginSpec.plugin_version` from that package-level version constant
   instead of hard-coding the version string in `load.py`,
 - keep a plugin-local `CHANGELOG.md` in the plugin repository.
+
+The standalone `plugins/email/` repository in this workspace follows the same
+model:
+
+- its runtime-visible version is exposed from `plugin/__init__.py`,
+- its release notes are tracked in `plugins/email/CHANGELOG.md`,
+- its unit tests live in `plugins/email/tests/`,
+- its operational quick-start notes live in `plugins/email/README.md`.
 
 ## Development Workflow
 

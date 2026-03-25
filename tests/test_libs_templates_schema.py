@@ -7,6 +7,7 @@
 """
 
 import unittest
+from typing import List
 
 from libs.templates import (
     PluginConfigField,
@@ -23,7 +24,7 @@ class TestLibsTemplatesSchema(unittest.TestCase):
         """Test nr 01."""
         field = PluginConfigField(
             name="message_channel",
-            field_type=list[str],
+            field_type=List[str],
             default=["1"],
             required=True,
             description="Dispatcher output channels.",
@@ -38,7 +39,7 @@ class TestLibsTemplatesSchema(unittest.TestCase):
         self.assertEqual(field.description, "Dispatcher output channels.")
         self.assertEqual(field.group, "routing")
         self.assertTrue(field.restart_required)
-        self.assertEqual(field.type_name, "list")
+        self.assertEqual(field.type_name, "List")
 
     def test_02_schema_renderer_creates_template_rows(self) -> None:
         """Test nr 02."""

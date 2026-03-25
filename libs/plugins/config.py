@@ -120,7 +120,7 @@ class PluginConfigParser(BClasses):
         bool - `True` when the value matches the declared type.
         """
         origin: Optional[object] = get_origin(declared_type)
-        args: tuple[object, ...] = get_args(declared_type)
+        args: Tuple[object, ...] = get_args(declared_type)
 
         if origin in (list, List):
             if not isinstance(value, list):

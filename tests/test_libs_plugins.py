@@ -13,7 +13,7 @@ import unittest
 
 from pathlib import Path
 from queue import Queue
-from typing import Union
+from typing import List, Union
 from unittest.mock import patch
 
 from jsktoolbox.configtool import Config as ConfigTool
@@ -403,7 +403,7 @@ class TestLibsPlugins(unittest.TestCase):
                 fields=[
                     PluginConfigField(
                         name="channels",
-                        field_type=list[str],
+                        field_type=List[str],
                         default=[],
                         required=True,
                         description="Channel names.",

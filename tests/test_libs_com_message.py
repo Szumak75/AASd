@@ -10,7 +10,7 @@ import unittest
 
 from datetime import datetime
 from queue import Empty, Full, Queue
-from typing import Any
+from typing import Any, Optional
 from unittest.mock import patch
 
 from jsktoolbox.logstool import LoggerQueue
@@ -30,13 +30,18 @@ class _FullQueue(Queue):
     """Simulate a permanently full target queue."""
 
     # #[PUBLIC METHODS]################################################################
-    def put(self, item: Any, block: bool = True, timeout: float | None = None) -> None:
+    def put(
+        self,
+        item: Any,
+        block: bool = True,
+        timeout: Optional[float] = None,
+    ) -> None:
         """Always raise `Full` to exercise dispatcher fallback.
 
         ### Arguments:
         * item: Any - Ignored queued object.
         * block: bool - Unused compatibility argument.
-        * timeout: float | None - Unused compatibility argument.
+        * timeout: Optional[float] - Unused compatibility argument.
 
         ### Raises:
         * Full: Always raised.
@@ -358,12 +363,12 @@ class TestThDispatcher(unittest.TestCase):
 
     # #[PRIVATE METHODS]###############################################################
     def __build_dispatcher(
-        self, qcom: Any | None = None, debug: bool = False
+        self, qcom: Optional[Any] = None, debug: bool = False
     ) -> ThDispatcher:
         """Create a dispatcher with a valid logger queue.
 
         ### Arguments:
-        * qcom: Any | None - Communication queue used by the dispatcher.
+        * qcom: Optional[Any] - Communication queue used by the dispatcher.
         * debug: bool - Debug mode flag.
 
         ### Returns:

@@ -67,9 +67,12 @@ Recommended extended layout:
 ```text
 plugins/
   email_primary/
+    __init__.py
     load.py
     README.md
+    CHANGELOG.md
     requirements.txt
+    tests/
     plugin/
       __init__.py
       runtime.py
@@ -82,10 +85,14 @@ Rules:
 - `load.py` is mandatory.
 - The daemon loads `load.py` under an isolated package context derived from the
   plugin instance name.
+- A repository-level `__init__.py` is optional for the daemon runtime but may
+  be useful for linters, test runners, and editors.
 - Plugin-local helper packages may live under a plugin-owned subdirectory.
 - Plugin-local imports should use package-relative imports such as
   `from .plugin.runtime import Runtime`.
 - A plugin may keep its own dependencies and packaging metadata.
+- Plugin-local tests, changelog, and operational documentation should stay in
+  the plugin repository rather than in `AASd/tests/` or `AASd/docs/`.
 
 ## Entry-Point Contract
 
@@ -285,7 +292,7 @@ Required methods:
 class PluginRuntime(Protocol):
     def initialize(self) -> None: ...
     def start(self) -> None: ...
-    def stop(self, timeout: float | None = None) -> None: ...
+    def stop(self, timeout: Optional[float] = None) -> None: ...
     def state(self) -> PluginStateSnapshot: ...
     def health(self) -> PluginHealthSnapshot: ...
 ```
@@ -479,6 +486,15 @@ Behavior:
 The user must configure matching channels manually in the config file. Message
 delivery must fail safely when channels are not configured to match.
 
+The workspace also contains a standalone communication plugin repository under
+`plugins/email/`. It is not a host-side reference plugin, but it demonstrates
+the intended external-repository model with:
+
+- plugin-local versioning in `plugin/__init__.py`,
+- plugin-local release notes in `plugins/email/CHANGELOG.md`,
+- plugin-local unit tests in `plugins/email/tests/`,
+- SMTP-specific communication behavior documented in `plugins/email/README.md`.
+
 ## Reference Pattern
 
 The current reference plugins use a consistent pattern that new plugins should
@@ -586,11 +602,11 @@ class PluginConfigField:
     description: str
     secret: bool = False
     nullable: bool = False
-    choices: list[object] | None = None
-    example: object | None = None
+    choices: Optional[List[object]] = None
+    example: Optional[object] = None
     deprecated: bool = False
-    aliases: list[str] | None = None
-    group: str | None = None
+    aliases: Optional[List[str]] = None
+    group: Optional[str] = None
     restart_required: bool = False
 ```
 
@@ -598,7 +614,7 @@ class PluginConfigField:
 class PluginConfigSchema:
     title: str
     fields: list[PluginConfigField]
-    description: str | None = None
+    description: Optional[str] = None
     version: int = 1
 ```
 

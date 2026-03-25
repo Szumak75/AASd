@@ -1,11 +1,29 @@
 # Changelog
 
+## 2.4.5-DEV
+
+- style: updated project guidelines to prefer `List[...]`, `Tuple[...]`, and `Dict[...]` over builtin generic aliases in type annotations
+- refactor: aligned remaining builtin generic collection annotations in project packages, examples, tests, and version metadata with the preferred typing style
+- docs: recorded the collection-typing style rule in `AGENTS.md`
+- chore: bumped development version to `2.4.5-DEV`
+
+## 2.4.4-DEV
+
+- style: updated project guidelines to prefer `Optional[T]` over `T | None` in function argument annotations
+- refactor: aligned remaining function and method argument annotations in project tests, reference plugins, and plugin templates with the preferred `Optional[T]` style
+- docs: recorded the typing-style rule in `AGENTS.md`
+- docs: aligned remaining Plugin API markdown examples with the preferred `Optional[...]` annotation style
+- docs: aligned Plugin API generic collection examples with `Optional[List[...]]` style
+- chore: bumped development version to `2.4.4-DEV`
+
 ## 2.4.3-DEV
 
 - fix: reduced `pinger` shutdown latency by checking the stop flag between monitored hosts and between configured ICMP retries
 - fix: aligned `libs.tools.icmp.Pinger.is_alive()` with single-attempt semantics so plugin-level `ping_count` no longer multiplies hidden command retries
 - test: added regression coverage for single-attempt ICMP command construction and early `pinger` loop interruption
 - docs: documented the single-attempt ICMP helper contract and explicit retry ownership in the `pinger` plugin
+- docs: updated plugin author guides to document plugin-local tests, changelog ownership, optional repository-level `__init__.py`, and the standalone `plugins/email/` repository model
+- docs: documented the current `plugins/email/` SMTP secret-handling and port-failover behavior in the installation and plugin guides
 - chore: bumped development version to `2.4.3-DEV`
 
 ## 2.4.2-DEV

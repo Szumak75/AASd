@@ -1,15 +1,15 @@
 """Configuration template helpers package with lazy exports."""
 
 from importlib import import_module
-from typing import TYPE_CHECKING, Any, Final
+from typing import TYPE_CHECKING, Any, Dict, Final, List
 
-__all__: list[str] = [
+__all__: List[str] = [
     "PluginConfigField",
     "PluginConfigSchema",
     "PluginConfigSchemaRenderer",
 ]
 
-_EXPORTS: Final[dict[str, str]] = {
+_EXPORTS: Final[Dict[str, str]] = {
     "PluginConfigField": "libs.templates.schema",
     "PluginConfigSchema": "libs.templates.schema",
     "PluginConfigSchemaRenderer": "libs.templates.schema",
@@ -23,11 +23,11 @@ if TYPE_CHECKING:
     )
 
 
-def __dir__() -> list[str]:
+def __dir__() -> List[str]:
     """Return package attributes including lazy exports.
 
     ### Returns:
-    list[str] - Sorted package attribute names.
+    List[str] - Sorted package attribute names.
     """
     return sorted(set(globals()) | set(__all__))
 

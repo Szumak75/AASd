@@ -110,6 +110,10 @@ poetry run pytest -v
 - Projekt celuje w Python 3.11+.
 - Stosuj formatowanie zgodne z Black i wcięcia 4-spacjowe.
 - Zachowuj czytelny podział importów.
+- W typowaniu argumentów funkcji preferuj zapis `Optional[T]` zamiast `T | None`,
+  np. `def stop(self, timeout: Optional[float] = None) -> None:`.
+- W typowaniu kontenerów preferuj zapis `List[T]`, `Tuple[...]`, `Dict[K, V]`
+  zamiast odpowiednio `list[T]`, `tuple[...]`, `dict[K, V]`.
 - Pliki modułów zapisuj w `snake_case`.
 - Klasy zapisuj w `PascalCase`.
 - Metody testowe nazywaj w stylu `test_01_feature`.

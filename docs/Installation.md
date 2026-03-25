@@ -183,6 +183,20 @@ The daemon does not impose plugin-specific secret names. The exact variable
 name and section depend on the plugin instance schema and your local
 configuration.
 
+The standalone `plugins/email/` communication plugin currently expects:
+
+- `smtp_server`
+- `smtp_user`
+- `smtp_pass`
+- `address_from`
+- `address_to`
+
+For this plugin, `smtp_pass` is decoded at runtime through
+`SimpleCrypto.multiple_decrypt(...)` using the `salt` stored in the main daemon
+section. When `smtp_server` does not define an explicit port, the runtime tries
+`587`, `465`, and `25` with failover and reuses the last successful port during
+the process lifetime.
+
 ## Preparation to launch the project with `runit`
 
 The project in the `/opt/AASd/docs/runit` directory contains a prepared startup schema for `runit`.\
