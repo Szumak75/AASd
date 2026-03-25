@@ -1,4 +1,4 @@
-# AASd Communication Plugin Template
+# AASd v2 Communication Plugin Template
 
 This directory provides a recommended starting point for a new AASd
 communication plugin repository.

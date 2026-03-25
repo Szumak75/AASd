@@ -1,4 +1,4 @@
-# AASd Worker Plugin Template
+# AASd v2 Worker Plugin Template
 
 This directory provides a recommended starting point for a new AASd worker
 plugin repository.
