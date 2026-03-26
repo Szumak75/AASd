@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.4.9-DEV
+
+- chore: bumped development version to `2.4.9-DEV`
+
 ## 2.4.8-DEV
 
 - chore: remove unused Poetry dependencies `mako` and `guppy3` from the runtime set

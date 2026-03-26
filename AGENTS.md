@@ -13,6 +13,9 @@
 - Przy zmianach obejmujących wiele plików przedstaw plan i poproś o akceptację.
 - ZAWSZE aktualizuj dokumentację po zmianach w kodzie.
 - ZAWSZE przeprowadzaj versioning projektu po zmianach w kodzie.
+- BEZWZGLĘDNIE: nie zapisuj zmian dotyczących zewnętrznych pluginów w `AASd/CHANGELOG.md`.
+- Każdy plugin utrzymywany jako osobne repozytorium prowadzi własny `CHANGELOG.md` wyłącznie w swoim repozytorium.
+- Jeżeli nowy plugin ma własne repozytorium i nie posiada jeszcze `CHANGELOG.md`, utwórz go w repozytorium tego pluginu.
 
 ### Git Policy
 
@@ -237,6 +240,13 @@ Jeśli polecenie nie wskazuje konkretnego modułu lub klasy, przeprowadź aktual
 - [ ] `docs/*.md`
 - [ ] `CHANGELOG.md`
 
+### Changelog Ownership
+
+- `AASd/CHANGELOG.md` opisuje wyłącznie zmiany w repozytorium hosta AASd.
+- Zmiany dotyczące pluginów utrzymywanych jako osobne repozytoria zapisuj wyłącznie w `CHANGELOG.md` tych pluginów.
+- Nie duplikuj wpisów pluginowych między `AASd/CHANGELOG.md` a changelogiem pluginu.
+- Brak pliku `CHANGELOG.md` w nowym repozytorium pluginu należy traktować jako brakującą dokumentację do uzupełnienia.
+
 ### Patterns To Verify In Documentation
 
 1. `ReadOnlyClass` - trzy wzorce kluczy: `__Keys`, `_Keys`, `NazwaKeys` w `libs/keys.py`, jeśli używasz JskToolBox.
@@ -281,7 +291,7 @@ Current: 0.2.3
 ### Documentation And Non-Code Changes
 
 - Zmiany wyłącznie w dokumentacji projektowej, dokumentacji developerskiej, planach prac lub zasadach repozytorium nie wymagają podniesienia wersji.
-- Takie zmiany nadal należy odnotować w odpowiedniej sekcji `CHANGELOG.md`.
+- Takie zmiany nadal należy odnotować w odpowiedniej sekcji `CHANGELOG.md` właściwego repozytorium.
 - Jeśli zmiana łączy modyfikację kodu i dokumentacji, obowiązuje versioning wynikający ze zmiany kodu.
 
 ### Files To Update
@@ -306,7 +316,7 @@ Przy zmianie wersji zawsze aktualizuj oba pliki:
 - [ ] Określ, czy zmiana obejmuje kod czy wyłącznie dokumentację / metadane developerskie
 - [ ] Jeśli zmiana obejmuje kod: określ typ zmiany `MAJOR`, `MINOR`, `PATCH`
 - [ ] Jeśli zmiana obejmuje kod: zaktualizuj obie wersje tak, aby były zgodne
-- [ ] Zawsze dopisz zmianę do właściwej sekcji `CHANGELOG.md`
+- [ ] Zawsze dopisz zmianę do właściwej sekcji `CHANGELOG.md` właściwego repozytorium
 - [ ] Jeśli zmiana obejmuje kod: przygotuj commit message `chore: bump version to X.Y.Z`
 - [ ] Jeśli zmiana obejmuje kod: przygotuj tag `git tag vX.Y.Z`
 
