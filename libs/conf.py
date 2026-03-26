@@ -29,6 +29,7 @@ from libs.base import (
     PluginConfigMixin,
 )
 from libs.plugins import PluginDefinition, PluginLoader
+from libs.plugins.config import PluginConfigParser
 from libs.templates import PluginConfigSchemaRenderer
 from libs.templates.modules import TemplateConfigItem
 
@@ -504,10 +505,11 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
                     f"try to load config file: '{self.config_file}'..."
                 )
             out: bool = self._cfh.load()
+            discovered_plugins: List[PluginDefinition] = []
             if out:
                 if self.debug:
                     self.logs.message_debug = "config file loaded successful"
-                discovered_plugins: List[PluginDefinition] = self.get_plugins
+                discovered_plugins = self.get_plugins
                 if discovered_plugins:
                     self.logs.message_info = f"list of plugin instances to load: {[item.instance_name for item in discovered_plugins]}"
             config_changed, review_items = self.__check_plugin_config_updates()
@@ -526,6 +528,7 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
                             "environment before starting the daemon again."
                         )
                     )
+            self.__validate_plugin_config_values(discovered_plugins)
             return out
         except Exception as ex:
             self.logs.message_critical = (
@@ -735,6 +738,30 @@ class AppConfig(LogsMixin, ConfigHandlerMixin, ConfigSectionMixin):
             value=message,
             set_default_type=Optional[str],
         )
+
+    def __validate_plugin_config_values(
+        self, discovered_plugins: List[PluginDefinition]
+    ) -> None:
+        """Validate plugin config values and log non-fatal warnings.
+
+        ### Arguments:
+        * discovered_plugins: List[PluginDefinition] - Discovered plugin instances.
+        """
+        if self._cfh is None:
+            return None
+        for plugin in discovered_plugins:
+            try:
+                PluginConfigParser.parse(
+                    self._cfh,
+                    plugin.instance_name,
+                    plugin.spec.config_schema,
+                    logs=self.logs,
+                )
+            except Exception as ex:
+                self.logs.message_warning = (
+                    f"plugin config validation failed for section "
+                    f"'[{plugin.instance_name}]': {ex}"
+                )
 
     def __get_plugins_config(self) -> Dict[str, List[TemplateConfigItem]]:
         """Collect rendered config rows for discovered plugin instances.

@@ -278,6 +278,25 @@ Supported config inputs:
 - `message_channel`: interval-based targets such as `[1, "2:6h"]`,
 - `at_channel`: cron-like targets such as `["3:0;8|20;*;*;*"]`.
 
+Supported `message_channel` forms are limited to:
+
+- plain integer channel identifiers such as `1`,
+- string channel identifiers with an interval suffix such as `"2:5m"` or `"3:6h"`.
+
+Supported `at_channel` fragments are limited to:
+
+- `*`,
+- one integer value,
+- multiple integer values joined with `|`,
+- one integer range such as `8-12`,
+- mixed integer and range lists such as `1|3|8-12`.
+
+Step syntax such as `*/6` is not supported by the current implementation. During
+`load()` and `reload()`, the daemon validates plugin config values and logs a
+warning for unsupported patterns before plugin startup. In the specific case of
+an `at_channel` fragment containing `*` plus extra characters, the current
+scheduler treats that fragment as a full wildcard.
+
 This keeps the daemon host simple while still giving plugins one shared
 decision mechanism.
 

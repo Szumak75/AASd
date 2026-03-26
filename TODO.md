@@ -52,6 +52,40 @@
 
 ## P1 - Immediate Work
 
+### Config Review Follow-Up
+
+- Investigate and fix the interaction between automatic config review stops and one-shot password update mode.
+- Ensure that a mandatory config-review stop does not continue with unrelated startup side effects such as plugin-directory creation.
+- Re-evaluate whether `AASd.run()` should keep the previous no-op contract when `conf` is missing instead of forcing `sys.exit(0)`.
+- Add dedicated regression coverage for the scenarios listed below before changing the current control flow again.
+
+#### Scenarios Requiring Further Tests
+
+- Scenario: the daemon auto-creates a new config file and the operator starts it with `--password --section=... --varname=...`.
+  Current behavior: `AppConfig.load()` marks `config_review_required=True`, the constructor sets `self.loop=False`, and the guarded password branch does not execute.
+  Risk: the operator cannot complete the password bootstrap in the same run even though the config file now exists and already contains the target structure.
+- Scenario: the daemon extends an existing config file with a missing plugin section or missing plugin option and the operator also requests password update mode.
+  Current behavior: the daemon stops for config review before entering password update mode because the password branch now depends on `self.loop`.
+  Risk: config mutation and secret bootstrap cannot be completed in a single maintenance operation, which changes the operational workflow compared with the previous implementation.
+- Scenario: the daemon auto-creates or auto-extends the config file and then reaches the later constructor stages.
+  Current behavior: startup is logically stopped, but the constructor still reaches `__check_plugins_dir()` and may create the plugins directory on disk.
+  Risk: the process performs extra filesystem mutations after declaring that operator review is required before startup should continue.
+- Scenario: external code or a defensive test invokes `AASd.run()` on an incompletely initialized object with `conf is None`.
+  Current behavior: the method now terminates the process with `sys.exit(0)`.
+  Risk: callers that previously relied on a harmless return may now observe unexpected process termination and harder-to-isolate failures in integration tests or helper scripts.
+- Scenario: a running daemon receives `SIGHUP` after config changes that trigger auto-extension of the config file.
+  Current behavior: the subsystem is stopped, `conf.load()` may set `config_review_required=True`, the daemon logs the review request, and the main loop exits without restarting subsystems.
+  Risk: this stop-for-review behavior looks intentional, but it still needs explicit regression tests for partial subsystem state, log ordering, and shutdown completeness.
+
+#### Test Plan
+
+- Add a daemon-level regression test proving that `--password` still works, or intentionally does not work, after auto-creation of a new config file. The expected behavior must be made explicit in the test name and assertions.
+- Add a daemon-level regression test for `--password` after auto-extension of an existing config file with missing plugin defaults.
+- Add a constructor-path test confirming whether `__check_plugins_dir()` is or is not allowed to mutate the filesystem after `config_review_required=True`.
+- Add a reload-path test covering `SIGHUP` followed by config auto-extension, including assertions for subsystem stop order, review notification, and lack of restart.
+- Add a contract test for `AASd.run()` with `conf is None` so the project explicitly defines whether the method should return or exit.
+- Add an end-to-end operator-flow test covering the full maintenance sequence: initial config creation, manual review, password update, and a subsequent successful startup.
+
 ### Runtime Supervision
 
 - Define whether restart policy should remain fixed at `none` in API v1 or become configurable later.

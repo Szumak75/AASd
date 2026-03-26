@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass, field
 from inspect import currentframe
 from queue import Queue
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from jsktoolbox.attribtool import ReadOnlyClass
 from jsktoolbox.basetool import BClasses

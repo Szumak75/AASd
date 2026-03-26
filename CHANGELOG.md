@@ -1,11 +1,21 @@
 # Changelog
 
+## 2.4.7-DEV
+
+- fix: validate plugin scheduling config values during `AppConfig.load()` and `reload()` so operators can see warnings before plugin startup
+- fix: add semantic warning coverage for unsupported `at_channel` wildcard-step patterns such as `*/6`, including the current wildcard fallback behavior
+- fix: add detailed warning coverage for malformed `message_channel` values such as non-integer channel ids and invalid intervals
+- test: added regression coverage for parser-level warning emission and config-load validation logging
+- docs: documented the supported `message_channel` and `at_channel` syntax and the load-time warning behavior
+- chore: bumped development version to `2.4.7-DEV`
+
 ## 2.4.6-DEV
 
 - fix: stop daemon startup after automatically creating or extending the configuration file so operators can review new defaults before runtime activation
 - fix: route password-update completion notices through the daemon logger and terminate after config mutation instead of continuing startup
 - test: added regression coverage for config-review flags, plugin section and option additions, and daemon startup suppression after review-required changes
 - docs: documented the mandatory review stop after automatic config creation and config extension
+- docs: added a TODO follow-up plan for config-review regressions, runtime side effects, and the remaining regression-test scenarios
 - chore: bumped development version to `2.4.6-DEV`
 
 ## 2.4.5-DEV

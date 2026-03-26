@@ -62,6 +62,10 @@ options, AASd writes the missing defaults to the config file, logs an operator
 review notice, and exits cleanly. Runtime startup resumes only after the
 operator reviews the updated configuration and launches the daemon again.
 
+During `load()` and `reload()`, the daemon also validates known plugin schedule
+fields such as `message_channel` and `at_channel` and emits warning logs for
+unsupported or suspicious values before plugin startup begins.
+
 ## Table of contents
 
 1. [Installation](https://github.com/Szumak75/AASd/blob/master/docs/Installation.md)

@@ -36,6 +36,36 @@ from libs.plugins import (
 from libs.templates import PluginConfigField, PluginConfigSchema
 
 
+class _CollectingLogger(object):
+    """Collect warning messages emitted during parser validation."""
+
+    # #[CONSTRUCTOR]##################################################################
+    def __init__(self) -> None:
+        """Initialize the warning collector."""
+        self.warnings: List[str] = []
+
+    # #[PUBLIC PROPERTIES]#############################################################
+    @property
+    def message_warning(self) -> str:
+        """Return the last warning or an empty string.
+
+        ### Returns:
+        str - Last warning message.
+        """
+        if not self.warnings:
+            return ""
+        return self.warnings[-1]
+
+    @message_warning.setter
+    def message_warning(self, value: str) -> None:
+        """Store a warning message.
+
+        ### Arguments:
+        * value: str - Warning message to store.
+        """
+        self.warnings.append(value)
+
+
 class TestLibsPlugins(unittest.TestCase):
     """Cover plugin loader and parser helpers."""
 
@@ -422,6 +452,70 @@ class TestLibsPlugins(unittest.TestCase):
 
             self.assertEqual(parsed["channels"], ["a", "b"])
             self.assertEqual(parsed["retry_limit"], "5")
+
+    def test_02f_parser_should_warn_about_unsupported_at_channel_step_syntax(
+        self,
+    ) -> None:
+        """Warn when `at_channel` uses unsupported cron-step fragments."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "plugin.conf"
+            cfg = ConfigTool(str(config_file), "plugin", auto_create=True)
+            cfg.set("plugin", varname="at_channel", value=["1:0;*/6;*;*;*"])
+            self.assertTrue(cfg.save())
+            self.assertTrue(cfg.load())
+
+            schema = PluginConfigSchema(
+                title="At-channel parser test.",
+                fields=[
+                    PluginConfigField(
+                        name="at_channel",
+                        field_type=list,
+                        default=[],
+                        required=False,
+                        description="Cron-like notification targets.",
+                    )
+                ],
+            )
+            logs = _CollectingLogger()
+
+            parsed = PluginConfigParser.parse(cfg, "plugin", schema, logs=logs)  # type: ignore[arg-type]
+
+            self.assertEqual(parsed["at_channel"], ["1:0;*/6;*;*;*"])
+            self.assertEqual(len(logs.warnings), 1)
+            self.assertIn("unsupported wildcard fragment '*/6'", logs.warnings[0])
+            self.assertIn("full wildcard", logs.warnings[0])
+
+    def test_02g_parser_should_warn_about_invalid_message_channel_entries(
+        self,
+    ) -> None:
+        """Warn when `message_channel` uses non-integer ids or bad intervals."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "plugin.conf"
+            cfg = ConfigTool(str(config_file), "plugin", auto_create=True)
+            cfg.set("plugin", varname="message_channel", value=["mail", "2:bad"])
+            self.assertTrue(cfg.save())
+            self.assertTrue(cfg.load())
+
+            schema = PluginConfigSchema(
+                title="Message-channel parser test.",
+                fields=[
+                    PluginConfigField(
+                        name="message_channel",
+                        field_type=list,
+                        default=[],
+                        required=False,
+                        description="Interval notification targets.",
+                    )
+                ],
+            )
+            logs = _CollectingLogger()
+
+            parsed = PluginConfigParser.parse(cfg, "plugin", schema, logs=logs)  # type: ignore[arg-type]
+
+            self.assertEqual(parsed["message_channel"], ["mail", "2:bad"])
+            self.assertEqual(len(logs.warnings), 2)
+            self.assertIn("non-integer channel identifier 'mail'", logs.warnings[0])
+            self.assertIn("invalid interval 'bad'", logs.warnings[1])
 
     def test_03_loader_should_reject_plugin_without_entry_point(self) -> None:
         """Reject plugin directories that do not expose `get_plugin_spec()`."""

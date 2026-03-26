@@ -10,12 +10,115 @@ import tempfile
 import unittest
 
 from pathlib import Path
-from unittest.mock import patch
+from typing import List
+from unittest.mock import PropertyMock, patch
 
 from jsktoolbox.configtool import Config as ConfigTool
 from jsktoolbox.logstool import LoggerQueue
 
 from libs.conf import AppConfig
+
+
+class _CollectingLogger(object):
+    """Collect logger messages for config-load validation tests."""
+
+    # #[CONSTRUCTOR]##################################################################
+    def __init__(self) -> None:
+        """Initialize the collector."""
+        self.warnings: List[str] = []
+
+    # #[PUBLIC PROPERTIES]#############################################################
+    @property
+    def message_critical(self) -> str:
+        """Return the last critical message or an empty string.
+
+        ### Returns:
+        str - Last critical message.
+        """
+        return ""
+
+    @message_critical.setter
+    def message_critical(self, value: str) -> None:
+        """Ignore critical messages in this collector.
+
+        ### Arguments:
+        * value: str - Critical message.
+        """
+        del value
+
+    @property
+    def message_debug(self) -> str:
+        """Return the last debug message or an empty string.
+
+        ### Returns:
+        str - Last debug message.
+        """
+        return ""
+
+    @message_debug.setter
+    def message_debug(self, value: str) -> None:
+        """Ignore debug messages in this collector.
+
+        ### Arguments:
+        * value: str - Debug message.
+        """
+        del value
+
+    @property
+    def message_error(self) -> str:
+        """Return the last error message or an empty string.
+
+        ### Returns:
+        str - Last error message.
+        """
+        return ""
+
+    @message_error.setter
+    def message_error(self, value: str) -> None:
+        """Ignore error messages in this collector.
+
+        ### Arguments:
+        * value: str - Error message.
+        """
+        del value
+
+    @property
+    def message_info(self) -> str:
+        """Return the last info message or an empty string.
+
+        ### Returns:
+        str - Last info message.
+        """
+        return ""
+
+    @message_info.setter
+    def message_info(self, value: str) -> None:
+        """Ignore info messages in this collector.
+
+        ### Arguments:
+        * value: str - Info message.
+        """
+        del value
+
+    @property
+    def message_warning(self) -> str:
+        """Return the last warning message or an empty string.
+
+        ### Returns:
+        str - Last warning message.
+        """
+        if not self.warnings:
+            return ""
+        return self.warnings[-1]
+
+    @message_warning.setter
+    def message_warning(self, value: str) -> None:
+        """Store a warning message.
+
+        ### Arguments:
+        * value: str - Warning message.
+        """
+        self.warnings.append(value)
 
 
 class TestAppConfig(unittest.TestCase):
@@ -94,6 +197,61 @@ class TestAppConfig(unittest.TestCase):
                     "        plugin_id='sample.plugin',",
                     "        plugin_kind=PluginKind.WORKER,",
                     "        plugin_name='sample_plugin',",
+                    "        runtime_factory=_runtime,",
+                    "    )",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+    def __write_validation_test_plugin(self, plugin_dir: Path) -> None:
+        """Write a plugin manifest with scheduling fields for validation tests.
+
+        ### Arguments:
+        * plugin_dir: Path - Target plugin directory path.
+        """
+        plugin_dir.mkdir()
+        (plugin_dir / "load.py").write_text(
+            "\n".join(
+                [
+                    "from libs.plugins import PluginKind, PluginSpec",
+                    "from libs.templates import PluginConfigField, PluginConfigSchema",
+                    "",
+                    "def _runtime(_context):",
+                    "    class Runtime(object):",
+                    "        def start(self):",
+                    "            return None",
+                    "        def stop(self):",
+                    "            return None",
+                    "        def is_stopped(self):",
+                    "            return True",
+                    "    return Runtime()",
+                    "",
+                    "def get_plugin_spec():",
+                    "    return PluginSpec(",
+                    "        api_version=1,",
+                    "        config_schema=PluginConfigSchema(",
+                    "            title='Validation plugin.',",
+                    "            fields=[",
+                    "                PluginConfigField(",
+                    "                    name='message_channel',",
+                    "                    field_type=list,",
+                    "                    default=[1],",
+                    "                    required=False,",
+                    "                    description='Dispatcher targets.',",
+                    "                ),",
+                    "                PluginConfigField(",
+                    "                    name='at_channel',",
+                    "                    field_type=list,",
+                    "                    default=[],",
+                    "                    required=False,",
+                    "                    description='Cron-like dispatcher targets.',",
+                    "                )",
+                    "            ],",
+                    "        ),",
+                    "        plugin_id='validation.plugin',",
+                    "        plugin_kind=PluginKind.WORKER,",
+                    "        plugin_name='validation_plugin',",
                     "        runtime_factory=_runtime,",
                     "    )",
                 ]
@@ -262,6 +420,45 @@ class TestAppConfig(unittest.TestCase):
 
             self.assertTrue(obj.debug)
             self.assertTrue(obj.verbose)
+
+    def test_10_should_log_plugin_config_warnings_during_load(self) -> None:
+        """Emit semantic plugin-config warnings during `load()`."""
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            config_file = Path(tmp_dir) / "aasd.conf"
+            plugins_dir = Path(tmp_dir) / "plugins"
+            plugins_dir.mkdir()
+            self.__prepare_existing_file(config_file, with_plugins_dir=True)
+            self.__write_validation_test_plugin(plugins_dir / "sample_plugin")
+
+            cfg = ConfigTool(str(config_file), "AASd", auto_create=True)
+            cfg.set("sample_plugin", varname="message_channel", value=["mail", "2:bad"])
+            cfg.set("sample_plugin", varname="at_channel", value=["1:0;*/6;*;*;*"])
+            self.assertTrue(cfg.save())
+
+            obj = self.__build_config(config_file)
+            obj.plugins_dir = str(plugins_dir)
+            logs = _CollectingLogger()
+
+            with patch.object(AppConfig, "logs", new_callable=PropertyMock) as logs_mock:
+                logs_mock.return_value = logs
+                self.assertTrue(obj.load())
+
+            self.assertGreaterEqual(len(logs.warnings), 3)
+            self.assertTrue(
+                any(
+                    "message_channel" in item and "non-integer" in item
+                    for item in logs.warnings
+                )
+            )
+            self.assertTrue(
+                any(
+                    "message_channel" in item and "invalid interval" in item
+                    for item in logs.warnings
+                )
+            )
+            self.assertTrue(
+                any("at_channel" in item and "full wildcard" in item for item in logs.warnings)
+            )
 
 
 # #[EOF]#######################################################################
