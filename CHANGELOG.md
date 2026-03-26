@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.4.8-DEV
+
+- chore: remove unused Poetry dependencies `mako` and `guppy3` from the runtime set
+- chore: remove unused development dependencies `nose`, `typing-extensions`, and the direct `coverage` declaration
+- chore: keep coverage support through `pytest-cov` only, which already pulls `coverage` transitively
+- chore: align `requirements.txt` with the current Poetry runtime dependency set and drop stale archive-era packages
+- docs: clarify that the runtime dependency set is derived from active host code and documentation tooling, not archived reference modules
+- chore: bumped development version to `2.4.8-DEV`
+
 ## 2.4.7-DEV
 
 - fix: validate plugin scheduling config values during `AppConfig.load()` and `reload()` so operators can see warnings before plugin startup

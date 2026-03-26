@@ -4,7 +4,8 @@
 
 - Poetry is used only in development environments.
 - Production and deployment environments should install runtime packages from `requirements.txt`.
-- `requirements.txt` is generated from the current Poetry runtime lock set and is the supported deployment input.
+- `requirements.txt` is generated from the current Poetry runtime lock set for the active daemon runtime and is the supported deployment input.
+- archived reference code under `archive/` does not extend the supported deployment dependency set.
 
 ## Prerequisite
 

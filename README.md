@@ -55,7 +55,9 @@ pip install -r requirements.txt
 ```
 
 `requirements.txt` is treated as the deployment artifact generated from the
-current Poetry runtime lock set.
+current Poetry runtime lock set for the active host runtime. Archived reference
+code under `archive/` does not define deployment dependencies for the current
+daemon.
 
 At first startup, or after the daemon discovers new configuration sections or
 options, AASd writes the missing defaults to the config file, logs an operator
