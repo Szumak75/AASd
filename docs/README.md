@@ -22,6 +22,7 @@ installation source, while Poetry remains a development-only tool.
 ## Operational Assets
 
 - `runit/` - scripts for `runit`: <http://smarden.org/runit/>
+- `systemd/` - sample service assets for Linux-based test environments
 
 ## Build Documentation
 

@@ -1,0 +1,23 @@
+[Unit]
+Description=AASd daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/opt/AASd
+EnvironmentFile=/etc/default/aasd
+ExecStart=/bin/sh -c 'exec /opt/AASd/.venv/bin/python /opt/AASd/aasd.py ${AASD_OPTS}'
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGTERM
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+SyslogIdentifier=AASd
+StandardOutput=journal
+StandardError=inherit
+
+[Install]
+WantedBy=multi-user.target

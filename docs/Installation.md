@@ -237,3 +237,53 @@ service syslogd reload
 You must copy the folder with the startup schema to the destination appropriate for the configured `runit` manager schemas. The AASd daemon will be started automatically.
 
 Please check the contents of the `/var/log/aasd.log` log file to see if all project subsystems have been initialized correctly.
+
+## Preparation to launch the project with `systemd`
+
+The daemon stays in the foreground, so it can also be supervised by `systemd`
+with a `Type=simple` unit. This is mainly useful for Linux-based development
+and test environments. The primary target environment remains FreeBSD with
+`runit` or a similar supervision stack.
+
+Prepared sample files are available in `/opt/AASd/docs/systemd`:
+
+- `aasd.service` - sample unit file
+- `aasd.env` - sample environment file with daemon CLI options
+
+### Installing the sample unit
+
+Copy the sample files to the host locations used by your Linux distribution:
+
+```bash
+cp /opt/AASd/docs/systemd/aasd.service /etc/systemd/system/aasd.service
+cp /opt/AASd/docs/systemd/aasd.env /etc/default/aasd
+```
+
+Review `/etc/default/aasd` and adjust `AASD_OPTS` for the local test setup.
+The sample unit starts the daemon directly from the project virtual
+environment and keeps stdout attached to the journal.
+
+### Managing the daemon with `systemd`
+
+Reload unit definitions, enable the service, and start it:
+
+```bash
+systemctl daemon-reload
+systemctl enable aasd.service
+systemctl start aasd.service
+```
+
+The sample unit maps `systemctl reload aasd.service` to `SIGHUP`, which
+matches the daemon reload flow already implemented by `AASd`.
+
+Useful verification commands:
+
+```bash
+systemctl status aasd.service
+journalctl -u aasd.service -f
+systemctl reload aasd.service
+systemctl restart aasd.service
+```
+
+The sample unit uses `Restart=on-failure`, so a clean exit caused by config
+review requirements or other intentional stop paths is not treated as a crash.

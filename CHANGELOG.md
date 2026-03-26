@@ -2,6 +2,7 @@
 
 ## 2.4.9-DEV
 
+- docs: added sample `systemd` service assets and installation guidance for Linux-based AASd test environments
 - chore: bumped development version to `2.4.9-DEV`
 
 ## 2.4.8-DEV
