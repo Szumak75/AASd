@@ -243,16 +243,6 @@ def get_plugin_spec() -> PluginSpec:
                     "Interval-based notification targets, for example " "`[1, '2:6h']`."
                 ),
             ),
-            # PluginConfigField(
-            #     name=PluginCommonKeys.AT_CHANNEL,
-            #     field_type=list,
-            #     default=[],
-            #     required=False,
-            #     description=(
-            #         "Cron-like notification targets, for example "
-            #         "`['3:0;8|20;*;*;*']`."
-            #     ),
-            # ),
             PluginConfigField(
                 name=_Keys.MESSAGE_TEXT,
                 field_type=str,

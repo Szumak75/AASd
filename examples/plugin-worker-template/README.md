@@ -32,7 +32,9 @@ The template follows the current recommended pattern:
 
 - `PluginSpec` and `PluginContext` from the public runtime API
 - package-relative imports inside `load.py` and `plugin/*`
+- `PluginCommonKeys.AT_CHANNEL` for worker notification targets with execution time hints crone-like scheduling
 - `PluginCommonKeys.MESSAGE_CHANNEL` for worker notification targets
+- `PluginCommonKeys.SLEEP_CHANNEL` for worker sleep time hints
 - `NotificationScheduler` for reusable interval and cron-like notification decisions
 - `ThPluginMixin` for typed runtime-owned storage
 - local private key constants based on `ReadOnlyClass`
