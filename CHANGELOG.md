@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.4.10-DEV
+
+- fix: log a startup message with the active AASd version immediately after the logging subsystem is initialized
+- test: added regression coverage for the daemon startup version log message
+- docs: documented the startup version log entry in the installation guide
+- chore: bumped development version to `2.4.10-DEV`
+
 ## 2.4.9-DEV
 
 - docs: added sample `systemd` service assets and installation guidance for Linux-based AASd test environments

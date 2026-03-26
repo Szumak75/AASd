@@ -137,6 +137,10 @@ For DEVEL version: '/var/tmp/aasd.conf'
 
 To interrupt a running process, send the interrupt signal [ctrl]-[c] or the TERM signal with the kill command.
 
+After the logging subsystem is initialized successfully, the daemon emits a
+startup log entry with the active application version before it starts plugin
+supervision and enters the main loop.
+
 The configuration file is divided into sections containing variables.\
 The main section `[aasd]` contains the `salt` variable used to simply encrypt password variables.\
 The second important variable is `plugins_dir` - it points to the directory scanned for plugin instances at daemon startup.\

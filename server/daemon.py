@@ -223,6 +223,7 @@ class AASd(ProjectClassMixin):
             sys.exit(0)
         # logger processor
         self.logs_processor.start()
+        self.logs.message_info = f"started, version {self.application.app_version}"
 
         if self.loop:
             report = self.__start_subsystem()

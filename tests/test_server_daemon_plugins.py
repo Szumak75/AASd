@@ -584,6 +584,7 @@ class TestServerDaemonPlugins(unittest.TestCase):
         obj.logs_processor = _FakeLoggerProcessor()  # type: ignore[assignment]
         obj.hup = False
         obj.loop = False
+        obj.application = AppName(app_name="AASd", app_version="2.4.10-DEV")
         obj._set_data(
             key=Keys.CONF, value=AppConfig(qlog=LoggerQueue(), app_name="AASd")
         )
@@ -603,6 +604,49 @@ class TestServerDaemonPlugins(unittest.TestCase):
                 obj.run()
 
         self.assertEqual(exit_ctx.exception.code, 0)
+        self.assertEqual(obj.logs_processor.start_calls, 1)
+        self.assertEqual(obj.logs_processor.stop_calls, 1)
+        start_mock.assert_not_called()
+        stop_mock.assert_not_called()
+
+    def test_09_run_should_log_start_message_with_version(self) -> None:
+        """Emit a startup log entry after the logger processor starts."""
+        obj = AASd.__new__(AASd)
+        logs = LoggerClient(queue=LoggerQueue(), name="AASd")
+        obj.logs = logs
+        obj.logs_processor = _FakeLoggerProcessor()  # type: ignore[assignment]
+        obj.hup = False
+        obj.loop = False
+        obj.application = AppName(app_name="AASd", app_version="2.4.10-DEV")
+        obj._set_data(
+            key=Keys.CONF, value=AppConfig(qlog=LoggerQueue(), app_name="AASd")
+        )
+
+        with patch.object(
+            AASd,
+            "_AASd__start_subsystem",
+            side_effect=AssertionError("subsystem start must not be called"),
+        ) as start_mock, patch.object(
+            AASd,
+            "_AASd__stop_subsystem",
+            return_value=None,
+        ) as stop_mock, patch.object(
+            LoggerClient,
+            "message_info",
+            new_callable=PropertyMock,
+        ) as message_info_mock, patch(
+            "server.daemon.time.sleep", return_value=None
+        ):
+            with self.assertRaises(SystemExit) as exit_ctx:
+                obj.run()
+
+        self.assertEqual(exit_ctx.exception.code, 0)
+        self.assertTrue(
+            any(
+                call.args == ("started, version 2.4.10-DEV",)
+                for call in message_info_mock.mock_calls
+            )
+        )
         self.assertEqual(obj.logs_processor.start_calls, 1)
         self.assertEqual(obj.logs_processor.stop_calls, 1)
         start_mock.assert_not_called()
