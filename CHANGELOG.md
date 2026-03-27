@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.4.12-DEV
+
+- refactor: replaced remaining runtime string comparisons for shared plugin config fields with `PluginCommonKeys` constants
+- refactor: aligned `NotificationScheduler` default config-key arguments and `PluginConfigMixin` shared field names with the public plugin key constants
+- docs: documented the shared plugin-key constant contract in the API guide
+- chore: bumped development version to `2.4.12-DEV`
+
+## 2.4.11-DEV
+
+- refactor: moved class-specific storage keys in `libs.com.message` from the module-level `_Keys` container into private per-class `__Keys` definitions
+- test: aligned messaging subsystem regressions with the new per-class key ownership model
+- docs: documented the class-local key layout used by the messaging subsystem internals
+- chore: bumped development version to `2.4.11-DEV`
+
 ## 2.4.10-DEV
 
 - fix: log a startup message with the active AASd version immediately after the logging subsystem is initialized

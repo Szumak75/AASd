@@ -173,6 +173,9 @@ Lazy package entry point for the shared base layer.
 **Purpose:**
 Public constant class for shared plugin configuration keys.
 
+The active host runtime reuses these constants in parser logic, plugin config
+mixins, and helper defaults so shared field names stay centralized.
+
 **Main keys:**
 
 - `at_channel`
@@ -328,6 +331,8 @@ communication plugins.
 
 Worker plugins create `Message` instances and place them on the shared queue.
 Communication plugins consume the routed messages and deliver them externally.
+The payload internals keep class-specific `BData` keys private to the `Message`
+class instead of sharing one module-wide key registry.
 
 ## Plugin Runtime API
 

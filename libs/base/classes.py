@@ -21,6 +21,7 @@ from jsktoolbox.configtool import Config as ConfigTool
 from jsktoolbox.attribtool import ReadOnlyClass
 
 from libs import AppName, Keys
+from libs.plugins.keys import PluginCommonKeys
 
 if TYPE_CHECKING:
     from libs import AppConfig
@@ -120,11 +121,11 @@ class PluginConfigMixin(ConfigHandlerMixin, ConfigSectionMixin):
     class Keys(object, metaclass=ReadOnlyClass):
         """Define shared configuration key names for plugin settings."""
 
-        AT_CHANNEL: str = "at_channel"
-        CHANNEL: str = "channel"
-        MESSAGE_CHANNEL: str = "message_channel"
         MODULE_CONF: str = "__MODULE_CONF__"
-        SLEEP_PERIOD: str = "sleep_period"
+        AT_CHANNEL: str = PluginCommonKeys.AT_CHANNEL
+        CHANNEL: str = PluginCommonKeys.CHANNEL
+        MESSAGE_CHANNEL: str = PluginCommonKeys.MESSAGE_CHANNEL
+        SLEEP_PERIOD: str = PluginCommonKeys.SLEEP_PERIOD
 
     # #[CONSTRUCTOR]##################################################################
     def __init__(self, cfh: ConfigTool, section: Optional[str]) -> None:

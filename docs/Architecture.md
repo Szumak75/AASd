@@ -129,6 +129,9 @@ message-dispatching layer:
 
 The implementation file is normalized to the repository class-structure
 convention with explicit section markers inside each class.
+Class-local `BData` storage keys are scoped to private `__Keys` helpers inside
+their owning classes, while the module-level `_Keys` container keeps only the
+shared channel-mapping key used across schedulers.
 
 - `Message` is the payload container passed from worker plugins to communication plugins,
 - `Channel` handles interval-based notification schedules,

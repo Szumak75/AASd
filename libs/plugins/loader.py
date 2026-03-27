@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from inspect import currentframe
 from pathlib import Path
 from types import ModuleType
-from typing import Callable, List, Set, TypeGuard, cast
+from typing import Callable, List, Optional, Set, TypeGuard, cast
 
 from jsktoolbox.basetool import BClasses
 from jsktoolbox.raisetool import Raise
@@ -58,7 +58,7 @@ class PluginLoader(BClasses):
             load_file = entry / "load.py"
             if not load_file.exists():
                 continue
-            spec = cls.__load_spec(entry.name, load_file)
+            spec: PluginSpec = cls.__load_spec(entry.name, load_file)
             out.append(
                 PluginDefinition(
                     instance_name=entry.name,
@@ -79,7 +79,7 @@ class PluginLoader(BClasses):
         ### Returns:
         str - Synthetic package name used during plugin loading.
         """
-        normalized_name = "".join(
+        normalized_name: str = "".join(
             char if char.isalnum() else "_" for char in instance_name
         )
         return f"aasd_plugin_{normalized_name}"
@@ -93,7 +93,7 @@ class PluginLoader(BClasses):
         * plugin_path: Path - Root path of the plugin instance.
         """
         package_path = str(plugin_path.resolve())
-        cached_module = sys.modules.get(package_name)
+        cached_module: Optional[ModuleType] = sys.modules.get(package_name)
         if cached_module is not None:
             cached_module.__path__ = [package_path]  # type: ignore[attr-defined]
             return
@@ -115,8 +115,8 @@ class PluginLoader(BClasses):
         ### Returns:
         PluginSpec - Loaded and validated plugin spec.
         """
-        package_name = cls.__build_module_name(instance_name)
-        module_name = f"{package_name}.load"
+        package_name: str = cls.__build_module_name(instance_name)
+        module_name: str = f"{package_name}.load"
         cls.__ensure_package_module(package_name, load_file.parent)
         module_spec = importlib.util.spec_from_file_location(module_name, load_file)
         if module_spec is None or module_spec.loader is None:
@@ -127,7 +127,7 @@ class PluginLoader(BClasses):
                 currentframe(),
             )
         sys.modules.pop(module_name, None)
-        module = importlib.util.module_from_spec(module_spec)
+        module: ModuleType = importlib.util.module_from_spec(module_spec)
         sys.modules[module_name] = module
         try:
             module_spec.loader.exec_module(module)

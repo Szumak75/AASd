@@ -124,12 +124,12 @@ class TestAtChannel(unittest.TestCase):
 
         cron = obj.get_channels["cron"][0]
 
-        self.assertEqual(cron[_Keys.AT_MINUTE][0], 0)
-        self.assertEqual(cron[_Keys.AT_MINUTE][-1], 59)
-        self.assertEqual(cron[_Keys.AT_HOUR], [1, 3])
-        self.assertEqual(cron[_Keys.AT_DAY], [10, 11, 12])
-        self.assertEqual(cron[_Keys.AT_MONTH], [1, 2, 5])
-        self.assertEqual(cron[_Keys.AT_DAY_WEEK], [0, 2, 3, 7])
+        self.assertEqual(cron[AtChannel._AtChannel__Keys.AT_MINUTE][0], 0)
+        self.assertEqual(cron[AtChannel._AtChannel__Keys.AT_MINUTE][-1], 59)
+        self.assertEqual(cron[AtChannel._AtChannel__Keys.AT_HOUR], [1, 3])
+        self.assertEqual(cron[AtChannel._AtChannel__Keys.AT_DAY], [10, 11, 12])
+        self.assertEqual(cron[AtChannel._AtChannel__Keys.AT_MONTH], [1, 2, 5])
+        self.assertEqual(cron[AtChannel._AtChannel__Keys.AT_DAY_WEEK], [0, 2, 3, 7])
 
     def test_02_should_report_due_channels_for_weekday_and_deduplicate(self) -> None:
         """Return one channel even when multiple rules match the same time."""
@@ -202,20 +202,30 @@ class TestChannel(unittest.TestCase):
             obj = Channel(["one", "two:5m", "three:2h"])
 
         self.assertEqual(obj.channels, ["one", "two", "three"])
-        self.assertEqual(obj.get_channels["one"][_Keys.CHECK_INTERVAL], 0)
-        self.assertEqual(obj.get_channels["two"][_Keys.CHECK_INTERVAL], 300)
-        self.assertEqual(obj.get_channels["three"][_Keys.CHECK_INTERVAL], 7200)
+        self.assertEqual(
+            obj.get_channels["one"][Channel._Channel__Keys.CHECK_INTERVAL], 0
+        )
+        self.assertEqual(
+            obj.get_channels["two"][Channel._Channel__Keys.CHECK_INTERVAL], 300
+        )
+        self.assertEqual(
+            obj.get_channels["three"][Channel._Channel__Keys.CHECK_INTERVAL], 7200
+        )
 
-        obj.get_channels["one"][_Keys.CHECK_NEXT] = 149
-        obj.get_channels["two"][_Keys.CHECK_NEXT] = 200
-        obj.get_channels["three"][_Keys.CHECK_NEXT] = 120
+        obj.get_channels["one"][Channel._Channel__Keys.CHECK_NEXT] = 149
+        obj.get_channels["two"][Channel._Channel__Keys.CHECK_NEXT] = 200
+        obj.get_channels["three"][Channel._Channel__Keys.CHECK_NEXT] = 120
 
         with patch("libs.com.message.Timestamp.now", return_value=150):
             self.assertTrue(obj.check)
             self.assertEqual(obj.get, ["one", "three"])
 
-        self.assertEqual(obj.get_channels["one"][_Keys.CHECK_NEXT], 150)
-        self.assertEqual(obj.get_channels["three"][_Keys.CHECK_NEXT], 7350)
+        self.assertEqual(
+            obj.get_channels["one"][Channel._Channel__Keys.CHECK_NEXT], 150
+        )
+        self.assertEqual(
+            obj.get_channels["three"][Channel._Channel__Keys.CHECK_NEXT], 7350
+        )
 
     def test_02_should_reject_invalid_channel_configuration(self) -> None:
         """Raise on invalid config type, duplicate channels, and bad intervals."""
@@ -241,8 +251,8 @@ class TestChannel(unittest.TestCase):
         with patch("libs.com.message.Timestamp.now", side_effect=[100, 100]):
             obj = Channel(["one", "two:5m"])
 
-        obj.get_channels["one"][_Keys.CHECK_NEXT] = 101
-        obj.get_channels["two"][_Keys.CHECK_NEXT] = 200
+        obj.get_channels["one"][Channel._Channel__Keys.CHECK_NEXT] = 101
+        obj.get_channels["two"][Channel._Channel__Keys.CHECK_NEXT] = 200
 
         with patch("libs.com.message.Timestamp.now", return_value=100):
             self.assertFalse(obj.check)
@@ -260,7 +270,7 @@ class TestNotificationScheduler(unittest.TestCase):
                 at_channel=["2:15;12;23;3;1", "3:15;12;23;3;1"],
             )
 
-        obj._interval_scheduler.get_channels["2"][_Keys.CHECK_NEXT] = 200  # type: ignore[union-attr]
+        obj._interval_scheduler.get_channels["2"][Channel._Channel__Keys.CHECK_NEXT] = 200  # type: ignore[union-attr]
         now = datetime(2026, 3, 23, 12, 15, 0)
         with patch("libs.com.message.Timestamp.now", return_value=100):
             with patch("libs.com.message.MDateTime.now", return_value=now):
@@ -348,12 +358,12 @@ class TestMessage(unittest.TestCase):
         with self.assertRaises(TypeError):
             obj.to = 10  # type: ignore[assignment]
 
-        obj._delete_data(key=_Keys.MSG_COUNTER)
+        obj._delete_data(key=Message._Message__Keys.MSG_COUNTER)
         with self.assertRaises(ValueError):
             _ = obj.counter
 
         obj = Message()
-        obj._delete_data(key=_Keys.MSG_MESS)
+        obj._delete_data(key=Message._Message__Keys.MSG_MESS)
         with self.assertRaises(ValueError):
             _ = obj.messages
 

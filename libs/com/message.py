@@ -22,6 +22,7 @@ from jsktoolbox.datetool import Timestamp
 from jsktoolbox.basetool import BData
 
 from libs.base import ThProcessorMixin
+from libs.plugins.keys import PluginCommonKeys
 from libs.tools import MDateTime, MIntervals
 
 
@@ -29,30 +30,21 @@ class _Keys(object, metaclass=ReadOnlyClass):
     """Define internal storage keys for the messaging subsystem."""
 
     # #[CONSTANTS]#####################################################################
-    AT_DAY: str = "day_of_month"
-    AT_DAY_WEEK: str = "day_of_week"
-    AT_HOUR: str = "hour"
-    AT_MINUTE: str = "minute"
-    AT_MONTH: str = "month"
-    AT_SCHEDULER: str = "__at_scheduler__"
     CHANNELS: str = "__channels__"
-    CHECK_INTERVAL: str = "__interval__"
-    CHECK_NEXT: str = "__next__"
-    INTERVAL_SCHEDULER: str = "__interval_scheduler__"
-    MSG_CHANNEL: str = "__channel__"
-    MSG_COM_QUEUES: str = "__com_q__"
-    MSG_COUNTER: str = "__counter__"
-    MSG_FOOTER: str = "__foot__"
-    MSG_MESS: str = "__message__"
-    MSG_MULTIPART: str = "__m_message__"
-    MSG_REPLY: str = "__reply__"
-    MSG_SENDER: str = "__sender__"
-    MSG_SUBJECT: str = "__subject__"
-    MSG_TO: str = "__to__"
 
 
 class AtChannel(BData):
     """Implement cron-like scheduling for message channels."""
+
+    class __Keys(object, metaclass=ReadOnlyClass):
+        """Define internal storage keys for the cron-like channel scheduler."""
+
+        # #[CONSTANTS]#####################################################################
+        AT_DAY: str = "day_of_month"
+        AT_DAY_WEEK: str = "day_of_week"
+        AT_HOUR: str = "hour"
+        AT_MINUTE: str = "minute"
+        AT_MONTH: str = "month"
 
     # #[CONSTRUCTOR]##################################################################
     def __init__(self, config_channel: List[str]) -> None:
@@ -91,16 +83,17 @@ class AtChannel(BData):
         for chan in self.channels:
             for item in self.get_channels[chan]:
                 if (
-                    date.minute in item[_Keys.AT_MINUTE]
-                    and date.hour in item[_Keys.AT_HOUR]
-                    and date.day in item[_Keys.AT_DAY]
-                    and date.month in item[_Keys.AT_MONTH]
+                    date.minute in item[self.__Keys.AT_MINUTE]
+                    and date.hour in item[self.__Keys.AT_HOUR]
+                    and date.day in item[self.__Keys.AT_DAY]
+                    and date.month in item[self.__Keys.AT_MONTH]
                 ):
                     if date.weekday() == 6 and (
-                        0 in item[_Keys.AT_DAY_WEEK] or 7 in item[_Keys.AT_DAY_WEEK]
+                        0 in item[self.__Keys.AT_DAY_WEEK]
+                        or 7 in item[self.__Keys.AT_DAY_WEEK]
                     ):
                         return True
-                    if date.weekday() + 1 in item[_Keys.AT_DAY_WEEK]:
+                    if date.weekday() + 1 in item[self.__Keys.AT_DAY_WEEK]:
                         return True
         return False
 
@@ -116,17 +109,18 @@ class AtChannel(BData):
         for channel in self.channels:
             for item in self.get_channels[channel]:
                 if (
-                    date.minute in item[_Keys.AT_MINUTE]
-                    and date.hour in item[_Keys.AT_HOUR]
-                    and date.day in item[_Keys.AT_DAY]
-                    and date.month in item[_Keys.AT_MONTH]
+                    date.minute in item[self.__Keys.AT_MINUTE]
+                    and date.hour in item[self.__Keys.AT_HOUR]
+                    and date.day in item[self.__Keys.AT_DAY]
+                    and date.month in item[self.__Keys.AT_MONTH]
                 ):
                     if date.weekday() == 6 and (
-                        0 in item[_Keys.AT_DAY_WEEK] or 7 in item[_Keys.AT_DAY_WEEK]
+                        0 in item[self.__Keys.AT_DAY_WEEK]
+                        or 7 in item[self.__Keys.AT_DAY_WEEK]
                     ):
                         if channel not in out:
                             out.append(channel)
-                    elif date.weekday() + 1 in item[_Keys.AT_DAY_WEEK]:
+                    elif date.weekday() + 1 in item[self.__Keys.AT_DAY_WEEK]:
                         if channel not in out:
                             out.append(channel)
         return out
@@ -159,11 +153,21 @@ class AtChannel(BData):
                 self._c_name,
                 currentframe(),
             )
-        out[_Keys.AT_MINUTE] = self.__build_value_list(form=tmp[0], val_range=[0, 59])
-        out[_Keys.AT_HOUR] = self.__build_value_list(form=tmp[1], val_range=[0, 23])
-        out[_Keys.AT_DAY] = self.__build_value_list(form=tmp[2], val_range=[1, 31])
-        out[_Keys.AT_MONTH] = self.__build_value_list(form=tmp[3], val_range=[1, 12])
-        out[_Keys.AT_DAY_WEEK] = self.__build_value_list(form=tmp[4], val_range=[0, 7])
+        out[self.__Keys.AT_MINUTE] = self.__build_value_list(
+            form=tmp[0], val_range=[0, 59]
+        )
+        out[self.__Keys.AT_HOUR] = self.__build_value_list(
+            form=tmp[1], val_range=[0, 23]
+        )
+        out[self.__Keys.AT_DAY] = self.__build_value_list(
+            form=tmp[2], val_range=[1, 31]
+        )
+        out[self.__Keys.AT_MONTH] = self.__build_value_list(
+            form=tmp[3], val_range=[1, 12]
+        )
+        out[self.__Keys.AT_DAY_WEEK] = self.__build_value_list(
+            form=tmp[4], val_range=[0, 7]
+        )
         return out
 
     def __build_value_list(self, form: str, val_range: List[int]) -> List[int]:
@@ -278,6 +282,13 @@ class AtChannel(BData):
 class Channel(BData):
     """Implement interval-based scheduling for message channels."""
 
+    class __Keys(object, metaclass=ReadOnlyClass):
+        """Define internal storage keys for the interval channel scheduler."""
+
+        # #[CONSTANTS]#####################################################################
+        CHECK_INTERVAL: str = "__interval__"
+        CHECK_NEXT: str = "__next__"
+
     # #[CONSTRUCTOR]##################################################################
     def __init__(self, config_channel: List[str]) -> None:
         """Initialize the interval-based channel scheduler.
@@ -310,7 +321,7 @@ class Channel(BData):
         """
         now: int = Timestamp.now()  # type: ignore
         for item in self.channels:
-            if self.get_channels[item][_Keys.CHECK_NEXT] < now:
+            if self.get_channels[item][self.__Keys.CHECK_NEXT] < now:
                 return True
         return False
 
@@ -325,9 +336,11 @@ class Channel(BData):
         out: List[str] = []
         for item in self.channels:
             check_dict: Dict[str, Union[int, float]] = self.get_channels[item]
-            if check_dict[_Keys.CHECK_NEXT] < now:
+            if check_dict[self.__Keys.CHECK_NEXT] < now:
                 out.append(item)
-                check_dict[_Keys.CHECK_NEXT] = now + check_dict[_Keys.CHECK_INTERVAL]
+                check_dict[self.__Keys.CHECK_NEXT] = (
+                    now + check_dict[self.__Keys.CHECK_INTERVAL]
+                )
         return out
 
     @property
@@ -365,8 +378,8 @@ class Channel(BData):
                 currentframe(),
             )
         self.get_channels[channel] = {
-            _Keys.CHECK_INTERVAL: interval,
-            _Keys.CHECK_NEXT: Timestamp.now() - 1,
+            self.__Keys.CHECK_INTERVAL: interval,
+            self.__Keys.CHECK_NEXT: Timestamp.now() - 1,
         }
 
     def __config_channels(self, config_channel: List[str]) -> None:
@@ -394,6 +407,13 @@ class Channel(BData):
 class NotificationScheduler(BData):
     """Decide which outbound notification channels are currently due."""
 
+    class __Keys(object, metaclass=ReadOnlyClass):
+        """Define internal storage keys for the notification scheduler."""
+
+        # #[CONSTANTS]#####################################################################
+        AT_SCHEDULER: str = "__at_scheduler__"
+        INTERVAL_SCHEDULER: str = "__interval_scheduler__"
+
     # #[CONSTRUCTOR]##################################################################
     def __init__(
         self,
@@ -409,12 +429,12 @@ class NotificationScheduler(BData):
           definitions.
         """
         self._set_data(
-            key=_Keys.AT_SCHEDULER,
+            key=self.__Keys.AT_SCHEDULER,
             value=None,
             set_default_type=Optional[AtChannel],
         )
         self._set_data(
-            key=_Keys.INTERVAL_SCHEDULER,
+            key=self.__Keys.INTERVAL_SCHEDULER,
             value=None,
             set_default_type=Optional[Channel],
         )
@@ -431,7 +451,7 @@ class NotificationScheduler(BData):
         ### Returns:
         Optional[AtChannel] - Cron-like scheduler or `None`.
         """
-        return self._get_data(key=_Keys.AT_SCHEDULER, default_value=None)
+        return self._get_data(key=self.__Keys.AT_SCHEDULER, default_value=None)
 
     @_at_scheduler.setter
     def _at_scheduler(self, value: Optional[AtChannel]) -> None:
@@ -440,7 +460,7 @@ class NotificationScheduler(BData):
         ### Arguments:
         * value: Optional[AtChannel] - Cron-like scheduler or `None`.
         """
-        self._set_data(key=_Keys.AT_SCHEDULER, value=value)
+        self._set_data(key=self.__Keys.AT_SCHEDULER, value=value)
 
     @property
     def _interval_scheduler(self) -> Optional[Channel]:
@@ -449,7 +469,7 @@ class NotificationScheduler(BData):
         ### Returns:
         Optional[Channel] - Interval-based scheduler or `None`.
         """
-        return self._get_data(key=_Keys.INTERVAL_SCHEDULER, default_value=None)
+        return self._get_data(key=self.__Keys.INTERVAL_SCHEDULER, default_value=None)
 
     @_interval_scheduler.setter
     def _interval_scheduler(self, value: Optional[Channel]) -> None:
@@ -458,7 +478,7 @@ class NotificationScheduler(BData):
         ### Arguments:
         * value: Optional[Channel] - Interval-based scheduler or `None`.
         """
-        self._set_data(key=_Keys.INTERVAL_SCHEDULER, value=value)
+        self._set_data(key=self.__Keys.INTERVAL_SCHEDULER, value=value)
 
     # #[PUBLIC PROPERTIES]############################################################
     @property
@@ -493,8 +513,8 @@ class NotificationScheduler(BData):
     def from_config(
         cls,
         config: Mapping[str, Any],
-        message_channel_key: str = "message_channel",
-        at_channel_key: str = "at_channel",
+        message_channel_key: str = PluginCommonKeys.MESSAGE_CHANNEL,
+        at_channel_key: str = PluginCommonKeys.AT_CHANNEL,
     ) -> "NotificationScheduler":
         """Build a scheduler helper from parsed plugin config values.
 
@@ -568,25 +588,50 @@ class Multipart(object, metaclass=ReadOnlyClass):
 class Message(BData):
     """Store a message exchanged between worker and communication plugins."""
 
+    class __Keys(object, metaclass=ReadOnlyClass):
+        """Define internal storage keys for the message container."""
+
+        # #[CONSTANTS]#####################################################################
+        MSG_CHANNEL: str = "__channel__"
+        MSG_COUNTER: str = "__counter__"
+        MSG_FOOTER: str = "__foot__"
+        MSG_MESS: str = "__message__"
+        MSG_MULTIPART: str = "__m_message__"
+        MSG_REPLY: str = "__reply__"
+        MSG_SENDER: str = "__sender__"
+        MSG_SUBJECT: str = "__subject__"
+        MSG_TO: str = "__to__"
+
     # #[CONSTRUCTOR]##################################################################
     def __init__(self) -> None:
         """Initialize an empty message container."""
-        self._set_data(key=_Keys.MSG_MESS, value=[], set_default_type=List)
+        self._set_data(key=self.__Keys.MSG_MESS, value=[], set_default_type=List)
         self._set_data(
-            key=_Keys.MSG_MULTIPART, value=None, set_default_type=Optional[Dict]
+            key=self.__Keys.MSG_MULTIPART,
+            value=None,
+            set_default_type=Optional[Dict],
         )
         self._set_data(
-            key=_Keys.MSG_CHANNEL, value=None, set_default_type=Optional[int]
+            key=self.__Keys.MSG_CHANNEL, value=None, set_default_type=Optional[int]
         )
         self._set_data(
-            key=_Keys.MSG_TO, value=None, set_default_type=Optional[Union[List, str]]
+            key=self.__Keys.MSG_TO,
+            value=None,
+            set_default_type=Optional[Union[List, str]],
         )
         self._set_data(
-            key=_Keys.MSG_SUBJECT, value=None, set_default_type=Optional[str]
+            key=self.__Keys.MSG_SUBJECT, value=None, set_default_type=Optional[str]
         )
-        self._set_data(key=_Keys.MSG_SENDER, value=None, set_default_type=Optional[str])
-        self._set_data(key=_Keys.MSG_REPLY, value=None, set_default_type=Optional[str])
-        self._set_data(key=_Keys.MSG_COUNTER, value=0, set_default_type=int)
+        self._set_data(
+            key=self.__Keys.MSG_SENDER, value=None, set_default_type=Optional[str]
+        )
+        self._set_data(
+            key=self.__Keys.MSG_REPLY, value=None, set_default_type=Optional[str]
+        )
+        self._set_data(key=self.__Keys.MSG_COUNTER, value=0, set_default_type=int)
+        self._set_data(
+            key=self.__Keys.MSG_FOOTER, value=None, set_default_type=Optional[str]
+        )
 
     # #[PUBLIC PROPERTIES]#############################################################
     @property
@@ -596,7 +641,7 @@ class Message(BData):
         ### Returns:
         Optional[int] - Target communication channel or `None`.
         """
-        return self._get_data(key=_Keys.MSG_CHANNEL)
+        return self._get_data(key=self.__Keys.MSG_CHANNEL)
 
     @channel.setter
     def channel(self, value: int) -> None:
@@ -606,7 +651,7 @@ class Message(BData):
         * value: int - Target communication channel number.
         """
         self._set_data(
-            key=_Keys.MSG_CHANNEL,
+            key=self.__Keys.MSG_CHANNEL,
             value=value,
         )
 
@@ -617,7 +662,7 @@ class Message(BData):
         ### Returns:
         int - Updated counter value.
         """
-        count: Optional[int] = self._get_data(key=_Keys.MSG_COUNTER)
+        count: Optional[int] = self._get_data(key=self.__Keys.MSG_COUNTER)
         if count is None:
             raise Raise.error(
                 "Internal error: Message counter is not initialized.",
@@ -626,7 +671,7 @@ class Message(BData):
                 currentframe(),
             )
         count += 1
-        self._set_data(key=_Keys.MSG_COUNTER, value=count)
+        self._set_data(key=self.__Keys.MSG_COUNTER, value=count)
         return count
 
     @property
@@ -636,7 +681,7 @@ class Message(BData):
         ### Returns:
         Optional[str] - Footer text or `None`.
         """
-        return self._get_data(key=_Keys.MSG_FOOTER, default_value=None)
+        return self._get_data(key=self.__Keys.MSG_FOOTER, default_value=None)
 
     @footer.setter
     def footer(self, value: str) -> None:
@@ -645,7 +690,7 @@ class Message(BData):
         ### Arguments:
         * value: str - Footer text appended by the delivery plugin.
         """
-        self._set_data(key=_Keys.MSG_FOOTER, value=value, set_default_type=str)
+        self._set_data(key=self.__Keys.MSG_FOOTER, value=value)
 
     @property
     def reply_to(self) -> Optional[str]:
@@ -654,7 +699,7 @@ class Message(BData):
         ### Returns:
         Optional[str] - Reply-to address or `None`.
         """
-        return self._get_data(key=_Keys.MSG_REPLY)
+        return self._get_data(key=self.__Keys.MSG_REPLY)
 
     @reply_to.setter
     def reply_to(self, value: str) -> None:
@@ -663,7 +708,7 @@ class Message(BData):
         ### Arguments:
         * value: str - Reply-to address.
         """
-        self._set_data(key=_Keys.MSG_REPLY, value=value)
+        self._set_data(key=self.__Keys.MSG_REPLY, value=value)
 
     @property
     def messages(self) -> List[str]:
@@ -672,7 +717,7 @@ class Message(BData):
         ### Returns:
         List[str] - Plain message fragments.
         """
-        obj: Optional[List[str]] = self._get_data(key=_Keys.MSG_MESS)
+        obj: Optional[List[str]] = self._get_data(key=self.__Keys.MSG_MESS)
         if obj is None:
             raise Raise.error(
                 "Internal error: Message fragments list is not initialized.",
@@ -705,7 +750,7 @@ class Message(BData):
         ### Returns:
         Optional[Dict[str, Any]] - Multipart message mapping or `None`.
         """
-        return self._get_data(key=_Keys.MSG_MULTIPART)
+        return self._get_data(key=self.__Keys.MSG_MULTIPART)
 
     @mmessages.setter
     def mmessages(self, msg_dict: Dict[str, Any]) -> None:
@@ -727,7 +772,7 @@ class Message(BData):
             )
         mmessages: Optional[Dict[str, Any]] = self.mmessages
         if mmessages is None:
-            self._set_data(key=_Keys.MSG_MULTIPART, value={})
+            self._set_data(key=self.__Keys.MSG_MULTIPART, value={})
             mmessages: Optional[Dict[str, Any]] = self.mmessages
             if mmessages is None:
                 raise Raise.error(
@@ -745,7 +790,7 @@ class Message(BData):
         ### Returns:
         Optional[str] - Sender address or `None`.
         """
-        return self._get_data(key=_Keys.MSG_SENDER)
+        return self._get_data(key=self.__Keys.MSG_SENDER)
 
     @sender.setter
     def sender(self, value: str) -> None:
@@ -755,7 +800,7 @@ class Message(BData):
         * value: str - Sender address.
         """
         self._set_data(
-            key=_Keys.MSG_SENDER,
+            key=self.__Keys.MSG_SENDER,
             value=value,
         )
 
@@ -766,7 +811,7 @@ class Message(BData):
         ### Returns:
         Optional[str] - Message subject or `None`.
         """
-        return self._get_data(key=_Keys.MSG_SUBJECT)
+        return self._get_data(key=self.__Keys.MSG_SUBJECT)
 
     @subject.setter
     def subject(self, value: str) -> None:
@@ -776,7 +821,7 @@ class Message(BData):
         * value: str - Message subject.
         """
         self._set_data(
-            key=_Keys.MSG_SUBJECT,
+            key=self.__Keys.MSG_SUBJECT,
             value=value,
         )
 
@@ -787,7 +832,7 @@ class Message(BData):
         ### Returns:
         Optional[Union[List[str], str]] - Recipient list or `None`.
         """
-        return self._get_data(key=_Keys.MSG_TO)
+        return self._get_data(key=self.__Keys.MSG_TO)
 
     @to.setter
     def to(self, value: Union[List[str], str]) -> None:
@@ -801,7 +846,7 @@ class Message(BData):
         """
         if self.to is None:
             self._set_data(
-                key=_Keys.MSG_TO,
+                key=self.__Keys.MSG_TO,
                 value=[],
             )
         if isinstance(value, str):
@@ -821,6 +866,12 @@ class Message(BData):
 
 class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
     """Route outbound messages to queues registered for communication plugins."""
+
+    class __Keys(object, metaclass=ReadOnlyClass):
+        """Define internal storage keys for dispatcher queue registration."""
+
+        # #[CONSTANTS]#####################################################################
+        MSG_COM_QUEUES: str = "__com_q__"
 
     # #[CONSTRUCTOR]##################################################################
     def __init__(
@@ -860,7 +911,7 @@ class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
         #    level_1: [registered_queue1, registered_queue2, ]
         #    level_2: [registered_queue3, ]
         # }
-        self._set_data(key=_Keys.MSG_COM_QUEUES, value={}, set_default_type=Dict)
+        self._set_data(key=self.__Keys.MSG_COM_QUEUES, value={}, set_default_type=Dict)
 
     # #[PRIVATE PROPERTIES]############################################################
     @property
@@ -870,7 +921,7 @@ class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
         ### Returns:
         Dict[str, List[Queue]] - Registered queues for each communication channel.
         """
-        return self._get_data(key=_Keys.MSG_COM_QUEUES)  # type: ignore
+        return self._get_data(key=self.__Keys.MSG_COM_QUEUES)  # type: ignore
 
     # #[PUBLIC METHODS]################################################################
     def register_queue(self, channel: int) -> Queue:

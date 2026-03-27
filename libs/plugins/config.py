@@ -17,6 +17,7 @@ from jsktoolbox.configtool import Config as ConfigTool
 from jsktoolbox.logstool import LoggerClient
 from jsktoolbox.raisetool import Raise
 
+from libs.plugins.keys import PluginCommonKeys
 from libs.templates import PluginConfigField, PluginConfigSchema
 from libs.tools import MIntervals
 
@@ -248,9 +249,9 @@ class PluginConfigParser(BClasses):
         """
         if value is None:
             return []
-        if field.name == "at_channel":
+        if field.name == PluginCommonKeys.AT_CHANNEL:
             return cls.__build_at_channel_warnings(value)
-        if field.name == "message_channel":
+        if field.name == PluginCommonKeys.MESSAGE_CHANNEL:
             return cls.__build_message_channel_warnings(value)
         return []
 
