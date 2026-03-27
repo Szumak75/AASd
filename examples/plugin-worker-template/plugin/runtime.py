@@ -115,6 +115,7 @@ class WorkerTemplateRuntime(Thread, ThPluginMixin):
         for channel in notifications.due_channels():
             message = Message()
             message.channel = int(channel)
+            message.diagnostic_source = self._c_name
             message.subject = (
                 f"[{context.instance_name}] worker template startup notification"
             )

@@ -22,18 +22,17 @@ if TYPE_CHECKING:
     )
 
 
-class _Keys(object, metaclass=ReadOnlyClass):
-    """Define internal storage keys for thread-based plugin mixins."""
-
-    # #[CONSTANTS]####################################################################
-    CONTEXT: str = "__context__"
-    HEALTH: str = "__health__"
-    QUEUE: str = "__queue__"
-    STATE: str = "__state__"
-
-
 class ThPluginMixin(ThBaseObject):
     """Provide typed attributes shared by thread-based plugin runtimes."""
+
+    class __Keys(object, metaclass=ReadOnlyClass):
+        """Define internal storage keys for thread-based plugin mixins."""
+
+        # #[CONSTANTS]####################################################################
+        CONTEXT: str = "__context__"
+        HEALTH: str = "__health__"
+        QUEUE: str = "__queue__"
+        STATE: str = "__state__"
 
     # #[PROTECTED PROPERTIES]##########################################################
     @property
@@ -43,7 +42,7 @@ class ThPluginMixin(ThBaseObject):
         ### Returns:
         Optional[PluginContext] - Runtime context or `None`.
         """
-        return self._get_data(key=_Keys.CONTEXT, default_value=None)
+        return self._get_data(key=self.__Keys.CONTEXT, default_value=None)
 
     @_context.setter
     def _context(self, value: Optional["PluginContext"]) -> None:
@@ -55,7 +54,7 @@ class ThPluginMixin(ThBaseObject):
         from libs.plugins.runtime import PluginContext
 
         self._set_data(
-            key=_Keys.CONTEXT,
+            key=self.__Keys.CONTEXT,
             value=value,
             set_default_type=Optional[PluginContext],
         )
@@ -67,7 +66,7 @@ class ThPluginMixin(ThBaseObject):
         ### Returns:
         Optional[PluginHealthSnapshot] - Health snapshot or `None`.
         """
-        return self._get_data(key=_Keys.HEALTH, default_value=None)
+        return self._get_data(key=self.__Keys.HEALTH, default_value=None)
 
     @_health.setter
     def _health(self, value: Optional["PluginHealthSnapshot"]) -> None:
@@ -79,7 +78,7 @@ class ThPluginMixin(ThBaseObject):
         from libs.plugins.runtime import PluginHealthSnapshot
 
         self._set_data(
-            key=_Keys.HEALTH,
+            key=self.__Keys.HEALTH,
             value=value,
             set_default_type=Optional[PluginHealthSnapshot],
         )
@@ -91,7 +90,7 @@ class ThPluginMixin(ThBaseObject):
         ### Returns:
         Optional[Queue] - Communication queue or `None`.
         """
-        return self._get_data(key=_Keys.QUEUE, default_value=None)
+        return self._get_data(key=self.__Keys.QUEUE, default_value=None)
 
     @_queue.setter
     def _queue(self, value: Optional[Queue]) -> None:
@@ -100,7 +99,9 @@ class ThPluginMixin(ThBaseObject):
         ### Arguments:
         * value: Optional[Queue] - Communication queue object or `None`.
         """
-        self._set_data(key=_Keys.QUEUE, value=value, set_default_type=Optional[Queue])
+        self._set_data(
+            key=self.__Keys.QUEUE, value=value, set_default_type=Optional[Queue]
+        )
 
     @property
     def _state(self) -> Optional["PluginStateSnapshot"]:
@@ -109,7 +110,7 @@ class ThPluginMixin(ThBaseObject):
         ### Returns:
         Optional[PluginStateSnapshot] - Lifecycle snapshot or `None`.
         """
-        return self._get_data(key=_Keys.STATE, default_value=None)
+        return self._get_data(key=self.__Keys.STATE, default_value=None)
 
     @_state.setter
     def _state(self, value: Optional["PluginStateSnapshot"]) -> None:
@@ -121,7 +122,7 @@ class ThPluginMixin(ThBaseObject):
         from libs.plugins.runtime import PluginStateSnapshot
 
         self._set_data(
-            key=_Keys.STATE,
+            key=self.__Keys.STATE,
             value=value,
             set_default_type=Optional[PluginStateSnapshot],
         )

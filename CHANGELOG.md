@@ -1,5 +1,19 @@
 # Changelog
 
+## 2.4.14-DEV
+
+- fix: changed dispatcher handling for unknown communication channels from raising an exception to logging a diagnostic warning and discarding the message
+- feat: added `Message.diagnostic_source` to carry a technical producer identifier for dispatcher diagnostics
+- test: added regression coverage for warning-based handling of unregistered dispatcher channels
+- docs: documented the diagnostic source field and dispatcher discard behavior in the messaging API
+- chore: bumped development version to `2.4.14-DEV`
+
+## 2.4.13-DEV
+
+- refactor: moved `libs.plugins.mixins.ThPluginMixin` internal storage keys from the module-level `_Keys` container into a private class-local `__Keys` definition
+- docs: documented the class-local key ownership used by `ThPluginMixin`
+- chore: bumped development version to `2.4.13-DEV`
+
 ## 2.4.12-DEV
 
 - refactor: replaced remaining runtime string comparisons for shared plugin config fields with `PluginCommonKeys` constants

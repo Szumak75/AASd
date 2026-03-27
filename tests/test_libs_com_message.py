@@ -311,6 +311,7 @@ class TestMessage(unittest.TestCase):
         obj = Message()
 
         self.assertIsNone(obj.channel)
+        self.assertIsNone(obj.diagnostic_source)
         self.assertIsNone(obj.footer)
         self.assertIsNone(obj.mmessages)
         self.assertEqual(obj.messages, [])
@@ -318,6 +319,7 @@ class TestMessage(unittest.TestCase):
         self.assertEqual(obj.counter, 2)
 
         obj.channel = 7
+        obj.diagnostic_source = "_RuntimeProbe"
         obj.footer = "footer"
         obj.reply_to = "reply@example.com"
         obj.sender = "sender@example.com"
@@ -331,6 +333,7 @@ class TestMessage(unittest.TestCase):
         obj.to = ["", "two@example.com", "three@example.com"]
 
         self.assertEqual(obj.channel, 7)
+        self.assertEqual(obj.diagnostic_source, "_RuntimeProbe")
         self.assertEqual(obj.footer, "footer")
         self.assertEqual(obj.reply_to, "reply@example.com")
         self.assertEqual(obj.sender, "sender@example.com")
@@ -412,8 +415,22 @@ class TestThDispatcher(unittest.TestCase):
         with self.assertRaises(TypeError):
             dispatcher._ThDispatcher__dispatch_message("bad")  # type: ignore[arg-type]
 
-        with self.assertRaises(ValueError):
-            dispatcher._ThDispatcher__dispatch_message(Message())
+    def test_02a_should_log_warning_for_unknown_channel(self) -> None:
+        """Log and discard messages addressed to unregistered channels."""
+        qlog = LoggerQueue()
+        dispatcher = ThDispatcher(qlog=qlog, qcom=Queue(), debug=False)
+        message = Message()
+        message.channel = 99
+        message.diagnostic_source = "_RuntimeProbe"
+        message.subject = "test subject"
+
+        dispatcher._ThDispatcher__dispatch_message(message)
+
+        log_level, log_message = qlog.get()
+        self.assertEqual(log_level, "WARNING")
+        self.assertIn("unregistered channel '99'", log_message)
+        self.assertIn("Source: '_RuntimeProbe'", log_message)
+        self.assertIn("subject='test subject'", log_message)
 
     def test_03_should_ignore_full_target_queue(self) -> None:
         """Swallow `Full` and continue dispatching as implemented."""

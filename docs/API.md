@@ -262,6 +262,9 @@ Defines the active plugin runtime contract exposed to plugin authors.
 **Purpose:**
 Provides typed mixins shared by thread-based plugin runtimes.
 
+`ThPluginMixin` keeps its internal `BData` storage keys in a private class-local
+`__Keys` helper instead of a module-level key container.
+
 **Main types:**
 
 - `ThPluginMixin`
@@ -314,6 +317,7 @@ communication plugins.
 **Main fields:**
 
 - `channel`
+- `diagnostic_source`
 - `to`
 - `subject`
 - `sender`
@@ -333,6 +337,8 @@ Worker plugins create `Message` instances and place them on the shared queue.
 Communication plugins consume the routed messages and deliver them externally.
 The payload internals keep class-specific `BData` keys private to the `Message`
 class instead of sharing one module-wide key registry.
+`diagnostic_source` can carry a technical producer identifier used by the
+dispatcher when it logs discarded messages addressed to unregistered channels.
 
 ## Plugin Runtime API
 

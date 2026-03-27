@@ -594,6 +594,7 @@ class Message(BData):
         # #[CONSTANTS]#####################################################################
         MSG_CHANNEL: str = "__channel__"
         MSG_COUNTER: str = "__counter__"
+        MSG_DIAGNOSTIC_SOURCE: str = "__diagnostic_source__"
         MSG_FOOTER: str = "__foot__"
         MSG_MESS: str = "__message__"
         MSG_MULTIPART: str = "__m_message__"
@@ -629,6 +630,11 @@ class Message(BData):
             key=self.__Keys.MSG_REPLY, value=None, set_default_type=Optional[str]
         )
         self._set_data(key=self.__Keys.MSG_COUNTER, value=0, set_default_type=int)
+        self._set_data(
+            key=self.__Keys.MSG_DIAGNOSTIC_SOURCE,
+            value=None,
+            set_default_type=Optional[str],
+        )
         self._set_data(
             key=self.__Keys.MSG_FOOTER, value=None, set_default_type=Optional[str]
         )
@@ -691,6 +697,24 @@ class Message(BData):
         * value: str - Footer text appended by the delivery plugin.
         """
         self._set_data(key=self.__Keys.MSG_FOOTER, value=value)
+
+    @property
+    def diagnostic_source(self) -> Optional[str]:
+        """Return the technical source identifier for dispatcher diagnostics.
+
+        ### Returns:
+        Optional[str] - Technical source identifier or `None`.
+        """
+        return self._get_data(key=self.__Keys.MSG_DIAGNOSTIC_SOURCE)
+
+    @diagnostic_source.setter
+    def diagnostic_source(self, value: str) -> None:
+        """Store the technical source identifier for dispatcher diagnostics.
+
+        ### Arguments:
+        * value: str - Technical source identifier, for example `self._c_name`.
+        """
+        self._set_data(key=self.__Keys.MSG_DIAGNOSTIC_SOURCE, value=value)
 
     @property
     def reply_to(self) -> Optional[str]:
@@ -993,7 +1017,6 @@ class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
 
         ### Raises:
         * TypeError: If `message` is not an instance of `Message`.
-        * ValueError: If the message references an unknown channel.
         """
         if not isinstance(message, Message):
             raise Raise.error(
@@ -1016,12 +1039,58 @@ class ThDispatcher(Thread, ThBaseObject, ThProcessorMixin):
                         f"Queue is full exception... check procedure."
                     )
         else:
-            raise Raise.error(
-                f"Received message with unknown channel: {message.channel}",
-                ValueError,
-                self._c_name,
-                currentframe(),
+            self.logs.message_warning = (
+                f"Discarded message for unregistered channel '{message.channel}'. "
+                f"Source: '{self.__message_source(message)}'. "
+                f"Summary: {self.__message_summary(message)}"
             )
+
+    def __message_source(self, message: Message) -> str:
+        """Return a human-readable technical source for dispatcher diagnostics.
+
+        ### Arguments:
+        * message: Message - Message object being routed.
+
+        ### Returns:
+        str - Human-readable source identifier.
+        """
+        source: Optional[str] = message.diagnostic_source
+        if source:
+            return source
+        return "unknown"
+
+    def __message_summary(self, message: Message) -> str:
+        """Return a compact diagnostic summary of the discarded message.
+
+        ### Arguments:
+        * message: Message - Message object being routed.
+
+        ### Returns:
+        str - Compact message summary for logs.
+        """
+        subject: str = str(message.subject).strip() if message.subject else ""
+        recipients: Optional[Union[List[str], str]] = message.to
+        recipients_count: int = 0
+        if isinstance(recipients, str):
+            recipients_count = 1 if recipients.strip() else 0
+        elif isinstance(recipients, list):
+            recipients_count = len([item for item in recipients if str(item).strip()])
+        fragments_count: int = len([item for item in message.messages if str(item).strip()])
+
+        if subject:
+            summary: str = f"subject='{subject}'"
+        elif fragments_count > 0:
+            preview: str = str(message.messages[0]).strip().replace("\n", " ")
+            summary = f"body='{preview[:80]}'"
+        elif message.mmessages:
+            summary = f"multipart={list(message.mmessages.keys())}"
+        else:
+            summary = "empty payload"
+
+        return (
+            f"{summary}, recipients={recipients_count}, "
+            f"fragments={fragments_count}, channel={message.channel}"
+        )
 
 
 # #[EOF]#######################################################################

@@ -129,6 +129,7 @@ class _Runtime(Thread, ThPluginMixin):
         for channel in notifications.due_channels():
             message = Message()
             message.channel = int(channel)
+            message.diagnostic_source = self._c_name
             message.subject = (
                 f"[{context.app_meta.app_name}:{context.instance_name}] "
                 "example1 startup notification"
