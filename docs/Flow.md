@@ -1,6 +1,6 @@
 # Flow diagram
 
-```{mermaid}
+```mermaid
 flowchart LR
     subgraph main [daemon]
     A1[main\nprocess] o==o A2[logger\nengine]
