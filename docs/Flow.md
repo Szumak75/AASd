@@ -2,7 +2,7 @@
 
 ```mermaid
 flowchart LR
-    subgraph main [daemon]
+    subgraph main ["`**[ daemon ]**`"]
     A1[main\nprocess] o==o A2[logger\nengine]
     LQ[logger\nqueue] --> A2
     A1 --> A3[logger\nclient]
@@ -21,14 +21,14 @@ flowchart LR
     end
     A1 o==o com
     A1 o==o run
-    subgraph com [communication plugins]
+    subgraph com ["`**[ communication plugins ]**`"]
     C1[plugin 1] --> C2[logger\nclient]
     CONF --> C1
     C2 --> LQ
     CQ --> C1
     C1 -...-> CE(["send\nreceived\nmessages"])
     end
-    subgraph run [worker plugins]
+    subgraph run ["`**[ worker plugins ]**`"]
     R1[plugin 1] --> R2[logger\nclient]
     CONF --> R1
     R1 <--> RS1[notification\nscheduler]
